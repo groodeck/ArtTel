@@ -1,0 +1,43 @@
+@CHARSET "UTF-8";
+
+body {
+	background-color: #F0FFF0; 
+	font-family:sans-serif; 
+	font-size: 14;
+}
+
+.borderedTable {
+	border-style:solid;
+	border-width: 1px;
+	font-size: 14;
+}
+
+.nonBorderedTable {
+	font-size: 14;
+}
+
+.tableHeader {
+	height: 24px;
+	font-weight: bold;
+	background-color: #778899;
+}
+
+.row0 {
+	cursor: pointer;
+	height: 20px;
+	background-color: #E6E6FA;
+}
+
+.row1 {
+	cursor: pointer;
+	height: 20px;
+	background-color: #ADD8E6;
+}
+
+.label {
+	background-color: #ADD8E6;
+}
+
+.field {
+	background-color: #E6E6FA;
+}
