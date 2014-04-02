@@ -7,6 +7,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
@@ -14,6 +16,7 @@ import org.arttel.controller.vo.OrderVO;
 import org.arttel.controller.vo.filter.OrderFilterVO;
 import org.arttel.dictionary.OrderType;
 import org.arttel.dictionary.Status;
+import org.arttel.entity.Order;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
@@ -22,15 +25,21 @@ import org.arttel.generator.report.ReportDataVO;
 import org.arttel.util.Translator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Repository
+@Transactional
 public class OrderDAO extends BaseDao {
 
+	@PersistenceContext
+	private EntityManager em;
+	
 	private final Logger log = Logger.getLogger(OrderDAO.class);
 	
 	private static final String ORDER_QUERY = " select orderId,status,orderType,issueDate,name,surname,address,city,bundle,serialNumber," +
 			" realizationDate,solution,comments,additionalComments,userId, phone, problemDescription" +
-			" from `Order` ";
+			" from Orders ";
 
 	public OrderVO getOrderById(String orderId) {
 		OrderVO result = null;
@@ -86,7 +95,7 @@ public class OrderDAO extends BaseDao {
 
 	public void deleteOrderById(final String orderId) {
 		if (orderId != null && !"".equals(orderId)) {
-			final String query = String.format("DELETE FROM `Order` WHERE orderId = %s", orderId);
+			final String query = String.format("DELETE FROM Orders WHERE orderId = %s", orderId);
 			try {
 				int rowsDeleted = getConnection().createStatement().executeUpdate(query);
 			} catch (SQLException e) {
@@ -100,7 +109,10 @@ public class OrderDAO extends BaseDao {
 	@Autowired
 	private DataSource dataSource;
 	
+	
+	
 	public List<OrderVO> getOrderList(OrderFilterVO orderFilterVO) {
+		
 		final List<OrderVO> resultList = new ArrayList<OrderVO>();
 		if(orderFilterVO == null){
 			return resultList;
@@ -169,7 +181,7 @@ public class OrderDAO extends BaseDao {
 		try {
 			stmt = getConnection().createStatement();
 			int rowsInserted = stmt
-					.executeUpdate("insert into `order`(status,orderType,issueDate,name,surname,address,city,bundle,serialNumber," +
+					.executeUpdate("insert into Orders(status,orderType,issueDate,name,surname,address,city,bundle,serialNumber," +
 							" realizationDate,solution,comments,additionalComments,userId, phone, problemDescription) " +
 							"values("
 							+ "'" + orderVO.getStatus().getIdn() + "', " 
@@ -203,7 +215,7 @@ public class OrderDAO extends BaseDao {
 		try {
 			stmt = getConnection().createStatement();
 			int rowsInserted = stmt
-					.executeUpdate("UPDATE `order` SET " +
+					.executeUpdate("UPDATE Orders SET " +
 							"status = '" + orderVO.getStatus().getIdn() + "', " +
 							"orderType = '" + orderVO.getOrderType().getIdn() + "', " +
 							"issueDate = " + (orderVO.getIssueDate()!=null ? "'"+orderVO.getIssueDate()+"'" : "null") + ", " + 
@@ -238,7 +250,7 @@ public class OrderDAO extends BaseDao {
 			String dataQuery = "select o.orderId,o.status,o.orderType,o.issueDate,o.name,o.surname,o.address, "
 				+ " c.cityDesc,o.bundle,o.serialNumber,o.realizationDate,o.solution,o.comments,o.additionalComments,o.userId, "
 				+ " o.phone, o.problemDescription, o.comments "
-				+ " from `Order` o "
+				+ " from Orders o "
 				+ " left join city c on o.city=c.cityIdn "
 				+ " where 1 ";
 			if(dateFrom != null){
@@ -313,7 +325,7 @@ public class OrderDAO extends BaseDao {
 	
 	public void closeOrder(String orderId) {
 
-		final String query = " UPDATE `Order` SET status='" + Status.DONE.getIdn() + "' WHERE orderId = " + orderId;
+		final String query = " UPDATE Orders SET status='" + Status.DONE.getIdn() + "' WHERE orderId = " + orderId;
 		
 		try {
 			final Statement stmt = getConnection().createStatement();

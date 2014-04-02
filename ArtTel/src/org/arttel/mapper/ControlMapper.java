@@ -4,7 +4,6 @@ import javax.servlet.ServletContext;
 
 import org.arttel.controller.AgreementsController;
 import org.arttel.controller.BaseController;
-import org.arttel.controller.BuildingsController;
 import org.arttel.controller.ClientController;
 import org.arttel.controller.CorrectionController;
 import org.arttel.controller.DealingController;
@@ -33,7 +32,6 @@ public enum ControlMapper {
 	AGREEMENTS("agreements.app","agreement.jsp", AgreementsController.class),
 	DEALING("dealing.app","dealing.jsp", DealingController.class),
 	SQUEEZES("squeezes.app","squeezes.jsp", SqueezesController.class),
-	BUILDINGS("buildings.app","buildings.jsp", BuildingsController.class),
 	SETTINGS("settings.app","settings.jsp", SettingsController.class),
 	REPORTS("reports.app","reports.jsp", ReportsController.class),
 	INVOICES("invoices.app","invoices.jsp", InvoicesController.class),
