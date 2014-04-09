@@ -9,12 +9,12 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "Labor")
-public class Labor {
+@Table(name = "Material")
+public class Material {
 
 	@Id
-	@Column(name = "LaborId")
-	private Integer laborId;
+	@Column(name = "MaterialId")
+	private Integer materialId;
 	
 	@Column(name = "NumerZlecenia")
 	private String orderNumber;
@@ -29,7 +29,7 @@ public class Labor {
 	private String sectionName;
 	
 	@Column(name = "Rodzaj")
-	private String laborType;
+	private String materialType;
 	
 	@Column(name = "Ilosc")
 	private Integer quantity;
@@ -40,12 +40,12 @@ public class Labor {
 	@Column(name = "UserId")
 	private String userId;
 
-	public Integer getLaborId() {
-		return laborId;
+	public Integer getMaterialId() {
+		return materialId;
 	}
 
-	public void setLaborId(Integer laborId) {
-		this.laborId = laborId;
+	public void setMaterialId(Integer materialId) {
+		this.materialId = materialId;
 	}
 
 	public String getOrderNumber() {
@@ -80,12 +80,12 @@ public class Labor {
 		this.sectionName = sectionName;
 	}
 
-	public String getLaborType() {
-		return laborType;
+	public String getMaterialType() {
+		return materialType;
 	}
 
-	public void setLaborType(String laborType) {
-		this.laborType = laborType;
+	public void setMaterialType(String materialType) {
+		this.materialType = materialType;
 	}
 
 	public Integer getQuantity() {

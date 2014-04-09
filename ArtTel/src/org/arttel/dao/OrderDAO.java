@@ -5,10 +5,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
@@ -16,6 +23,10 @@ import org.arttel.controller.vo.OrderVO;
 import org.arttel.controller.vo.filter.OrderFilterVO;
 import org.arttel.dictionary.OrderType;
 import org.arttel.dictionary.Status;
+import org.arttel.entity.Agreement;
+import org.arttel.entity.City;
+import org.arttel.entity.Client;
+import org.arttel.entity.CompanyCosts;
 import org.arttel.entity.Order;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
@@ -28,6 +39,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 @Repository
 @Transactional
 public class OrderDAO extends BaseDao {
@@ -37,9 +53,7 @@ public class OrderDAO extends BaseDao {
 	
 	private final Logger log = Logger.getLogger(OrderDAO.class);
 	
-	private static final String ORDER_QUERY = " select orderId,status,orderType,issueDate,name,surname,address,city,bundle,serialNumber," +
-			" realizationDate,solution,comments,additionalComments,userId, phone, problemDescription" +
-			" from Orders ";
+	private static final String ORDER_QUERY = "from Order ";
 
 	public OrderVO getOrderById(String orderId) {
 		OrderVO result = null;
@@ -92,6 +106,35 @@ public class OrderDAO extends BaseDao {
 		
 		return singleOrder;
 	}
+	
+	private OrderVO extractOrder(Order entityOrder) {
+		final OrderVO singleOrder = new OrderVO();
+		singleOrder.setOrderId(""+entityOrder.getOrderId());
+		final String statusIdn = entityOrder.getStatus();
+		if(statusIdn != null){
+			singleOrder.setStatus(Status.getValueByIdn(statusIdn));
+		}
+		final String orderTypeIdn = entityOrder.getOrderType();
+		if(orderTypeIdn != null){
+			singleOrder.setOrderType(OrderType.getValueByIdn(orderTypeIdn));
+		}
+		singleOrder.setIssueDate(entityOrder.getIssueDate());
+		singleOrder.setName(entityOrder.getName());
+		singleOrder.setSurname(entityOrder.getSurname());
+		singleOrder.setAddress(entityOrder.getAddress());
+		singleOrder.setCity(entityOrder.getCity());
+		singleOrder.setBundle(entityOrder.getBundle());
+		singleOrder.setSerialNumber(entityOrder.getSerialNumber());
+		singleOrder.setRealizationDate(entityOrder.getRealizationDate());
+		singleOrder.setSolution(entityOrder.getSolution());
+		singleOrder.setComments(entityOrder.getComments());
+		singleOrder.setAdditionalComments(entityOrder.getAdditionalComments());
+		singleOrder.setUser(entityOrder.getUserId());
+		singleOrder.setPhone(entityOrder.getPhone());
+		singleOrder.setProblemDescription(entityOrder.getProblemDescription());
+		
+		return singleOrder;
+	}
 
 	public void deleteOrderById(final String orderId) {
 		if (orderId != null && !"".equals(orderId)) {
@@ -118,52 +161,66 @@ public class OrderDAO extends BaseDao {
 			return resultList;
 		}
 		
-		final String query = prepareQuery(orderFilterVO);
+		 CriteriaQuery<Order> query = prepareQueryCriteria(orderFilterVO);
 
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(query);
-			while(rs.next()){
-				resultList.add(extractOrder(rs));
-			} 
-		} catch (SQLException e) {
-			log.error("SQLException", e);
-		} finally {
-			disconnect(stmt, rs);
-		}
-		return resultList;
+		List<Order> entityResults = em.createQuery(query).getResultList();
+		
+		return Lists.newArrayList(Collections2.transform(entityResults, new Function<Order, OrderVO>(){
+
+			@Override
+			public OrderVO apply(Order arg0) {
+				return extractOrder(arg0);
+			}
+			
+		}));
 	}
 
-	private String prepareQuery(final OrderFilterVO orderFilterVO) {
+	private CriteriaQuery<Order> prepareQueryCriteria(final OrderFilterVO orderFilterVO) {
 		
-		final StringBuilder query = new StringBuilder(
-				ORDER_QUERY + 
-				" where " +
-				"	true "
-		);
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Order> criteria = builder.createQuery(Order.class);
+		Root<Order> orderRoot = criteria.from(Order.class);
 		
 		if(orderFilterVO.getPhrase() != null){
-			query.append(" and  ")
-				.append("(")
-					.append(" city like '%" + orderFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append(" address like '%" + orderFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append(" name like '%" + orderFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append( "surname like '%" + orderFilterVO.getPhrase() + "%'")
-				.append(")");
+			final String phrase = "%"+ orderFilterVO.getPhrase()+"%";
+			criteria.where(builder.or(
+					builder.like(orderRoot.<String> get("city"), phrase),
+					builder.like(orderRoot.<String> get("address"), phrase),
+					builder.like(orderRoot.<String> get("name"), phrase),
+					builder.like(orderRoot.<String> get("surname"), phrase)));
+//			query.append(" and  ")
+//				.append("(")
+//					.append(" city like '%" + orderFilterVO.getPhrase() + "%'")
+//					.append(" OR ")
+//					.append(" address like '%" + orderFilterVO.getPhrase() + "%'")
+//					.append(" OR ")
+//					.append(" name like '%" + orderFilterVO.getPhrase() + "%'")
+//					.append(" OR ")
+//					.append( "surname like '%" + orderFilterVO.getPhrase() + "%'")
+//				.append(")");
 		} else {
-			query.append(orderFilterVO.getCity() != null   ?  " and  city='" + orderFilterVO.getCity() + "'" : "")
-				.append(orderFilterVO.getStatus() != null ?  " and status='" + orderFilterVO.getStatus() + "'" : "" )
-				.append(orderFilterVO.getDateFrom() != null ?  " and realizationDate >= '" + orderFilterVO.getDateFrom() + "'" : "" )
-				.append(orderFilterVO.getDateTo() != null ?  " and realizationDate <= '" + orderFilterVO.getDateTo() + "'" : "" );
+			if(orderFilterVO.getCity() != null){
+				criteria.where(builder.and(builder.equal(orderRoot.get("city"), orderFilterVO.getCity())));
+			}
+			if(orderFilterVO.getStatus() != null){
+				criteria.where(builder.and(builder.equal(orderRoot.get("status"), orderFilterVO.getStatus())));
+			}
+//			if(orderFilterVO.getDateFrom() != null){
+//				ParameterExpression<Date> dateFrom = builder.parameter(Date.class, orderFilterVO.getDateFrom());
+//				criteria.where(builder.and(builder.greaterThanOrEqualTo(orderRoot.get("realizationDate"), dateFrom)));
+//			}
+//			if(orderFilterVO.getDateTo() != null){
+//				
+//			}
+//			query.append(orderFilterVO.getCity() != null   ?  " and  city='" + orderFilterVO.getCity() + "'" : "")
+//				.append(orderFilterVO.getStatus() != null ?  " and status='" + orderFilterVO.getStatus() + "'" : "" )
+//				.append(orderFilterVO.getDateFrom() != null ?  " and realizationDate >= '" + orderFilterVO.getDateFrom() + "'" : "" )
+//				.append(orderFilterVO.getDateTo() != null ?  " and realizationDate <= '" + orderFilterVO.getDateTo() + "'" : "" );
 		
 		}
-		query.append(" order by realizationDate desc, orderId desc ");
-		return query.toString();
+//		query.append(" order by realizationDate desc, orderId desc ");
+		criteria.orderBy(builder.desc(orderRoot.<String> get("realizationDate")), builder.desc(orderRoot.<String> get("orderId")));
+		return criteria;
 	}
 
 
