@@ -10,10 +10,7 @@ import org.arttel.controller.DealingController;
 import org.arttel.controller.HomePageController;
 import org.arttel.controller.InstalationsController;
 import org.arttel.controller.InvoicesController;
-import org.arttel.controller.LaborController;
-import org.arttel.controller.MaterialsController;
 import org.arttel.controller.OrdersController;
-import org.arttel.controller.PayoutsController;
 import org.arttel.controller.ProductController;
 import org.arttel.controller.ReportsController;
 import org.arttel.controller.SettingsController;
@@ -26,9 +23,6 @@ public enum ControlMapper {
 	HOME("home.app","home.jsp", HomePageController.class),
 	INSTALATION("instalations.app","instalations.jsp", InstalationsController.class),
 	ORDER("orders.app","orders.jsp", OrdersController.class),
-	MATERIALS("materials.app","materials.jsp", MaterialsController.class),
-	PAYOUTS("payouts.app","payouts.jsp", PayoutsController.class),
-	LABOR("labor.app","labor.jsp", LaborController.class),
 	AGREEMENTS("agreements.app","agreement.jsp", AgreementsController.class),
 	DEALING("dealing.app","dealing.jsp", DealingController.class),
 	SQUEEZES("squeezes.app","squeezes.jsp", SqueezesController.class),
