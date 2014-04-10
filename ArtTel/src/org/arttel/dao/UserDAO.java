@@ -8,39 +8,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.arttel.controller.vo.SimpleComboElement;
+import org.arttel.entity.Order;
 import org.arttel.exception.DaoException;
 import org.arttel.view.ComboElement;
 import org.arttel.view.EmptyComboElement;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Repository
+@Transactional
 public class UserDAO extends BaseDao {
 
+	@PersistenceContext
+	private EntityManager em;
+	
 	public boolean checkUserPassword(String user, String hashedPassword)
 			throws DaoException {
 
 		if(user == null || hashedPassword==null){
 			return false;
 		}
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			stmt = getConnection().createStatement();
-			rs = stmt
-					.executeQuery("select userPassword from User where userName = '"
-							+ user
-							+ "'");
-			if (rs.next()) {
-				final String passwordReturned = rs.getString("userPassword");
-				if(hashedPassword.equals(passwordReturned)) {
-					return true;
-				}
+		
+		List<String> entityResults = em.createQuery(
+				"select u.userPassword from User u where u.userName = '" + user + "'")
+				.getResultList();
+		
+		for(String password : entityResults){
+			if(hashedPassword.equals(password)) {
+				return true;
 			}
-		} catch (SQLException e) {
-			throw new DaoException("UserDao SQLException", e);
-		} finally {
-			disconnect(stmt, rs);
 		}
 		return false;
 	}

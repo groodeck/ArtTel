@@ -1,32 +1,29 @@
 package org.arttel.dao;
 
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
+import javax.transaction.Transactional;
 
 import org.apache.log4j.Logger;
 import org.arttel.controller.vo.OrderVO;
+import org.arttel.controller.vo.SimpleComboElement;
 import org.arttel.controller.vo.filter.OrderFilterVO;
 import org.arttel.dictionary.OrderType;
 import org.arttel.dictionary.Status;
-import org.arttel.entity.Agreement;
-import org.arttel.entity.City;
-import org.arttel.entity.Client;
-import org.arttel.entity.CompanyCosts;
 import org.arttel.entity.Order;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
@@ -35,17 +32,15 @@ import org.arttel.generator.DataSheet;
 import org.arttel.generator.report.ReportDataVO;
 import org.arttel.util.Translator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 @Repository
-@Transactional
+@org.springframework.transaction.annotation.Transactional
 public class OrderDAO extends BaseDao {
 
 	@PersistenceContext
@@ -53,130 +48,65 @@ public class OrderDAO extends BaseDao {
 	
 	private final Logger log = Logger.getLogger(OrderDAO.class);
 	
-	private static final String ORDER_QUERY = "from Order ";
+	private Function<Order, OrderVO> orderMapper = new Function<Order, OrderVO>() {
 
-	public OrderVO getOrderById(String orderId) {
-		OrderVO result = null;
-		if (orderId != null && !"".equals(orderId)) {
-			final String query = ORDER_QUERY.concat(String.format(
-					"WHERE orderId = %s", orderId));
-			Statement stmt = null;
-			ResultSet rs = null;
-			try {
-				stmt = getConnection().createStatement();
-				rs = stmt.executeQuery(query);
-				if (rs.next()) {
-					result = extractOrder(rs);
-				}
-			} catch (SQLException e) {
-				log.error("SQLException", e);
-			} finally {
-				disconnect(stmt, rs);
+		@Override
+		public OrderVO apply(Order entityOrder) {
+			final OrderVO singleOrder = new OrderVO();
+			singleOrder.setOrderId(entityOrder.getOrderId().toString());
+			final String statusIdn = entityOrder.getStatus();
+			if(statusIdn != null){
+				singleOrder.setStatus(Status.getValueByIdn(statusIdn));
 			}
+			final String orderTypeIdn = entityOrder.getOrderType();
+			if(orderTypeIdn != null){
+				singleOrder.setOrderType(OrderType.getValueByIdn(orderTypeIdn));
+			}
+			singleOrder.setIssueDate(entityOrder.getIssueDate());
+			singleOrder.setName(entityOrder.getName());
+			singleOrder.setSurname(entityOrder.getSurname());
+			singleOrder.setAddress(entityOrder.getAddress());
+			singleOrder.setCity(entityOrder.getCity());
+			singleOrder.setBundle(entityOrder.getBundle());
+			singleOrder.setSerialNumber(entityOrder.getSerialNumber());
+			singleOrder.setRealizationDate(entityOrder.getRealizationDate());
+			singleOrder.setSolution(entityOrder.getSolution());
+			singleOrder.setComments(entityOrder.getComments());
+			singleOrder.setAdditionalComments(entityOrder.getAdditionalComments());
+			singleOrder.setUser(entityOrder.getUserId());
+			singleOrder.setPhone(entityOrder.getPhone());
+			singleOrder.setProblemDescription(entityOrder.getProblemDescription());
+			
+			return singleOrder;
 		}
-		return result;
-	}
-
-	//TODO: extract builder method in instalation dao
-	private OrderVO extractOrder(ResultSet rs) throws SQLException {
-		final OrderVO singleOrder = new OrderVO();
-		singleOrder.setOrderId(rs.getString(1));
-		final String statusIdn = rs.getString(2);
-		if(statusIdn != null){
-			singleOrder.setStatus(Status.getValueByIdn(statusIdn));
-		}
-		final String orderTypeIdn = rs.getString(3);
-		if(orderTypeIdn != null){
-			singleOrder.setOrderType(OrderType.getValueByIdn(orderTypeIdn));
-		}
-		singleOrder.setIssueDate(rs.getDate(4));
-		singleOrder.setName(rs.getString(5));
-		singleOrder.setSurname(rs.getString(6));
-		singleOrder.setAddress(rs.getString(7));
-		singleOrder.setCity(rs.getString(8));
-		singleOrder.setBundle(rs.getString(9));
-		singleOrder.setSerialNumber(rs.getString(10));
-		singleOrder.setRealizationDate(rs.getDate(11));
-		singleOrder.setSolution(rs.getString(12));
-		singleOrder.setComments(rs.getString(13));
-		singleOrder.setAdditionalComments(rs.getString(14));
-		singleOrder.setUser(rs.getString(15));
-		singleOrder.setPhone(rs.getString(16));
-		singleOrder.setProblemDescription(rs.getString(17));
-		
-		return singleOrder;
-	}
+	};
 	
-	private OrderVO extractOrder(Order entityOrder) {
-		final OrderVO singleOrder = new OrderVO();
-		singleOrder.setOrderId(""+entityOrder.getOrderId());
-		final String statusIdn = entityOrder.getStatus();
-		if(statusIdn != null){
-			singleOrder.setStatus(Status.getValueByIdn(statusIdn));
-		}
-		final String orderTypeIdn = entityOrder.getOrderType();
-		if(orderTypeIdn != null){
-			singleOrder.setOrderType(OrderType.getValueByIdn(orderTypeIdn));
-		}
-		singleOrder.setIssueDate(entityOrder.getIssueDate());
-		singleOrder.setName(entityOrder.getName());
-		singleOrder.setSurname(entityOrder.getSurname());
-		singleOrder.setAddress(entityOrder.getAddress());
-		singleOrder.setCity(entityOrder.getCity());
-		singleOrder.setBundle(entityOrder.getBundle());
-		singleOrder.setSerialNumber(entityOrder.getSerialNumber());
-		singleOrder.setRealizationDate(entityOrder.getRealizationDate());
-		singleOrder.setSolution(entityOrder.getSolution());
-		singleOrder.setComments(entityOrder.getComments());
-		singleOrder.setAdditionalComments(entityOrder.getAdditionalComments());
-		singleOrder.setUser(entityOrder.getUserId());
-		singleOrder.setPhone(entityOrder.getPhone());
-		singleOrder.setProblemDescription(entityOrder.getProblemDescription());
-		
-		return singleOrder;
+	public OrderVO getOrderById(String orderId) {
+		final Order orderEntity = em.find(Order.class, new Integer(orderId));
+		return orderMapper.apply(orderEntity);
 	}
 
 	public void deleteOrderById(final String orderId) {
 		if (orderId != null && !"".equals(orderId)) {
-			final String query = String.format("DELETE FROM Orders WHERE orderId = %s", orderId);
-			try {
-				int rowsDeleted = getConnection().createStatement().executeUpdate(query);
-			} catch (SQLException e) {
-				log.error("SQLException", e);
-			} finally {
-				disconnect(null, null);
-			}
+			Order order = em.find(Order.class, new Integer(orderId));
+			em.remove(order);
 		}
 	}
 
-	@Autowired
-	private DataSource dataSource;
-	
-	
+//	@Autowired
+//	private DataSource dataSource;
 	
 	public List<OrderVO> getOrderList(OrderFilterVO orderFilterVO) {
-		
 		final List<OrderVO> resultList = new ArrayList<OrderVO>();
 		if(orderFilterVO == null){
 			return resultList;
 		}
-		
-		 CriteriaQuery<Order> query = prepareQueryCriteria(orderFilterVO);
-
-		List<Order> entityResults = em.createQuery(query).getResultList();
-		
-		return Lists.newArrayList(Collections2.transform(entityResults, new Function<Order, OrderVO>(){
-
-			@Override
-			public OrderVO apply(Order arg0) {
-				return extractOrder(arg0);
-			}
-			
-		}));
+		final CriteriaQuery<Order> query = prepareQueryCriteria(orderFilterVO);
+		final List<Order> entityResults = em.createQuery(query).getResultList();
+		return Lists.newArrayList(Collections2.transform(entityResults, orderMapper));
 	}
 
 	private CriteriaQuery<Order> prepareQueryCriteria(final OrderFilterVO orderFilterVO) {
-		
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Order> criteria = builder.createQuery(Order.class);
 		Root<Order> orderRoot = criteria.from(Order.class);
@@ -188,16 +118,6 @@ public class OrderDAO extends BaseDao {
 					builder.like(orderRoot.<String> get("address"), phrase),
 					builder.like(orderRoot.<String> get("name"), phrase),
 					builder.like(orderRoot.<String> get("surname"), phrase)));
-//			query.append(" and  ")
-//				.append("(")
-//					.append(" city like '%" + orderFilterVO.getPhrase() + "%'")
-//					.append(" OR ")
-//					.append(" address like '%" + orderFilterVO.getPhrase() + "%'")
-//					.append(" OR ")
-//					.append(" name like '%" + orderFilterVO.getPhrase() + "%'")
-//					.append(" OR ")
-//					.append( "surname like '%" + orderFilterVO.getPhrase() + "%'")
-//				.append(")");
 		} else {
 			if(orderFilterVO.getCity() != null){
 				criteria.where(builder.and(builder.equal(orderRoot.get("city"), orderFilterVO.getCity())));
@@ -205,99 +125,53 @@ public class OrderDAO extends BaseDao {
 			if(orderFilterVO.getStatus() != null){
 				criteria.where(builder.and(builder.equal(orderRoot.get("status"), orderFilterVO.getStatus())));
 			}
-//			if(orderFilterVO.getDateFrom() != null){
-//				ParameterExpression<Date> dateFrom = builder.parameter(Date.class, orderFilterVO.getDateFrom());
-//				criteria.where(builder.and(builder.greaterThanOrEqualTo(orderRoot.get("realizationDate"), dateFrom)));
-//			}
-//			if(orderFilterVO.getDateTo() != null){
-//				
-//			}
-//			query.append(orderFilterVO.getCity() != null   ?  " and  city='" + orderFilterVO.getCity() + "'" : "")
-//				.append(orderFilterVO.getStatus() != null ?  " and status='" + orderFilterVO.getStatus() + "'" : "" )
-//				.append(orderFilterVO.getDateFrom() != null ?  " and realizationDate >= '" + orderFilterVO.getDateFrom() + "'" : "" )
-//				.append(orderFilterVO.getDateTo() != null ?  " and realizationDate <= '" + orderFilterVO.getDateTo() + "'" : "" );
-		
+			if(orderFilterVO.getDateFrom() != null){
+				criteria.where(builder.and(builder.greaterThanOrEqualTo(
+						orderRoot.<Date>get("realizationDate"), orderFilterVO.getDateFrom())));
+			}
+			if(orderFilterVO.getDateTo() != null){
+				criteria.where(builder.and(builder.lessThanOrEqualTo(
+						orderRoot.<Date>get("realizationDate"), orderFilterVO.getDateTo())));
+			}
 		}
-//		query.append(" order by realizationDate desc, orderId desc ");
-		criteria.orderBy(builder.desc(orderRoot.<String> get("realizationDate")), builder.desc(orderRoot.<String> get("orderId")));
+		criteria.orderBy(
+				builder.desc(orderRoot.<String> get("realizationDate")), 
+				builder.desc(orderRoot.<String> get("orderId")));
 		return criteria;
 	}
 
 
-	public String save(OrderVO orderVO, String userName) throws DaoException {
+	@org.springframework.transaction.annotation.Transactional
+	public void save(OrderVO orderVO, String userName) throws DaoException {
+		final Order entity;
 		if(orderVO.getOrderId() != null && !"".equals(orderVO.getOrderId())){
-			return update(orderVO, userName);
+			entity = em.find(Order.class, new Integer(orderVO.getOrderId()));
 		} else {
-			return create(orderVO, userName);
+			entity = new Order();
 		}
+		updateWithData(entity, orderVO);
+		em.persist(entity);
 	}
 
-	private String create( final OrderVO orderVO, final String userName ) throws DaoException {
-
-		Statement stmt = null;
-		try {
-			stmt = getConnection().createStatement();
-			int rowsInserted = stmt
-					.executeUpdate("insert into Orders(status,orderType,issueDate,name,surname,address,city,bundle,serialNumber," +
-							" realizationDate,solution,comments,additionalComments,userId, phone, problemDescription) " +
-							"values("
-							+ "'" + orderVO.getStatus().getIdn() + "', " 
-							+ "'" + orderVO.getOrderType().getIdn() + "', "
-							+ (orderVO.getIssueDate()!=null ? "'"+orderVO.getIssueDate()+"'" : "null") + ", "
-							+ "'" + orderVO.getName() + "', " 
-							+ "'" + orderVO.getSurname() + "', "
-							+ "'" + orderVO.getAddress() + "', "
-							+ "'" + orderVO.getCity() + "', "
-							+ "'" + orderVO.getBundle() + "', "
-							+ "'" + orderVO.getSerialNumber() + "', "
-							+ (orderVO.getRealizationDate()!=null ? "'"+orderVO.getRealizationDate()+"'" : "null") + ", "
-							+ "'" + orderVO.getSolution() + "', "
-							+ "'" + orderVO.getComments() + "', "
-							+ "'" + orderVO.getAdditionalComments() + "', "
-							+ "'" + userName + "', "
-							+ "'" + orderVO.getPhone() + "', "
-							+ "'" + orderVO.getProblemDescription() + "')");
-			
-		} catch (SQLException e) {
-			throw new DaoException("OrderDAO SQLException", e);
-		} finally {
-			disconnect(stmt, null);
-		}
-		return null;
+	public void updateWithData(final Order entity, final OrderVO vo) {
+		entity.setStatus(vo.getStatus().getIdn());
+		entity.setOrderType(vo.getOrderType().getIdn());
+		entity.setIssueDate(vo.getIssueDate());
+		entity.setName(vo.getName());
+		entity.setSurname(vo.getSurname());
+		entity.setAddress(vo.getAddress());
+		entity.setCity(vo.getCity());
+		entity.setBundle(vo.getBundle());
+		entity.setSerialNumber(vo.getSerialNumber());
+		entity.setRealizationDate(vo.getRealizationDate());
+		entity.setSolution(vo.getSolution());
+		entity.setComments(vo.getComments());
+		entity.setAdditionalComments(vo.getAdditionalComments());
+		entity.setUserId(vo.getUser());
+		entity.setPhone(vo.getPhone());
+		entity.setProblemDescription(vo.getProblemDescription());
 	}
 	
-	private String update(  final OrderVO orderVO, final String userName ) throws DaoException {
-
-		Statement stmt = null;
-		try {
-			stmt = getConnection().createStatement();
-			int rowsInserted = stmt
-					.executeUpdate("UPDATE Orders SET " +
-							"status = '" + orderVO.getStatus().getIdn() + "', " +
-							"orderType = '" + orderVO.getOrderType().getIdn() + "', " +
-							"issueDate = " + (orderVO.getIssueDate()!=null ? "'"+orderVO.getIssueDate()+"'" : "null") + ", " + 
-							"name = '" + orderVO.getName() + "', " +
-							"surname = '" + orderVO.getSurname() + "', " +
-							"address = '" + orderVO.getAddress() + "', " +
-							"city = '" + orderVO.getCity() + "', " +
-							"bundle = '" + orderVO.getBundle() + "', " +
-							"serialNumber = '" + orderVO.getSerialNumber() + "', " +
-							"realizationDate = " + (orderVO.getRealizationDate()!=null ? "'"+orderVO.getRealizationDate()+"'" : "null") + ", " +
-							"solution = '" + orderVO.getSolution() + "', " +
-							"comments = '" + orderVO.getComments() + "', " + 
-							"additionalComments = '" + orderVO.getAdditionalComments() + "', " +
-							"phone = '" + orderVO.getPhone() + "', " +
-							"problemDescription = '" + orderVO.getProblemDescription() + "' " +
-							"WHERE orderId = " + orderVO.getOrderId() );
-							
-		} catch (SQLException e) {
-			throw new DaoException("OrderDAO SQLException", e);
-		} finally {
-			disconnect(stmt, null);
-		}
-		return null;
-	}
-
 	public ReportDataVO getReportData(String worksheetName, Date dateFrom, Date dateTo, String cityIdn) throws DaoException {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -381,14 +255,7 @@ public class OrderDAO extends BaseDao {
 	}
 	
 	public void closeOrder(String orderId) {
-
-		final String query = " UPDATE Orders SET status='" + Status.DONE.getIdn() + "' WHERE orderId = " + orderId;
-		
-		try {
-			final Statement stmt = getConnection().createStatement();
-			stmt.executeUpdate(query);
-		} catch (SQLException e) {
-			log.error("SQLException", e);
-		}
+		final Order entity = em.find(Order.class, new Integer(orderId));
+		entity.setStatus(Status.DONE.getIdn());
 	}
 }
