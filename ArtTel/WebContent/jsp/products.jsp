@@ -19,7 +19,7 @@
 	<input type="hidden" id="event" name="event" />
 	<input type="hidden" id="eventParam" name="eventParam" />
 	
-	<c:import url="menu.jsp" />
+	<custom:menu userContext="${userContext}" />
 	
 	<c:if test="${event=='MAIN' || event=='SEARCH'}">
 		

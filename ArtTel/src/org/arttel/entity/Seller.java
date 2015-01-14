@@ -1,10 +1,17 @@
 package org.arttel.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
 @Entity
 @Table(name="Seller")
@@ -47,6 +54,10 @@ public class Seller {
 	
 	@Column(name="User")
 	private String user;
+
+	@OneToMany
+	@JoinColumn(name="sellerId")
+	private List<SellerBankAccount> bankAccounts;
 	
 	public Integer getSellerId() {
 		return sellerId;
@@ -142,5 +153,13 @@ public class Seller {
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	public List<SellerBankAccount> getBankAccounts() {
+		return bankAccounts;
+	}
+
+	public void setBankAccounts(List<SellerBankAccount> bankAccounts) {
+		this.bankAccounts = bankAccounts;
 	}
 }

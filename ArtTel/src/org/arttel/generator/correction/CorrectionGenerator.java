@@ -17,9 +17,11 @@ import org.arttel.controller.vo.InvoiceValuesVO;
 import org.arttel.controller.vo.ProductVO;
 import org.arttel.controller.vo.SellerVO;
 import org.arttel.dao.ClientDAO;
+import org.arttel.dao.SellerBankAccountDao;
 import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.dictionary.VatRate;
+import org.arttel.entity.SellerBankAccount;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
@@ -35,6 +37,9 @@ public class CorrectionGenerator {
 
 	@Autowired
 	private SellerDAO sellerDao;
+
+	@Autowired
+	private SellerBankAccountDao bankAccountDao;
 
 	private static final int PRODUCT_ROW_OFFSET = 15;
 	private static final String OUTPUT_FILE_NAME = "Korekta.xlsx";
@@ -53,8 +58,11 @@ public class CorrectionGenerator {
 		final SellerVO seller = sellerDao.getSellerById(invoiceVO.getSellerId());
 		dataSheet.addDetailsCell(6, 0, new DataCell(formatParticipantDescription(seller), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(9, 0, new DataCell("NIP: "+seller.getNip(), CellType.TEXT));
-		dataSheet.addDetailsCell(10, 0, new DataCell("Nr rachunku: "+seller.getBankName() + " \n " + seller.getAccountNumber(), 
-				CellType.WRAPABLE_TEXT));
+		if(invoiceVO.getSellerBankAccountId() != null){
+			final SellerBankAccount bankAccount = bankAccountDao.getBankAccountById(invoiceVO.getSellerBankAccountId());
+			dataSheet.addDetailsCell(10, 0, new DataCell("Nr rachunku: "+bankAccount.getBankName() + " \n " + bankAccount.getAccountNumber(), 
+					CellType.WRAPABLE_TEXT));
+		}
 		dataSheet.addDetailsCell(10, 5, new DataCell(getPaymentTypeDescription(correction), CellType.WRAPABLE_TEXT));
 		
 		final ClientVO client = clientDao.getClientById(invoiceVO.getClientId());

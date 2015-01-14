@@ -17,6 +17,8 @@ import org.arttel.util.Translator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
+
 @Component
 public class CorrectionDAO extends BaseDao {
 
@@ -28,153 +30,6 @@ public class CorrectionDAO extends BaseDao {
 			"		LEFT JOIN InvoceProductCorrection ipc ON c.invoiceId=ipc.invoiceId" +
 			"	WHERE c.correctionId = %s";
 
-	public String create(final InvoiceVO invoiceVO, final String userName)
-			throws DaoException {
-
-		Statement stmt = null;
-		try {
-			stmt = getConnection().createStatement();
-			final String correctionId = insertCorrection(invoiceVO, userName, stmt);
-			final InvoiceProductCorrectionDAO invoiceProductCorrectionDAO = 
-					invoiceProductCorrectionDao;
-			invoiceProductCorrectionDAO.insertInvoiceProductsCorrection(
-					invoiceVO.getInvoiceProducts(),invoiceVO.getInvoiceId(), stmt);
-			return correctionId;
-		} catch (SQLException e) {
-			throw new DaoException("InvoicesCorrectionDAO SQLException", e);
-		} finally {
-			disconnect(stmt, null);
-		}
-	}
-
-	private String insertCorrection(final InvoiceVO invoiceVO,
-			final String userName, final Statement stmt) throws SQLException {
-		final CorrectionVO correction = invoiceVO.getCorrection();
-		final String insertQuery = "INSERT INTO Correction(correctionNumber, invoiceId, createDate, netAmount, "
-				+ "vatAmount, netAmountDiff, vatAmountDiff, comments, paid, paymentType, user, paidWords, paymentDate) VALUES ('"
-				+ correction.getCorrectionNumber()
-				+ "', "
-				+ correction.getInvoiceId()
-				+ ", "
-				+ (correction.getCreateDate() != null ? "'"
-						+ correction.getCreateDate() + "'" : "null")
-				+ ","
-				+ correction.getNetAmount()
-				+ ","
-				+ correction.getVatAmount()
-				+ ","
-				+ correction.getNetAmountDiff()
-				+ ","
-				+ correction.getVatAmountDiff()
-				+ ",'"
-				+ correction.getComments()
-				+ "',"
-				+ correction.getPaid()
-				+ ",'"
-				+ correction.getPaymentType().getIdn()
-				+ "','"
-				+ userName
-				+ "','" + correction.getPaidWords() 
-				+ "',"
-				+ (correction.getPaymentDate() != null ? "'"
-						+ correction.getPaymentDate() + "'" : "null")+ ")";
-
-		stmt.executeUpdate(insertQuery);
-
-		return getCorrectionId(stmt);
-	}
-
-	private String getCorrectionId(final Statement stmt) throws SQLException {
-		final String result;
-		final ResultSet rs = stmt
-				.executeQuery("SELECT MAX(correctionId) FROM Correction");
-		if (rs.next()) {
-			result = rs.getString(1);
-		} else {
-			result = null;
-		}
-		return result;
-	}
-
-	public String save(final InvoiceVO invoiceVO, final String userName)
-			throws DaoException {
-		final String correctionId = invoiceVO.getCorrection().getCorrectionId();
-		if (correctionId != null && !"".equals(correctionId)) {
-			return update(invoiceVO, userName);
-		} else {
-			return create(invoiceVO, userName);
-		}
-	}
-
-	private String update(final InvoiceVO invoice, final String userName)
-			throws DaoException {
-
-		Statement stmt = null;
-		try {
-			stmt = getConnection().createStatement();
-			final CorrectionVO correction = invoice.getCorrection();
-			updateCorrection(correction, userName, stmt);
-			
-			final List<InvoceProductVO> invoiceProducts = invoice.getInvoiceProducts();
-			invoiceProductCorrectionDao.updateInvoiceProductsCorrection(invoiceProducts, 
-					invoice.getInvoiceId(), stmt);
-			
-		} catch (SQLException e) {
-			throw new DaoException("InvoiceDAO SQLException", e);
-		} finally {
-			disconnect(stmt, null);
-		}
-		return null;
-	}
-
-	private void updateCorrection(final CorrectionVO correction, final String userName,
-			Statement stmt) throws SQLException {
-		final String query = "UPDATE correction SET " 
-				+ "correctionNumber = '" + correction.getCorrectionNumber()
-				+ "', invoiceId = " + correction.getInvoiceId()
-				+ ", createDate = " 
-				+ (correction.getCreateDate() != null ? "'" + correction.getCreateDate() + "'" : "null")
-				+ ", netAmount = " + correction.getNetAmount()
-				+ ", vatAmount = " + correction.getVatAmount()
-				+ ", netAmountDiff = " + correction.getNetAmountDiff()
-				+ ", vatAmountDiff = " + correction.getVatAmountDiff()
-				+ ", comments = '" + correction.getComments() 
-				+ "', paid = " + correction.getPaid() 
-				+ ", paymentType = '" + correction.getPaymentType().getIdn() 
-				+ "', paidWords = '" + correction.getPaidWords() 
-				+ "', paymentDate = " + (correction.getPaymentDate() != null ? "'" + correction.getPaymentDate() + "'" : "null") 
-				+ ", user = '" + userName
-				+ "' WHERE invoiceId = " + correction.getInvoiceId();
-
-		stmt.executeUpdate(query);
-	}
-
-	public CorrectionVO getCorrectionForInvoice(final String invoiceId) 
-			throws DaoException {
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			final String query = getCorrectionByInvoiceQuery(invoiceId);
-			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(query);
-			return extractCorrection(rs);
-		} catch (SQLException e) {
-			throw new DaoException("CorrectionDAO SQLException", e);
-		} finally {
-			disconnect(stmt, rs);
-		}
-	}
-
-	private String getCorrectionByInvoiceQuery(final String invoiceId) {
-		return CORRECTION_QUERY.concat(String.format(" and c.invoiceId = %s",
-				invoiceId));
-	}
-	
-	private String getCorrectionByIdQuery(final String correctionId) {
-		return CORRECTION_QUERY.concat(String.format(" and c.correctionId = %s",
-				correctionId));
-	}
-
 	private static final String CORRECTION_QUERY = " SELECT "
 			+ "c.correctionId, " + "c.correctionNumber, " + "c.invoiceId, "
 			+ "c.createDate, " + "c.netAmount, " + "c.vatAmount, "
@@ -182,18 +37,45 @@ public class CorrectionDAO extends BaseDao {
 			+ "c.user, " + "c.paid, " + "c.paymentType, " + "c.paidWords, " + "c.paymentDate "
 			+ " FROM Correction c " + " WHERE true ";
 
-	public CorrectionVO getCorrectionById(final String correctionId) throws DaoException {
+	private static final String LAST_CORRECTION_NUMBER_QUERY =
+			"SELECT correctionNumber FROM Correction c "
+					+ "JOIN Invoice i on c.invoiceId = i.invoiceId "
+					+ "JOIN Seller s on i.sellerId = s.sellerId "
+					+ "JOIN User u on s.user = u.userName "
+					+ "WHERE c.createDate > '%s' "
+					+ "AND u.userName = '%s' "
+					+ "ORDER BY c.correctionId ";
+
+	public String create(final InvoiceVO invoiceVO, final String userName)
+			throws DaoException {
+
 		Statement stmt = null;
-		ResultSet rs = null;
 		try {
-			final String query = getCorrectionByIdQuery(correctionId);
 			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(query);
-			return extractCorrection(rs);
-		} catch (SQLException e) {
-			throw new DaoException("CorrectionDAO SQLException", e);
+			final String correctionId = insertCorrection(invoiceVO, userName, stmt);
+			final InvoiceProductCorrectionDAO invoiceProductCorrectionDAO =
+					invoiceProductCorrectionDao;
+			invoiceProductCorrectionDAO.insertInvoiceProductsCorrection(
+					invoiceVO.getInvoiceProducts(),invoiceVO.getInvoiceId(), stmt);
+			return correctionId;
+		} catch (final SQLException e) {
+			throw new DaoException("InvoicesCorrectionDAO SQLException", e);
 		} finally {
-			disconnect(stmt, rs);
+			disconnect(stmt, null);
+		}
+	}
+
+	public void deleteCorrectionById(final String correctionId) throws DaoException {
+		if (correctionId != null && !"".equals(correctionId)) {
+			Statement statement = null;
+			try {
+				statement = getConnection().createStatement();
+				statement.executeUpdate(String.format(DELETE_CORRECTION_QUERY, correctionId));
+			} catch (final SQLException e) {
+				throw new DaoException("CorrectionDAO exception", e);
+			} finally {
+				disconnect(statement, null);
+			}
 		}
 	}
 
@@ -229,42 +111,126 @@ public class CorrectionDAO extends BaseDao {
 		}
 	}
 
-	public void deleteCorrectionById(final String correctionId) throws DaoException {
-		if (correctionId != null && !"".equals(correctionId)) {
-			Statement statement = null;
-			try {
-				statement = getConnection().createStatement();
-				statement.executeUpdate(String.format(DELETE_CORRECTION_QUERY, correctionId));
-			} catch (SQLException e) {
-				throw new DaoException("CorrectionDAO exception", e);
-			} finally {
-				disconnect(statement, null);
-			}
+	public CorrectionVO getCorrectionById(final String correctionId) throws DaoException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			final String query = getCorrectionByIdQuery(correctionId);
+			stmt = getConnection().createStatement();
+			rs = stmt.executeQuery(query);
+			return extractCorrection(rs);
+		} catch (final SQLException e) {
+			throw new DaoException("CorrectionDAO SQLException", e);
+		} finally {
+			disconnect(stmt, rs);
 		}
 	}
 
-	private static final String LAST_CORRECTION_NUMBER_QUERY = 
-			  " SELECT correctionNumber FROM Correction WHERE createDate > '%s' "
-			  + "ORDER BY correctionId DESC LIMIT 1";
-	
-	public String getNextCorrectionNumber(final java.util.Date date) throws DaoException {
+	private String getCorrectionByIdQuery(final String correctionId) {
+		return CORRECTION_QUERY.concat(String.format(" and c.correctionId = %s",
+				correctionId));
+	}
+
+	private String getCorrectionByInvoiceQuery(final String invoiceId) {
+		return CORRECTION_QUERY.concat(String.format(" and c.invoiceId = %s",
+				invoiceId));
+	}
+
+	public CorrectionVO getCorrectionForInvoice(final String invoiceId)
+			throws DaoException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			final String query = getCorrectionByInvoiceQuery(invoiceId);
+			stmt = getConnection().createStatement();
+			rs = stmt.executeQuery(query);
+			return extractCorrection(rs);
+		} catch (final SQLException e) {
+			throw new DaoException("CorrectionDAO SQLException", e);
+		} finally {
+			disconnect(stmt, rs);
+		}
+	}
+
+	private String getCorrectionId(final Statement stmt) throws SQLException {
+		final String result;
+		final ResultSet rs = stmt
+				.executeQuery("SELECT MAX(correctionId) FROM Correction");
+		if (rs.next()) {
+			result = rs.getString(1);
+		} else {
+			result = null;
+		}
+		return result;
+	}
+
+	public List<String> getCorrectionNumbers(final java.util.Date date, final String userName)
+			throws DaoException {
+		final List<String> results = Lists.newArrayList();
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
 			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(String.format(LAST_CORRECTION_NUMBER_QUERY, new Date(date.getTime())));
-			if (rs.next()) {
-				return rs.getString(1);
+			rs = stmt.executeQuery(String.format(LAST_CORRECTION_NUMBER_QUERY, new Date(date.getTime()), userName));
+			while (rs.next()) {
+				results.add(rs.getString(1));
 			}
-		} catch (SQLException e) {
+		} catch (final SQLException e) {
 			throw new DaoException("CorrectionDAO exception", e);
 		} finally {
 			disconnect(stmt, rs);
 		}
-		return null;
+		return results;
 	}
 
-	public void setInvoiceStatus(final int invoiceId, InvoiceStatus newStatus)
+	private String insertCorrection(final InvoiceVO invoiceVO,
+			final String userName, final Statement stmt) throws SQLException {
+		final CorrectionVO correction = invoiceVO.getCorrection();
+		final String insertQuery = "INSERT INTO Correction(correctionNumber, invoiceId, createDate, netAmount, "
+				+ "vatAmount, netAmountDiff, vatAmountDiff, comments, paid, paymentType, user, paidWords, paymentDate) VALUES ('"
+				+ correction.getCorrectionNumber()
+				+ "', "
+				+ correction.getInvoiceId()
+				+ ", "
+				+ (correction.getCreateDate() != null ? "'"
+						+ correction.getCreateDate() + "'" : "null")
+						+ ","
+						+ correction.getNetAmount()
+						+ ","
+						+ correction.getVatAmount()
+						+ ","
+						+ correction.getNetAmountDiff()
+						+ ","
+						+ correction.getVatAmountDiff()
+						+ ",'"
+						+ correction.getComments()
+						+ "',"
+						+ correction.getPaid()
+						+ ",'"
+						+ correction.getPaymentType().getIdn()
+						+ "','"
+						+ userName
+						+ "','" + correction.getPaidWords()
+						+ "',"
+						+ (correction.getPaymentDate() != null ? "'"
+								+ correction.getPaymentDate() + "'" : "null")+ ")";
+
+		stmt.executeUpdate(insertQuery);
+
+		return getCorrectionId(stmt);
+	}
+
+	public String save(final InvoiceVO invoiceVO, final String userName)
+			throws DaoException {
+		final String correctionId = invoiceVO.getCorrection().getCorrectionId();
+		if (correctionId != null && !"".equals(correctionId)) {
+			return update(invoiceVO, userName);
+		} else {
+			return create(invoiceVO, userName);
+		}
+	}
+
+	public void setInvoiceStatus(final int invoiceId, final InvoiceStatus newStatus)
 			throws DaoException {
 		Statement stmt = null;
 		try {
@@ -272,10 +238,53 @@ public class CorrectionDAO extends BaseDao {
 			stmt.executeUpdate(String.format(
 					"UPDATE Invoice SET InvoiceStatus='%s' WHERE invoiceId=%s",
 					newStatus.getIdn(), invoiceId));
-		} catch (SQLException e) {
+		} catch (final SQLException e) {
 			throw new DaoException("InvoiceDAO exception", e);
 		} finally {
 			disconnect(stmt, null);
 		}
+	}
+
+	private String update(final InvoiceVO invoice, final String userName)
+			throws DaoException {
+
+		Statement stmt = null;
+		try {
+			stmt = getConnection().createStatement();
+			final CorrectionVO correction = invoice.getCorrection();
+			updateCorrection(correction, userName, stmt);
+
+			final List<InvoceProductVO> invoiceProducts = invoice.getInvoiceProducts();
+			invoiceProductCorrectionDao.updateInvoiceProductsCorrection(invoiceProducts,
+					invoice.getInvoiceId(), stmt);
+
+		} catch (final SQLException e) {
+			throw new DaoException("InvoiceDAO SQLException", e);
+		} finally {
+			disconnect(stmt, null);
+		}
+		return null;
+	}
+
+	private void updateCorrection(final CorrectionVO correction, final String userName,
+			final Statement stmt) throws SQLException {
+		final String query = "UPDATE correction SET "
+				+ "correctionNumber = '" + correction.getCorrectionNumber()
+				+ "', invoiceId = " + correction.getInvoiceId()
+				+ ", createDate = "
+				+ (correction.getCreateDate() != null ? "'" + correction.getCreateDate() + "'" : "null")
+				+ ", netAmount = " + correction.getNetAmount()
+				+ ", vatAmount = " + correction.getVatAmount()
+				+ ", netAmountDiff = " + correction.getNetAmountDiff()
+				+ ", vatAmountDiff = " + correction.getVatAmountDiff()
+				+ ", comments = '" + correction.getComments()
+				+ "', paid = " + correction.getPaid()
+				+ ", paymentType = '" + correction.getPaymentType().getIdn()
+				+ "', paidWords = '" + correction.getPaidWords()
+				+ "', paymentDate = " + (correction.getPaymentDate() != null ? "'" + correction.getPaymentDate() + "'" : "null")
+				+ ", user = '" + userName
+				+ "' WHERE invoiceId = " + correction.getInvoiceId();
+
+		stmt.executeUpdate(query);
 	}
 }

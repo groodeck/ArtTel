@@ -19,7 +19,7 @@
 	<input type="hidden" id="event" name="event" />
 	<input type="hidden" id="eventParam" name="eventParam" />
 	
-	<c:import url="menu.jsp" />
+	<custom:menu userContext="${userContext}" />
 	
 	<c:if test="${event=='MAIN' || event=='SEARCH'}">
 		
@@ -118,17 +118,17 @@
 			<c:forEach items="${correctionList}" var="correction" varStatus="rowStatus">
 				<tr class="row${rowStatus.index%2}">
 				
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.correctionNumber}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.invoiceNumber}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.netAmount}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.vatAmount}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.grossAmount}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.grossAmountDiff}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.createDate}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.comments}"/></td>
-					<td  onclick="submitFormWithParam('edit_correction',${correction.correctionId})" ><c:out value="${correction.user}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.correctionNumber}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.invoiceNumber}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.netAmount}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.vatAmount}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.grossAmount}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.grossAmountDiff}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.createDate}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.comments}"/></td>
+					<td  onclick="redirectToUrl('correction.app?event=edit&amp;eventParam=${correction.correctionId}'); " ><c:out value="${correction.user}"/></td>
 					<td >
-						<input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete_correction',${correction.correctionId})"/>
+						<input type="button" value="  -  " onclick="redirectToUrl('correction.app?event=delete&amp;eventParam=${correction.correctionId}'); "/>
 					</td>
 				</tr>
 			</c:forEach>
@@ -157,11 +157,18 @@
 					<custom:select name="sellerId" values="${selectsMap.sellerDictionary}" selectedValue="${selectedInvoice.sellerId}" />
 				</td>
 			</tr>
+			
+			<tr>
+				<td class="label">Konto sprzedającego</td>
+				<td class="field">
+					<custom:select name="sellerBankAccountId" values="${selectsMap.bankAccountDictionary}" selectedValue="${selectedInvoice.sellerBankAccountId}" />
+				</td>
+			</tr>
 			<tr>
 				<td class="label">Klient</td>
 				<td class="field">
 					<custom:select name="clientId" values="${selectsMap.clientDictionary}" selectedValue="${selectedInvoice.clientId}" />
-					<input type="button" value="Definiuj klienta" onclick="document.location.href('clients.app?event=new'); " />
+					<input type="button" value="Definiuj klienta" onclick="redirectToUrl('clients.app?event=new'); " />
 				</td>
 			</tr>
 			<tr>
@@ -247,7 +254,7 @@
 			</c:forEach>
 			<tr>
 				<td class="field" align="right" colspan="8">
-					<input type="button" value="Definiuj produkt" onclick="document.location.href('products.app?event=new');" />
+					<input type="button" value="Definiuj produkt" onclick="redirectToUrl('products.app?event=new');" />
 					<input type="button" value="Dodaj wiersz" onclick="submitForm('add_product_row')" />
 				</td>
 			</tr>
@@ -392,6 +399,10 @@
      	function submitForm(event){
      		document.getElementById('event').value = event;
      		document.forms[0].submit();
+     	}
+     	
+     	function redirectToUrl(url){
+     		window.location.href = url;
      	}
      </script>
  	]]>

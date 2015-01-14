@@ -352,7 +352,9 @@ public class InstalationDAO extends BaseDao {
 				.append(instalationFilterVO.getDateFrom() != null ?  " and dataInstalacji >= '" + instalationFilterVO.getDateFrom() + "'" : "" )
 				.append(instalationFilterVO.getDateTo() != null ?  " and dataInstalacji <= '" + instalationFilterVO.getDateTo() + "'" : "" )
 				.append(instalationFilterVO.getInstalationType() != null ?  " and rodzajInstalacji = '" + instalationFilterVO.getInstalationType() + "'" : "" )
-				.append(instalationFilterVO.getUser() != null ?  " and userId = '" + instalationFilterVO.getUser() + "'" : "" );
+				.append(instalationFilterVO.getUser() != null ?  " and userId = '" + instalationFilterVO.getUser() + "'" : "" )
+				.append(instalationFilterVO.getSerial() != null ?  " and nrSeryjny like '%" + instalationFilterVO.getSerial() + "%'" : "" )
+				.append(instalationFilterVO.getMac() != null ?  " and macAdres like '%" + instalationFilterVO.getMac() + "%'" : "" );
 		}
 		query.append(" order by dataInstalacji desc, instalationId desc ");
 		return query.toString();

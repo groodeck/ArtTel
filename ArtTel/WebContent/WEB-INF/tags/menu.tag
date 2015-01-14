@@ -1,12 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<jsp:root 
-	xmlns:jsp="http://java.sun.com/JSP/Page" version="2.0"
-	xmlns:c="http://java.sun.com/jsp/jstl/core"
-	>
+ <jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.0"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
     
-    <jsp:directive.page language="java"
-        contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" />
+    <jsp:directive.tag language="java" pageEncoding="ISO-8859-2 "/>
 	
+	<jsp:directive.attribute name="userContext" type="org.arttel.controller.UserContext" required="true"/>
+
 	<table style="font-family:sans-serif;">
 		<tr>
 			<td>

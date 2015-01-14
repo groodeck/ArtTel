@@ -15,9 +15,11 @@ import org.arttel.controller.vo.InvoiceVO;
 import org.arttel.controller.vo.InvoiceValuesVO;
 import org.arttel.controller.vo.SellerVO;
 import org.arttel.dao.ClientDAO;
+import org.arttel.dao.SellerBankAccountDao;
 import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.dictionary.VatRate;
+import org.arttel.entity.SellerBankAccount;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
@@ -33,6 +35,9 @@ public class InvoiceGenerator {
 
 	@Autowired
 	private SellerDAO sellerDao;
+	
+	@Autowired
+	private SellerBankAccountDao bankAccountDao;
 
 	private static final int PRODUCT_ROW_OFFSET = 14;
 	private static final String OUTPUT_FILE_NAME = "Faktura.xlsx";
@@ -49,7 +54,8 @@ public class InvoiceGenerator {
 		final SellerVO seller = sellerDao.getSellerById(invoiceVO.getSellerId());
 		dataSheet.addDetailsCell(5, 0, new DataCell(formatParticipantDescription(seller), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(8, 0, new DataCell("NIP: "+seller.getNip(), CellType.TEXT));
-		dataSheet.addDetailsCell(9, 0, new DataCell("Nr rachunku: "+seller.getBankName() + " \n " + seller.getAccountNumber(), 
+		SellerBankAccount bankAccount = bankAccountDao.getBankAccountById(invoiceVO.getSellerBankAccountId());
+		dataSheet.addDetailsCell(9, 0, new DataCell("Nr rachunku: "+bankAccount.getBankName() + " \n " + bankAccount.getAccountNumber(), 
 				CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(9, 5, new DataCell(getPaymentTypeDescription(invoiceVO), CellType.WRAPABLE_TEXT));
 		

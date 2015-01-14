@@ -1,5 +1,6 @@
 package org.arttel.util;
 
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.arttel.exception.DaoException;
@@ -7,32 +8,33 @@ import org.joda.time.DateTime;
 
 public abstract class NumberGenerator {
 
-	public String getNextNumber() {
+	protected abstract List<String> getInvoiceNumbers(final DateTime startDate, final String userName)
+			throws DaoException ;
+
+	public String getNextNumber(final String userName) {
 		String result = "";
 		try {
 			final DateTime startDate = new DateTime().withDayOfMonth(1);
-			final int nextNumber = getNextSequence(startDate);
+			final int nextNumber = getNextSequence(startDate, userName);
 			final String month = String.format("%02d", startDate.getMonthOfYear());
 			result = String.format("%s/%s/%s", nextNumber, month, startDate.getYear());
-		} catch (DaoException e) {
+		} catch (final DaoException e) {
 			e.printStackTrace();
 		}
 		return result;
 	}
 
-	private int getNextSequence(DateTime startDate) throws DaoException {
-		final int nextNumber;
-		final String lastNumber = getNextNumber(startDate);
-		if(lastNumber != null){
-			final String lastNumberSequence = 
-					new StringTokenizer(lastNumber).nextToken("/");
-			nextNumber = Integer.parseInt(lastNumberSequence) + 1; 
-		} else {
-			nextNumber = 1;
+	private int getNextSequence(final DateTime startDate, final String userName) throws DaoException {
+		final List<String> invoiceNumbers = getInvoiceNumbers(startDate, userName);
+		int maxInvoiceNumber = 0;
+		for(final String invoiceNumber : invoiceNumbers){
+			final String numberSequenceStr =
+					new StringTokenizer(invoiceNumber).nextToken("/");
+			final int numberSequence = Integer.parseInt(numberSequenceStr);
+			if(numberSequence > maxInvoiceNumber){
+				maxInvoiceNumber = numberSequence;
+			}
 		}
-		return nextNumber;
+		return maxInvoiceNumber + 1;
 	}
-
-	protected abstract String getNextNumber(final DateTime startDate) 
-			throws DaoException ;
 }

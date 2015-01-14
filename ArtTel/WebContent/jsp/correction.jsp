@@ -19,14 +19,14 @@
 	<input type="hidden" id="event" name="event" />
 	<input type="hidden" id="eventParam" name="eventParam" />
 	
-	<c:import url="menu.jsp" />
+	<custom:menu userContext="${userContext}" />
 	
 	
 	<c:if test="${event=='EDIT'}">
 		<input type="hidden" name="invoiceId" value="${selectedInvoice.invoiceId}" />
 		
 		<br/>
-		<b><c:out value="FAKTURA - EDYCJA"/></b>
+		<b><c:out value="KOREKTA FAKTURY - EDYCJA"/></b>
 		<br/><br/>
 		
 		<table class="borderedTable" cellpadding="2" cellspacing="1" >

@@ -18,6 +18,8 @@ public class InstalationFilterVO {
 	private String phrase;
 	private String instalationType;
 	private String user;
+	private String serial;
+	private String mac;
 	
 	public String getCity() {
 		return city;
@@ -52,6 +54,8 @@ public class InstalationFilterVO {
 		phrase = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".phrase"));
 		instalationType = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".instalationType"));
 		user = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".user"));
+		serial = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".serial"));
+		mac = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".mac"));
 	}
 	public String getPhrase() {
 		return phrase;
@@ -70,5 +74,17 @@ public class InstalationFilterVO {
 	}
 	public void setUser(String user) {
 		this.user = user;
+	}
+	public String getSerial() {
+		return serial;
+	}
+	public void setSerial(String serial) {
+		this.serial = serial;
+	}
+	public String getMac() {
+		return mac;
+	}
+	public void setMac(String mac) {
+		this.mac = mac;
 	}
 }

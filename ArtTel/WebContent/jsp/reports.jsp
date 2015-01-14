@@ -27,7 +27,7 @@
     <form method="post" action="reports.app" enctype="application/x-www-form-urlencoded" accept-charset="UTF-8">
 	<input type="hidden" id="event" name="event" />
 	
-	<c:import url="menu.jsp" />
+	<custom:menu userContext="${userContext}" />
 	
 	<br/>
 	

@@ -1,5 +1,7 @@
 package org.arttel.util;
 
+import java.util.List;
+
 import org.arttel.dao.InvoiceDAO;
 import org.arttel.exception.DaoException;
 import org.joda.time.DateTime;
@@ -11,9 +13,9 @@ public final class InvoiceNumberGenerator extends NumberGenerator {
 
 	@Autowired
 	private InvoiceDAO invoiceDao;
-	
-	protected String getNextNumber(final DateTime startDate) throws DaoException {
-		return invoiceDao.getLastInvoiceNumber(startDate.toDate());
-	}
 
+	@Override
+	protected List<String> getInvoiceNumbers(final DateTime startDate, final String userName) throws DaoException {
+		return invoiceDao.getInvoiceNumbers(startDate.toDate(), userName);
+	}
 }

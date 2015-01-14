@@ -22,7 +22,7 @@
 	<input type="hidden" id="event" name="event" />
 	<input type="hidden" id="eventParam" name="eventParam" />
 	
-	<c:import url="menu.jsp" />
+	<custom:menu userContext="${userContext}" />
 	
 	<c:if test="${event=='MAIN' || event=='SEARCH'}">
 	
@@ -69,6 +69,16 @@
 				<td class="label">Monter</td>
 				<td class="field">
 					<custom:select name="instalationFilter.user" values="${selectsMap.users}" selectedValue="${instalationFilter.user}" />
+				</td>
+			</tr>
+			<tr>
+				<td class="label">Nr seryjny</td>
+				<td class="field">
+					<input type="text" style="width: 100%" name="instalationFilter.serial" value="${instalationFilter.serial}" />
+				</td>
+				<td class="label">MAC adres</td>
+				<td class="field">
+					<input type="text" style="width: 100%" name="instalationFilter.mac" value="${instalationFilter.mac}" />
 				</td>
 			</tr>
 		</table>

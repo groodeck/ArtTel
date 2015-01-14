@@ -43,6 +43,7 @@ public class InvoiceVO extends BasePageVO{
 	private boolean editable;
 	private InvoiceStatus status;
 	private CorrectionVO correction;
+	private String sellerBankAccountId;
 	
 	public void populate(HttpServletRequest request) {
 		invoiceId = request.getParameter("invoiceId");
@@ -60,6 +61,7 @@ public class InvoiceVO extends BasePageVO{
 		if(StringUtils.isNotEmpty(paymentTypeIdn)){
 			paymentType = PaymentType.getValueByIdn(paymentTypeIdn);
 		}
+		sellerBankAccountId = request.getParameter("sellerBankAccountId");
 		populateProducts(request);
 	}
 	
@@ -338,5 +340,13 @@ public class InvoiceVO extends BasePageVO{
 
 	public void setAdditionalComments(String additionalComments) {
 		this.additionalComments = additionalComments;
+	}
+
+	public String getSellerBankAccountId() {
+		return sellerBankAccountId;
+	}
+
+	public void setSellerBankAccountId(String sellerBankAccountId) {
+		this.sellerBankAccountId = sellerBankAccountId;
 	}
 }

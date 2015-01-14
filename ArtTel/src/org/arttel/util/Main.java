@@ -7,7 +7,7 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		System.out.println(AppSecurity.hashPassword("limak"));
+		System.out.println(AppSecurity.hashPassword("9610lkj"));
 		
 //		System.out.println(new InvoiceNumberGenerator().getNextNumber());
 	}

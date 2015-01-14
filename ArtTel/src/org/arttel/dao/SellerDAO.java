@@ -6,17 +6,26 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.SellerVO;
+import org.arttel.controller.vo.SimpleComboElement;
+import org.arttel.entity.SellerBankAccount;
 import org.arttel.view.ComboElement;
 import org.arttel.view.EmptyComboElement;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
-@Component
+@Repository
+@org.springframework.transaction.annotation.Transactional
 public class SellerDAO extends BaseDao {
 
+	@PersistenceContext
+	private EntityManager em;
+	
 	private static final String SELLER_QUERY = 
-			"SELECT sellerId, sellerDesc, nip, city, street, house, appartment, zip, bankName, accountNumber "
+			"SELECT sellerId, sellerDesc, nip, city, street, house, appartment, zip "
 			+ "FROM Seller "
 			+ "WHERE true ";
 
@@ -30,8 +39,6 @@ public class SellerDAO extends BaseDao {
 		seller.setHouse(rs.getString(6));
 		seller.setAppartment(rs.getString(7));
 		seller.setZip(rs.getString(8));
-		seller.setBankName(rs.getString(9));
-		seller.setAccountNumber(rs.getString(10));
 		return seller;
 	}
 
@@ -63,7 +70,7 @@ public class SellerDAO extends BaseDao {
 		sellerList.addAll(getSellerList(user));
 		return sellerList;
 	}
-
+	
 	public SellerVO getSellerById(final String sellerId) {
 		SellerVO result = null;
 		if (StringUtils.isNotEmpty(sellerId)) {
@@ -84,5 +91,20 @@ public class SellerDAO extends BaseDao {
 			}
 		}
 		return result;
+	}
+
+	public List<? extends ComboElement> getSellerBankAccounts(String userName) {
+		
+		List<SellerBankAccount> bankAccounts = em.createQuery(
+				"select s.bankAccounts from Seller s where s.user = :user")
+			.setParameter("user", userName)
+			.getResultList();
+		
+		final List<ComboElement> resultList = new ArrayList<ComboElement>();
+		for(SellerBankAccount bankAccount : bankAccounts){
+			resultList.add(new SimpleComboElement(bankAccount.getSellerBankAccountId().toString(), 
+					String.format("%s (%s)", bankAccount.getAccountNumber(), bankAccount.getBankName())));
+		}
+		return resultList;
 	}
 }
