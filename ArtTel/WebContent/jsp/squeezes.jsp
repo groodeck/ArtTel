@@ -56,6 +56,7 @@
 				<td>Metry</td>	
 				<td>Kwota</td>
 				<td>Data</td>
+				<td>Status</td>
 				<td>Monter</td>
 			</tr>
 			
@@ -68,6 +69,9 @@
 					<td  onclick="submitFormWithParam('edit',${squeeze.squeezeId})" ><c:out value="${squeeze.meters}"/></td>
 					<td  onclick="submitFormWithParam('edit',${squeeze.squeezeId})" ><c:out value="${squeeze.amount}"/></td>
 					<td  onclick="submitFormWithParam('edit',${squeeze.squeezeId})" ><c:out value="${squeeze.squeezeDate}"/></td>
+					<td  onclick="submitFormWithParam('edit',${squeeze.squeezeId})" style="background-color: ${squeeze.status.color}" >
+						<c:out value="${squeeze.status.desc}"/>
+					</td>
 					<td  onclick="submitFormWithParam('edit',${squeeze.squeezeId})" ><c:out value="${squeeze.user}"/></td>
 					<td >
 						<c:choose>
@@ -87,6 +91,7 @@
 	
 	<c:if test="${event=='EDIT'}">
 		<input type="hidden" name="squeezeId" value="${selectedSqueeze.squeezeId}" />
+		<input type="hidden" name="dealingId" value="${selectedSqueeze.dealingId}" />
 		
 		<br/>
 		<b><c:out value="PRZECISK - EDYCJA"/></b>
@@ -118,10 +123,13 @@
 				</td>
 			</tr><tr id="privateCostRow">
 				<td class="label">Kwota przychodu</td>
-				<td class="field"><input type="text" id="amount" name="amount" value="${selectedSqueeze.amount}" disabled="disabled"/></td>
+				<td class="field"><input type="text" id="amount" name="amount" value="${selectedSqueeze.amount}" readonly="readonly"/></td>
 			</tr><tr>
 				<td class="label">Data</td>
 				<td class="field"><custom:date name="squeezeDate" identifier="squeezeDate" value="${selectedSqueeze.squeezeDate}" /></td>
+			</tr><tr>
+				<td class="label">Status</td>
+				<td class="field"><custom:select name="status" values="${selectsMap.status}" selectedValue="${selectedSqueeze.status.idn}" /></td>
 			</tr><tr>
 				<td class="label">Uwagi</td>
 				<td class="field"><input type="text" name="comments" value="${selectedSqueeze.comments}"/></td>

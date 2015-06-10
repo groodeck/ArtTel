@@ -60,7 +60,7 @@ public class InvoiceDAO extends BaseDao {
 			"SELECT invoiceNumber FROM Invoice i "
 					+ "JOIN Seller s on i.sellerId = s.sellerId "
 					+ "JOIN User u on s.user = u.userName "
-					+ "WHERE i.createDate > '%s' "
+					+ "WHERE i.createDate >= '%s' "
 					+ "AND u.userName = '%s' "
 					+ "ORDER BY i.invoiceId ";
 

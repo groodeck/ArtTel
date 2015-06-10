@@ -1,18 +1,17 @@
 package org.arttel.controller.vo;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.filter.SqueezeFilterVO;
+import org.arttel.dictionary.SqueezeStatus;
 import org.arttel.util.Translator;
 
 public class SqueezeVO extends BasePageVO{
 
 	private SqueezeFilterVO squeezeFilter = new SqueezeFilterVO();
-	
+
 	private String squeezeId;
 	private int quantity;
 	private int meters;
@@ -24,20 +23,10 @@ public class SqueezeVO extends BasePageVO{
 	private String price;
 	private String user;
 	private String comments;
+	private SqueezeStatus status;
 	private boolean editable;
-	
-	public void populate(HttpServletRequest request) {
-		squeezeId = request.getParameter("squeezeId");
-		quantity = Translator.parseInt(request.getParameter("quantity"));
-		meters = Translator.parseInt(request.getParameter("meters"));
-		city = request.getParameter("city");
-		clientId = request.getParameter("clientId");
-		squeezeDate = Translator.parseDate(request.getParameter("squeezeDate"), null);
-		price = Translator.parseDecimalStr(request.getParameter("price"));
-		comments = request.getParameter("comments");
-		amount = calculateAmount();
-	}
-	
+	private Integer dealingId;
+
 	private String calculateAmount() {
 		final String result;
 		if(price == null){
@@ -48,7 +37,68 @@ public class SqueezeVO extends BasePageVO{
 		return result;
 	}
 
-	private String multiply(int metersValue, String priceStr) {
+	public String getAmount() {
+		return amount;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public String getClientDesc() {
+		return clientDesc;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public Integer getDealingId() {
+		return dealingId;
+	}
+
+	public int getMeters() {
+		return meters;
+	}
+
+	public String getPrice() {
+		return price;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public Date getSqueezeDate() {
+		return squeezeDate;
+	}
+
+	public SqueezeFilterVO getSqueezeFilter() {
+		return squeezeFilter;
+	}
+
+	public String getSqueezeId() {
+		return squeezeId;
+	}
+
+	public SqueezeStatus getStatus() {
+		return status;
+	}
+
+	@Override
+	public String getUser() {
+		return user;
+	}
+
+	public boolean isEditable() {
+		return editable;
+	}
+
+	private String multiply(final int metersValue, final String priceStr) {
 		final String result;
 		final Double priceValue = Translator.parseDoubleIfNotNull(priceStr);
 		if(priceValue == null){
@@ -59,110 +109,82 @@ public class SqueezeVO extends BasePageVO{
 		return result;
 	}
 
-	@Override
-	public String getUser() {
-		return user;
+	public void populate(final HttpServletRequest request) {
+		squeezeId = request.getParameter("squeezeId");
+		quantity = Translator.parseInt(request.getParameter("quantity"));
+		meters = Translator.parseInt(request.getParameter("meters"));
+		city = request.getParameter("city");
+		clientId = request.getParameter("clientId");
+		squeezeDate = Translator.parseDate(request.getParameter("squeezeDate"), null);
+		price = Translator.parseDecimalStr(request.getParameter("price"));
+		comments = request.getParameter("comments");
+		amount = calculateAmount();
+		final String statusStr = request.getParameter("status");
+		if(statusStr != null){
+			status = SqueezeStatus.getValueByIdn(statusStr);
+		}
+		dealingId = Translator.parseInteger(request.getParameter("dealingId"));
 	}
 
-	@Override
-	protected void setEditable(boolean editable) {
-		this.editable = editable;
-	}
-
-	public String getSqueezeId() {
-		return squeezeId;
-	}
-
-	public void setSqueezeId(String squeezeId) {
-		this.squeezeId = squeezeId;
-	}
-
-	public int getQuantity() {
-		return quantity;
-	}
-
-	public void setQuantity(int quantity) {
-		this.quantity = quantity;
-	}
-
-	public int getMeters() {
-		return meters;
-	}
-
-	public void setMeters(int meters) {
-		this.meters = meters;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public void setUser(String user) {
-		this.user = user;
-	}
-
-	public boolean isEditable() {
-		return editable;
-	}
-
-	public SqueezeFilterVO getSqueezeFilter() {
-		return squeezeFilter;
-	}
-
-	public void setSqueezeFilter(SqueezeFilterVO squeezeFilter) {
-		this.squeezeFilter = squeezeFilter;
-	}
-
-	public String getAmount() {
-		return amount;
-	}
-
-	public void setAmount(String amount) {
+	public void setAmount(final String amount) {
 		this.amount = amount;
 	}
 
-	public Date getSqueezeDate() {
-		return squeezeDate;
-	}
-
-	public void setSqueezeDate(Date squeezeDate) {
-		this.squeezeDate = squeezeDate;
-	}
-
-	public String getPrice() {
-		return price;
-	}
-
-	public void setPrice(String price) {
-		this.price = price;
-	}
-
-	public String getComments() {
-		return comments;
-	}
-
-	public void setComments(String comments) {
-		this.comments = comments;
-	}
-
-	public String getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(String client) {
-		this.clientId = client;
+	public void setCity(final String city) {
+		this.city = city;
 	}
 
 	public void setClientDesc(final String clientDesc) {
 		this.clientDesc = clientDesc;
 	}
 
-	public String getClientDesc() {
-		return clientDesc;
+	public void setClientId(final String client) {
+		clientId = client;
+	}
+
+	public void setComments(final String comments) {
+		this.comments = comments;
+	}
+
+	public void setDealingId(final Integer dealingId) {
+		this.dealingId = dealingId;
+	}
+
+	@Override
+	protected void setEditable(final boolean editable) {
+		this.editable = editable;
+	}
+
+	public void setMeters(final int meters) {
+		this.meters = meters;
+	}
+
+	public void setPrice(final String price) {
+		this.price = price;
+	}
+
+	public void setQuantity(final int quantity) {
+		this.quantity = quantity;
+	}
+
+	public void setSqueezeDate(final Date squeezeDate) {
+		this.squeezeDate = squeezeDate;
+	}
+
+	public void setSqueezeFilter(final SqueezeFilterVO squeezeFilter) {
+		this.squeezeFilter = squeezeFilter;
+	}
+
+	public void setSqueezeId(final String squeezeId) {
+		this.squeezeId = squeezeId;
+	}
+
+	public void setStatus(final SqueezeStatus status) {
+		this.status = status;
+	}
+
+	public void setUser(final String user) {
+		this.user = user;
 	}
 
 }

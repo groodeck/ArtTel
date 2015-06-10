@@ -42,7 +42,7 @@ public class CorrectionDAO extends BaseDao {
 					+ "JOIN Invoice i on c.invoiceId = i.invoiceId "
 					+ "JOIN Seller s on i.sellerId = s.sellerId "
 					+ "JOIN User u on s.user = u.userName "
-					+ "WHERE c.createDate > '%s' "
+					+ "WHERE c.createDate >= '%s' "
 					+ "AND u.userName = '%s' "
 					+ "ORDER BY c.correctionId ";
 

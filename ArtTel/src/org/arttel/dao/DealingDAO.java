@@ -21,16 +21,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class DealingDAO extends BaseDao {
 
+	private static final String DEALING_QUERY = " " +
+			" select d.dealingId, d.dealingType, d.date, d.corporateCosts, d.privateCosts, d.fuel, d.fuelLiters, d.income, d.amount," +
+			" 	d.comments1, d.comments2, d.comments3, d.machine, d.city, d.userId, c.clientDesc " +
+			" from `Dealing` d " +
+			" left join Client c on d.income = c.clientId " +
+			" left join Squeeze s on d.dealingId = s.dealingId " +
+			" where (s.dealingId is null or s.squeezeStatus = 'SETTLED') ";
+
 	public String create( final DealingVO dealingVO, final String userName ) throws DaoException {
 
 		Statement stmt = null;
 		try {
 			stmt = getConnection().createStatement();
-			int rowsInserted = stmt
+			final int rowsInserted = stmt
 					.executeUpdate("insert into dealing(dealingType,date,corporateCosts,privateCosts,income,fuel," +
 							"fuelLiters,amount,comments1,comments2,comments3,machine,city,userId) " +
 							"values("
-							+ "'" + dealingVO.getDealingType().getIdn() + "', " 
+							+ "'" + dealingVO.getDealingType().getIdn() + "', "
 							+ (dealingVO.getDate()!=null ? "'"+dealingVO.getDate()+"'" : "null") + ", "
 							+ "'" + dealingVO.getCorporateCosts() + "', "
 							+ "'" + dealingVO.getPrivateCosts() + "', "
@@ -44,8 +52,8 @@ public class DealingDAO extends BaseDao {
 							+ "'" + dealingVO.getMachine() + "', "
 							+ "'" + dealingVO.getCity() + "', "
 							+ "'" + userName + "')");
-			
-		} catch (SQLException e) {
+
+		} catch (final SQLException e) {
 			throw new DaoException("DealingDAO SQLException", e);
 		} finally {
 			disconnect(stmt, null);
@@ -53,133 +61,41 @@ public class DealingDAO extends BaseDao {
 		return null;
 	}
 
-	public String save(DealingVO dealingVO, String userName) throws DaoException {
-		if(dealingVO.getDealingId() != null && !"".equals(dealingVO.getDealingId())){
-			return update(dealingVO, userName);
-		} else {
-			return create(dealingVO, userName);
-		}
-	}
-
-	private String update(  final DealingVO dealingVO, final String userName ) throws DaoException {
-
-		Statement stmt = null;
-		try {
-			stmt = getConnection().createStatement();
-			int rowsInserted = stmt
-					.executeUpdate("UPDATE `dealing` SET " +
-							"dealingType = '" + dealingVO.getDealingType().getIdn() + "', " +
-							"date = " + (dealingVO.getDate() != null ? "'" +dealingVO.getDate()+"'" : "null") + ", " +
-							"corporateCosts = '" + dealingVO.getCorporateCosts() + "', " + 
-							"privateCosts = '" + dealingVO.getPrivateCosts() + "', " +
-							"income = '" + dealingVO.getIncomeClientId() + "', " +
-							"fuel = '" + dealingVO.getFuel() + "', " +
-							"fuelLiters = " + dealingVO.getFuelLiters() + ", " +
-							"amount = " + dealingVO.getAmount() + ", " +
-							"comments1 = '" + dealingVO.getComments1() + "', " +
-							"comments2 = '" + dealingVO.getComments2() + "', " +
-							"comments3 = '" + dealingVO.getComments3() + "', " +
-							"machine = '" + dealingVO.getMachine() + "', " +
-							"city = '" + dealingVO.getCity() + "', " +
-							"userId = '" + userName + "' " +
-							"WHERE dealingId = " + dealingVO.getDealingId() );
-							
-		} catch (SQLException e) {
-			throw new DaoException("DealingDAO SQLException", e);
-		} finally {
-			disconnect(stmt, null);
-		}
-		return null;
-	}
-
-	public List<DealingVO> getDealingList(DealingFilterVO dealingFilterVO) throws DaoException {
-		final List<DealingVO> resultList = new ArrayList<DealingVO>();
-		if(dealingFilterVO == null){
-			return resultList;
-		}
-		
-		final String query = prepareQuery(dealingFilterVO);
-
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(query);
-			while(rs.next()){
-				resultList.add(extractDealing(rs));
-			} 
-		} catch (SQLException e) {
-			throw new DaoException("DealingDAO exception", e);
-		} finally {
-			disconnect(stmt, rs);
-		}
-		return resultList;
-	}
-
-	private String prepareQuery(final DealingFilterVO dealingFilterVO) {
-		
-		final StringBuilder query = new StringBuilder(
-				DEALING_QUERY + 
-				" where " +
-				"	true "
-		);
-		
-		if(dealingFilterVO.getPhrase() != null){
-			query.append(" and  ")
-				.append("(")
-					.append(" d.corporateCosts like '%" + dealingFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append(" d.privateCosts like '%" + dealingFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append(" d.income like '%" + dealingFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append(" d.fuel like '%" + dealingFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append(" d.comments1 like '%" + dealingFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append( "d.comments2 like '%" + dealingFilterVO.getPhrase() + "%'")
-					.append(" OR ")
-					.append( "d.comments3 like '%" + dealingFilterVO.getPhrase() + "%'")
-				.append(")");
-		} else {
-			query.append(dealingFilterVO.getCompanyCosts() != null   ?  " and  d.corporateCosts='" + dealingFilterVO.getCompanyCosts() + "'" : "")
-				.append(dealingFilterVO.getDateFrom() != null ?  " and d.date >= '" + dealingFilterVO.getDateFrom() + "'" : "" )
-				.append(dealingFilterVO.getDateTo() != null ?  " and d.date <= '" + dealingFilterVO.getDateTo() + "'" : "" );
-		
-		}
-		query.append(" order by d.date desc, d.dealingId desc ");
-		return query.toString();
-	}
-
-	private static final String DEALING_QUERY = " " +
-			" select d.dealingId, d.dealingType, d.date, d.corporateCosts, d.privateCosts, d.fuel, d.fuelLiters, d.income, d.amount," +
-			" 	d.comments1, d.comments2, d.comments3, d.machine, d.city, d.userId, c.clientDesc " +
-			" from `Dealing` d " +
-			" left join Client c on d.income = c.clientId ";
-
-	public DealingVO getDealingById(String dealingId) throws DaoException {
-		DealingVO result = null;
+	public void deleteDealingById(final String dealingId) throws DaoException {
 		if (dealingId != null && !"".equals(dealingId)) {
-			final String query = DEALING_QUERY.concat(String.format(
-					"WHERE d.dealingId = %s", dealingId));
-			Statement stmt = null;
-			ResultSet rs = null;
+			final String query = String.format("DELETE FROM `Dealing` WHERE dealingId = %s", dealingId);
 			try {
-				stmt = getConnection().createStatement();
-				rs = stmt.executeQuery(query);
-				if (rs.next()) {
-					result = extractDealing(rs);
-				}
-			} catch (SQLException e) {
+				final int rowsDeleted = getConnection().createStatement().executeUpdate(query);
+			} catch (final SQLException e) {
 				throw new DaoException("DealingDAO exception", e);
 			} finally {
-				disconnect(stmt, rs);
+				disconnect(null, null);
 			}
 		}
-		return result;
 	}
 
-	private DealingVO extractDealing(ResultSet rs) throws SQLException {
+	private List<DataCell> extractDataRow(final String worksheetName, final ResultSet rs, final int xlsRowNumber) throws SQLException {
+
+		final List<DataCell> row = new ArrayList<DataCell>();
+		row.add(new DataCell(xlsRowNumber, CellType.INT));
+		final DealingType dealingType =  DealingType.getValueByIdn(rs.getString(1));
+		if(dealingType != null){
+			row.add(new DataCell(dealingType.getDesc(),CellType.TEXT)); //dealing type
+		}
+		row.add(new DataCell(rs.getDate(2),CellType.DATE)); // date
+		row.add(new DataCell(rs.getString(3),CellType.TEXT)); // city
+		row.add(new DataCell(rs.getString(4),CellType.TEXT)); // corporate Costs
+		row.add(new DataCell(rs.getString(5),CellType.TEXT)); // private costs
+		row.add(new DataCell(rs.getString(6),CellType.TEXT)); //fuel
+		row.add(new DataCell(rs.getString(7),CellType.TEXT)); //amount
+		row.add(new DataCell(rs.getString(8),CellType.TEXT)); //comments1
+		row.add(new DataCell(rs.getString(9),CellType.TEXT)); //comments2
+		row.add(new DataCell(rs.getString(10),CellType.TEXT)); //comments3
+
+		return row;
+	}
+
+	private DealingVO extractDealing(final ResultSet rs) throws SQLException {
 		final DealingVO singleDealing = new DealingVO();
 		singleDealing.setDealingId(rs.getString(1));
 		final String dealingTypeIdn = rs.getString(2);
@@ -203,29 +119,40 @@ public class DealingDAO extends BaseDao {
 		singleDealing.setCity(rs.getString(14));
 		singleDealing.setUserName(rs.getString(15));
 		singleDealing.setIncomeClientName(rs.getString(16));
-		
+
 		return singleDealing;
 	}
-	
-	public void deleteDealingById(String dealingId) throws DaoException {
+
+	public DealingVO getDealingById(final String dealingId) throws DaoException {
+		DealingVO result = null;
 		if (dealingId != null && !"".equals(dealingId)) {
-			final String query = String.format("DELETE FROM `Dealing` WHERE dealingId = %s", dealingId);
+			final String query = DEALING_QUERY.concat(String.format(
+					"AND d.dealingId = %s", dealingId));
+			Statement stmt = null;
+			ResultSet rs = null;
 			try {
-				int rowsDeleted = getConnection().createStatement().executeUpdate(query);
-			} catch (SQLException e) {
+				stmt = getConnection().createStatement();
+				rs = stmt.executeQuery(query);
+				if (rs.next()) {
+					result = extractDealing(rs);
+				}
+			} catch (final SQLException e) {
 				throw new DaoException("DealingDAO exception", e);
 			} finally {
-				disconnect(null, null);
+				disconnect(stmt, rs);
 			}
 		}
+		return result;
 	}
 
-	public List<DealingVO> getUserDealingList(String userId) throws DaoException {
-		
+	public List<DealingVO> getDealingList(final DealingFilterVO dealingFilterVO) throws DaoException {
 		final List<DealingVO> resultList = new ArrayList<DealingVO>();
-		
-		final String query = DEALING_QUERY.concat(String.format(
-				"WHERE d.userId = '%s'", userId));
+		if(dealingFilterVO == null){
+			return resultList;
+		}
+
+		final String query = prepareQuery(dealingFilterVO);
+
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -233,26 +160,26 @@ public class DealingDAO extends BaseDao {
 			rs = stmt.executeQuery(query);
 			while(rs.next()){
 				resultList.add(extractDealing(rs));
-			} 
-		} catch (SQLException e) {
+			}
+		} catch (final SQLException e) {
 			throw new DaoException("DealingDAO exception", e);
 		} finally {
 			disconnect(stmt, rs);
 		}
 		return resultList;
 	}
-	
-	public ReportDataVO getReportData(String worksheetName, Date dateFrom, Date dateTo, String cityIdn) throws DaoException {
+
+	public ReportDataVO getReportData(final String worksheetName, final Date dateFrom, final Date dateTo, final String cityIdn) throws DaoException {
 		Statement stmt = null;
 		ResultSet rs = null;
-		
+
 		try {
 			final ReportDataVO result = new ReportDataVO();
 			String dataQuery = "select d.dealingType, d.date, c.cityDesc, d.corporateCosts, d.privateCosts, d.fuel, d.amount, "
-				+ " d.comments1, d.comments2, d.comments3 "
-				+ " from `Dealing` d "
-				+ " left join city c on d.city=c.cityIdn "
-				+ " where 1 ";
+					+ " d.comments1, d.comments2, d.comments3 "
+					+ " from `Dealing` d "
+					+ " left join city c on d.city=c.cityIdn "
+					+ " where 1 ";
 			if(dateFrom != null){
 				dataQuery = dataQuery.concat(" AND d.date >='" + dateFrom + "'");
 			}
@@ -264,45 +191,131 @@ public class DealingDAO extends BaseDao {
 			}
 			stmt = getConnection().createStatement();
 			rs = stmt.executeQuery(dataQuery);
-			
+
 			int xlsRowNumber = 1;
-			DataSheet dataSheet = new DataSheet();
+			final DataSheet dataSheet = new DataSheet();
 			dataSheet.setDataRowsOffset(3);
 			while(rs.next()){
-				
+
 				final List<DataCell> row = extractDataRow(worksheetName, rs, xlsRowNumber++);
 				dataSheet.getRows().add(row);
-				
+
 			}
 			result.addDataSheet(dataSheet);
-			
+
 			return result;
-			
-		} catch (SQLException e) {
+
+		} catch (final SQLException e) {
 			throw new DaoException("DealingDAO SQLException", e);
 		} finally {
 			disconnect(stmt, rs);
 		}
 	}
-	
-	private List<DataCell> extractDataRow(final String worksheetName, final ResultSet rs, int xlsRowNumber) throws SQLException {
-		
-		final List<DataCell> row = new ArrayList<DataCell>();
-		row.add(new DataCell(xlsRowNumber, CellType.INT));
-		final DealingType dealingType =  DealingType.getValueByIdn(rs.getString(1));
-		if(dealingType != null){
-			row.add(new DataCell(dealingType.getDesc(),CellType.TEXT)); //dealing type
+
+	public List<DealingVO> getUserDealingList(final String userId) throws DaoException {
+
+		final List<DealingVO> resultList = new ArrayList<DealingVO>();
+
+		final String query = DEALING_QUERY.concat(String.format(
+				"AND d.userId = '%s'", userId));
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = getConnection().createStatement();
+			rs = stmt.executeQuery(query);
+			while(rs.next()){
+				resultList.add(extractDealing(rs));
+			}
+		} catch (final SQLException e) {
+			throw new DaoException("DealingDAO exception", e);
+		} finally {
+			disconnect(stmt, rs);
 		}
-		row.add(new DataCell(rs.getDate(2),CellType.DATE)); // date
-		row.add(new DataCell(rs.getString(3),CellType.TEXT)); // city
-		row.add(new DataCell(rs.getString(4),CellType.TEXT)); // corporate Costs
-		row.add(new DataCell(rs.getString(5),CellType.TEXT)); // private costs
-		row.add(new DataCell(rs.getString(6),CellType.TEXT)); //fuel
-		row.add(new DataCell(rs.getString(7),CellType.TEXT)); //amount
-		row.add(new DataCell(rs.getString(8),CellType.TEXT)); //comments1
-		row.add(new DataCell(rs.getString(9),CellType.TEXT)); //comments2
-		row.add(new DataCell(rs.getString(10),CellType.TEXT)); //comments3
-		
-		return row;
+		return resultList;
+	}
+
+	private String prepareQuery(final DealingFilterVO dealingFilterVO) {
+
+		final StringBuilder query = new StringBuilder(DEALING_QUERY);
+
+		if(dealingFilterVO.getPhrase() != null){
+			query.append(" and  ")
+			.append("(")
+			.append(" d.corporateCosts like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.privateCosts like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.income like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.fuel like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.comments1 like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append( "d.comments2 like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append( "d.comments3 like '%" + dealingFilterVO.getPhrase() + "%'")
+			.append(")");
+		} else {
+			query.append(dealingFilterVO.getCompanyCosts() != null   ?  " and  d.corporateCosts='" + dealingFilterVO.getCompanyCosts() + "'" : "")
+			.append(dealingFilterVO.getDateFrom() != null ?  " and d.date >= '" + dealingFilterVO.getDateFrom() + "'" : "" )
+			.append(dealingFilterVO.getDateTo() != null ?  " and d.date <= '" + dealingFilterVO.getDateTo() + "'" : "" );
+
+		}
+		query.append(" order by d.date desc, d.dealingId desc ");
+		return query.toString();
+	}
+
+	public void removeBySqueezeId(final String squeezeId) throws DaoException {
+		if (squeezeId != null && !"".equals(squeezeId)) {
+			final String query = String.format(
+					"DELETE FROM d USING squeeze s JOIN dealing d" +
+							" ON (s.dealingId = d.dealingID) WHERE s.squeezeId = %s", squeezeId);
+			try {
+				getConnection().createStatement().executeUpdate(query);
+			} catch (final SQLException e) {
+				throw new DaoException("SqueezeDAO exception", e);
+			} finally {
+				disconnect(null, null);
+			}
+		}
+	}
+
+	public String save(final DealingVO dealingVO, final String userName) throws DaoException {
+		if(dealingVO.getDealingId() != null && !"".equals(dealingVO.getDealingId())){
+			return update(dealingVO, userName);
+		} else {
+			return create(dealingVO, userName);
+		}
+	}
+
+	private String update(  final DealingVO dealingVO, final String userName ) throws DaoException {
+
+		Statement stmt = null;
+		try {
+			stmt = getConnection().createStatement();
+			final int rowsInserted = stmt
+					.executeUpdate("UPDATE `dealing` SET " +
+							"dealingType = '" + dealingVO.getDealingType().getIdn() + "', " +
+							"date = " + (dealingVO.getDate() != null ? "'" +dealingVO.getDate()+"'" : "null") + ", " +
+							"corporateCosts = '" + dealingVO.getCorporateCosts() + "', " +
+							"privateCosts = '" + dealingVO.getPrivateCosts() + "', " +
+							"income = '" + dealingVO.getIncomeClientId() + "', " +
+							"fuel = '" + dealingVO.getFuel() + "', " +
+							"fuelLiters = " + dealingVO.getFuelLiters() + ", " +
+							"amount = " + dealingVO.getAmount() + ", " +
+							"comments1 = '" + dealingVO.getComments1() + "', " +
+							"comments2 = '" + dealingVO.getComments2() + "', " +
+							"comments3 = '" + dealingVO.getComments3() + "', " +
+							"machine = '" + dealingVO.getMachine() + "', " +
+							"city = '" + dealingVO.getCity() + "', " +
+							"userId = '" + userName + "' " +
+							"WHERE dealingId = " + dealingVO.getDealingId() );
+
+		} catch (final SQLException e) {
+			throw new DaoException("DealingDAO SQLException", e);
+		} finally {
+			disconnect(stmt, null);
+		}
+		return null;
 	}
 }
