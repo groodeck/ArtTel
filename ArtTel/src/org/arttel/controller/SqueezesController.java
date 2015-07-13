@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.arttel.business.SqueezeBalanceCalculator;
 import org.arttel.controller.vo.SqueezeBalanceVO;
@@ -62,7 +63,7 @@ public class SqueezesController extends BaseController {
 
 		Event event = defaultValue;
 		final String eventStr = request.getParameter("event");
-		if( eventStr != null ){
+		if(StringUtils.isNotEmpty(eventStr)){
 			event = Event.valueOf( eventStr.toUpperCase() );
 		}
 		return event;

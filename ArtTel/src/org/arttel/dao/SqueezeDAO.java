@@ -25,6 +25,7 @@ public class SqueezeDAO extends BaseDao {
 					" FROM `Squeeze` s JOIN dealing d " +
 					" ON s.dealingId = d.dealingId " +
 					" LEFT JOIN Client c ON d.income = c.clientId " +
+					" LEFT JOIN City ct ON s.city = ct.cityIdn " +
 					" WHERE true ";
 
 	public String create( final SqueezeVO squeezeVO, final String userName ) throws DaoException {
@@ -197,7 +198,23 @@ public class SqueezeDAO extends BaseDao {
 
 		final StringBuilder query = new StringBuilder(SQUEEZE_QUERY);
 
-		query.append(squeezeFilterVO.getCity() != null   ?  " and  d.city='" + squeezeFilterVO.getCity() + "'" : "");
+		if(squeezeFilterVO.getPhrase() != null){
+			query.append(" and  ")
+			.append("(")
+			.append(" ct.cityDesc like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.amount like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.comments1 like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" c.clientDesc like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" OR ")
+			.append(" d.date like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(")");
+		} else {
+			query.append(squeezeFilterVO.getCity() != null   ?  " and  d.city='" + squeezeFilterVO.getCity() + "'" : "");
+		}
+
 		query.append(" ORDER BY s.squeezeId DESC ");
 
 		return query.toString();

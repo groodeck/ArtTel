@@ -33,6 +33,12 @@
 		<br/><br/>
 		<table class="borderedTable" cellpadding="2" cellspacing="1" >
 			<tr>
+				<td class="label">Szybkie wyszukiwanie</td>
+				<td class="field" colspan="1">
+					<input type="text" style="width: 100%" name="squeezeFilter.phrase" value="${squeezeFilter.phrase}" />
+				</td>
+			</tr>
+			<tr>
 				<td class="label">Miejscowość</td>
 				<td class="field">
 					<custom:select name="squeezeFilter.city" values="${selectsMap.cityDictionary}" selectedValue="${squeezeFilter.city}" />
