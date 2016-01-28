@@ -31,6 +31,10 @@ import org.arttel.dictionary.UnitType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.invoice.InvoiceGenerator;
+import org.arttel.service.InvoiceService;
+import org.arttel.ui.PageInfo;
+import org.arttel.ui.ResultPage;
+import org.arttel.ui.TableHeader;
 import org.arttel.util.DecimalWriter;
 import org.arttel.util.InvoiceNumberGenerator;
 import org.arttel.util.Translator;
@@ -47,7 +51,7 @@ public class InvoicesController extends BaseController {
 
 	public enum Event {
 		MAIN, SAVE, EDIT, ADD_PRODUCT_ROW, DEL_PRODUCT_ROW, NEW, DELETE, SEARCH, BACK, CHANGE_PRODUCT, PAID_ENTERED, PRINT, CHANGE_PAYMENT_TYPE,
-		SETTLE_INVOICE, CORRECT, COPY
+		SETTLE_INVOICE, CORRECT, COPY, SORT, CHANGEPAGE
 	}
 
 	@Autowired
@@ -74,7 +78,8 @@ public class InvoicesController extends BaseController {
 	@Autowired
 	private InvoiceNumberGenerator invoiceNumberGenerator;
 
-	private String targetPage = jspContextPrefix + "invoices.jsp";
+	@Autowired
+	private InvoiceService invoiceService;
 
 	private final Logger log = Logger.getLogger(InvoicesController.class);
 
@@ -91,6 +96,12 @@ public class InvoicesController extends BaseController {
 		}
 		for (final CorrectionVO correction:correctionList){
 			correction.applyPermissions(loggedUser);
+		}
+	}
+
+	private void clearInvoiceRecordsIds(final List<InvoceProductVO> invoiceProducts) {
+		for(final InvoceProductVO product : invoiceProducts){
+			product.setInvoiceProductId(null);
 		}
 	}
 
@@ -139,13 +150,9 @@ public class InvoicesController extends BaseController {
 		return event;
 	}
 
-	private List<InvoiceVO> getInvoiceList(final InvoiceFilterVO invoiceFilterVO, final String user)
-			throws DaoException {
-		final List<InvoiceVO> invoiceList = invoiceDao.getInvoiceList(invoiceFilterVO);
-		for(final InvoiceVO invoice : invoiceList){
-			invoice.applyPermissions(user);
-		}
-		return invoiceList;
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		return InvoiceVO.resultTableHeader;
 	}
 
 	private String getNextInvoiceNumber(final String userName) {
@@ -189,17 +196,24 @@ public class InvoicesController extends BaseController {
 			final UserContext userContext, final HttpServletRequest request) {
 		final InvoiceFilterVO invoiceFilterVO = (InvoiceFilterVO) request
 				.getSession().getAttribute(INVOICES_FILTER);
+		final PageInfo pageInfo = getCurrentPageInfo(request);
 		try {
-			final List<InvoiceVO> invoiceList = getInvoiceList(invoiceFilterVO,
+			final ResultPage<InvoiceVO> invoiceList = invoiceService.getInvoiceList(invoiceFilterVO, pageInfo,
 					userContext.getUserName());
-			final List<CorrectionVO> correctionList = getCorrections(invoiceList);
-			applyPermissions(invoiceList, correctionList, userContext.getUserName());
+			final List<CorrectionVO> correctionList = getCorrections(invoiceList.getRecords());
+			applyPermissions(invoiceList.getRecords(), correctionList, userContext.getUserName());
 			request.setAttribute(INVOICES_LIST, invoiceList);
 			request.setAttribute(CORRECTION_LIST, correctionList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}
 		request.setAttribute(EVENT, Event.SEARCH);
+	}
+
+	private void performActionChangePage(final UserContext userContext, final HttpServletRequest request) {
+		final String newPageNo = request.getParameter(NEW_PAGE_NO);
+		updatePage(newPageNo, request);
+		performActionBackToSearchresults(userContext, request);
 	}
 
 	private void performActionChangePaymentType(final UserContext userContext,
@@ -238,22 +252,19 @@ public class InvoicesController extends BaseController {
 			final HttpServletRequest request) {
 		final String invoiceId = request.getParameter(EVENT_PARAM);
 
-		try {
-			if (invoiceId != null) {
-				final InvoiceVO invoiceDetails = invoiceDao.getInvoiceById(invoiceId);
-				invoiceDetails.setInvoiceId(null);
-				invoiceDetails.setNumber(getNextInvoiceNumber(userContext.getUserName()));
-				final Date currentDate = getCurrentDate();
-				invoiceDetails.setCreateDate(currentDate);
-				invoiceDetails.setPaymentDate(getPaymentDate(currentDate,
-						PaymentType.CASH));
-				invoiceDetails.setStatus(InvoiceStatus.DRAFT);
-				invoiceDetails.applyPermissions(userContext.getUserName());
-				request.getSession().setAttribute(FORM, invoiceDetails);
-				request.setAttribute(SELECTED_INVOICE, invoiceDetails);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if (invoiceId != null) {
+			final InvoiceVO invoiceDetails = invoiceService.getInvoice(invoiceId);
+			invoiceDetails.setInvoiceId(null);
+			clearInvoiceRecordsIds(invoiceDetails.getInvoiceProducts());
+			invoiceDetails.setNumber(getNextInvoiceNumber(userContext.getUserName()));
+			final Date currentDate = getCurrentDate();
+			invoiceDetails.setCreateDate(currentDate);
+			invoiceDetails.setPaymentDate(getPaymentDate(currentDate,
+					PaymentType.CASH));
+			invoiceDetails.setStatus(InvoiceStatus.DRAFT);
+			invoiceDetails.applyPermissions(userContext.getUserName());
+			request.getSession().setAttribute(FORM, invoiceDetails);
+			request.setAttribute(SELECTED_INVOICE, invoiceDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 	}
@@ -273,12 +284,8 @@ public class InvoicesController extends BaseController {
 			final HttpServletRequest request) {
 
 		final String invoiceId = request.getParameter(EVENT_PARAM);
-		try {
-			if (invoiceId != null) {
-				invoiceDao.deleteInvoiceById(invoiceId);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if (invoiceId != null) {
+			invoiceService.deleteInvoice(invoiceId);
 		}
 		performActionBackToSearchresults(userContext, request);
 	}
@@ -293,21 +300,15 @@ public class InvoicesController extends BaseController {
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
-	private void performActionEdit(final UserContext userContext,
-			final HttpServletRequest request) {
+	private void performActionEdit(final UserContext userContext, final HttpServletRequest request) {
 
 		final String invoiceId = request.getParameter(EVENT_PARAM);
-
-		try {
-			if (invoiceId != null) {
-				final InvoiceVO invoiceDetails = invoiceDao.getInvoiceById(invoiceId);
-				invoiceDetails.applyPermissions(userContext.getUserName());
-				getCorrections(Lists.newArrayList(invoiceDetails));
-				request.getSession().setAttribute(FORM, invoiceDetails);
-				request.setAttribute(SELECTED_INVOICE, invoiceDetails);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if (invoiceId != null) {
+			final InvoiceVO invoiceDetails = invoiceService.getInvoice(invoiceId);
+			invoiceDetails.applyPermissions(userContext.getUserName());
+			getCorrections(Lists.newArrayList(invoiceDetails));
+			request.getSession().setAttribute(FORM, invoiceDetails);
+			request.setAttribute(SELECTED_INVOICE, invoiceDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 	}
@@ -348,7 +349,7 @@ public class InvoicesController extends BaseController {
 			final String sessionId = request.getSession().getId();
 			final String invoiceLink = invoiceGenerator.generateInvoice(invoiceVO, sessionId);
 			if(StringUtils.isNotEmpty(invoiceLink)){
-				final int invoiceId = Translator.parseInt(invoiceVO.getInvoiceId());
+				final String invoiceId = invoiceVO.getInvoiceId();
 				invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
 				invoiceVO.setStatus(InvoiceStatus.PENDING);
 			}
@@ -362,26 +363,22 @@ public class InvoicesController extends BaseController {
 
 	private void performActionSave(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
-		try {
-			if(hasChanged(invoiceVO)){
-				invoiceVO.setStatus(InvoiceStatus.DRAFT);
-			}
-			invoiceDao.save(invoiceVO, userContext.getUserName());
-			performActionBackToSearchresults(userContext, request);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if(hasChanged(invoiceVO)){
+			invoiceVO.setStatus(InvoiceStatus.DRAFT);
 		}
+		invoiceService.save(invoiceVO, userContext.getUserName());
+		performActionBackToSearchresults(userContext, request);
 	}
 
 	private void performActionSearch(final UserContext userContext,
-			final InvoiceFilterVO invoiceFilterVO,
-			final HttpServletRequest request) {
+			final InvoiceFilterVO invoiceFilterVO, final HttpServletRequest request) {
+		final PageInfo pageInfo = getCurrentPageInfo(request);
 		invoiceFilterVO.populate(request);
 		invoiceFilterVO.setUser(userContext.getUserName());
 		request.getSession().setAttribute(INVOICES_FILTER, invoiceFilterVO);
 		try {
-			final List<InvoiceVO> invoiceList = getInvoiceList(invoiceFilterVO, userContext.getUserName());
-			final List<CorrectionVO> correctionList = getCorrections(invoiceList);
+			final ResultPage<InvoiceVO> invoiceList = invoiceService.getInvoiceList(invoiceFilterVO, pageInfo, userContext.getUserName());
+			final List<CorrectionVO> correctionList = getCorrections(invoiceList.getRecords());
 			request.setAttribute(INVOICES_LIST, invoiceList);
 			request.setAttribute(CORRECTION_LIST, correctionList);
 		} catch (final DaoException e) {
@@ -393,12 +390,14 @@ public class InvoicesController extends BaseController {
 	private void performActionSettleInvoice(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 
-		final int invoiceId = Translator.parseInt(request.getParameter(EVENT_PARAM));
-		try {
-			invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.SETTLED);
-		} catch (final DaoException e) {
-			log.error("Dao Exception", e);
-		}
+		final String invoiceId = request.getParameter(EVENT_PARAM);
+		invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.SETTLED);
+		performActionBackToSearchresults(userContext, request);
+	}
+
+	private void performActionSort(final UserContext userContext, final HttpServletRequest request) {
+		final String sortColumn = request.getParameter(SORT_COLUMN);
+		updateSortColumn(sortColumn, request);
 		performActionBackToSearchresults(userContext, request);
 	}
 
@@ -484,6 +483,12 @@ public class InvoicesController extends BaseController {
 		case COPY:
 			performActionCopy(userContext, request);
 			break;
+		case SORT:
+			performActionSort(userContext, request);
+			break;
+		case CHANGEPAGE:
+			performActionChangePage(userContext, request);
+			break;
 
 		default:
 		}
@@ -526,10 +531,6 @@ public class InvoicesController extends BaseController {
 			invoiceProduct.setVatAmount(vatAmount.toPlainString());
 			invoiceProduct.setGrossSumAmount(grossSumAmount.toPlainString());
 		}
-	}
-
-	public void setTargetPage(final String targetPage) {
-		this.targetPage = targetPage;
 	}
 
 }

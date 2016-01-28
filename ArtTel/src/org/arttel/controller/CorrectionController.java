@@ -33,6 +33,8 @@ import org.arttel.dictionary.UnitType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.correction.CorrectionGenerator;
+import org.arttel.service.InvoiceService;
+import org.arttel.ui.TableHeader;
 import org.arttel.util.CorrectionNumberGenerator;
 import org.arttel.util.DecimalWriter;
 import org.arttel.util.Translator;
@@ -85,6 +87,9 @@ public class CorrectionController extends BaseController {
 
 	private static final String SELECTED_INVOICE = "selectedInvoice";
 
+	@Autowired
+	private InvoiceService invoiceService;
+
 	private List<InvoceProductVO> addCorrectionAddedProducts(final InvoiceVO invoice){
 
 		final List<InvoceProductVO> resultList = Lists.newArrayList();
@@ -133,9 +138,8 @@ public class CorrectionController extends BaseController {
 		return event;
 	}
 
-	private InvoiceVO getInvoiceDetails(final String invoiceId)
-			throws DaoException {
-		final InvoiceVO invoice = invoiceDao.getInvoiceById(invoiceId);
+	private InvoiceVO getInvoiceDetails(final String invoiceId) throws DaoException {
+		final InvoiceVO invoice = invoiceService.getInvoice(invoiceId);
 		deleteProductsWithoutCorrection(invoice);
 		addCorrectionAddedProducts(invoice);
 		return invoice;
@@ -175,6 +179,7 @@ public class CorrectionController extends BaseController {
 	private void performActionAddProductRow(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 
+		populateForm(invoiceVO, request);
 		invoiceVO.addNewInvoiceProduct();
 		final InvoceProductVO invoiceProduct =
 				Iterables.getLast(invoiceVO.getInvoiceProducts(), null);
@@ -203,6 +208,7 @@ public class CorrectionController extends BaseController {
 	private void performActionChangePaymentType(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 
+		populateForm(invoiceVO, request);
 		final CorrectionVO correction = invoiceVO.getCorrection();
 		final Date createDate = correction.getCreateDate();
 		final PaymentType paymentType = correction.getPaymentType();
@@ -217,6 +223,7 @@ public class CorrectionController extends BaseController {
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 		final int selectedProduct = Translator.parseInt(request.getParameter(EVENT_PARAM));
 		try {
+			populateForm(invoiceVO, request);
 			final ProductVO productDefinition = getProductDefinition(request, selectedProduct);
 			final InvoceProductVO invoiceProduct = invoiceVO.getProduct(selectedProduct);
 			final InvoceProductCorrectionVO invoiceProductCorrection = invoiceProduct.getCorrection();
@@ -233,16 +240,12 @@ public class CorrectionController extends BaseController {
 	private void performActionCorrect(final UserContext userContext,
 			final HttpServletRequest request) {
 
-		try {
-			final String invoiceId = request.getParameter(EVENT_PARAM);
-			final InvoiceVO invoiceVO = invoiceDao.getInvoiceById(invoiceId);
-			prepareCorrection(invoiceVO, userContext);
-			request.getSession().setAttribute(FORM, invoiceVO);
-			request.setAttribute(SELECTED_INVOICE, invoiceVO);
-			request.setAttribute(EVENT, Event.EDIT);
-		} catch (final DaoException e) {
-			log.error("Dao Exception", e);
-		}
+		final String invoiceId = request.getParameter(EVENT_PARAM);
+		final InvoiceVO invoiceVO = invoiceService.getInvoice(invoiceId);
+		prepareCorrection(invoiceVO, userContext);
+		request.getSession().setAttribute(FORM, invoiceVO);
+		request.setAttribute(SELECTED_INVOICE, invoiceVO);
+		request.setAttribute(EVENT, Event.EDIT);
 	}
 
 	private void performActionDeleteCorrection(final UserContext userContext,
@@ -261,6 +264,7 @@ public class CorrectionController extends BaseController {
 
 	private void performActionDelProductRow(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
+		populateForm(invoiceVO, request);
 		final int selectedProduct = Translator.parseInt(request
 				.getParameter(EVENT_PARAM));
 		invoiceVO.getInvoiceProducts().remove(selectedProduct);
@@ -291,10 +295,11 @@ public class CorrectionController extends BaseController {
 	private void performActionPrint(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 		try {
+			populateForm(invoiceVO, request);
 			final String sessionId = request.getSession().getId();
 			final String correctionLink = correctionGenerator.generateCorrection(invoiceVO, sessionId);
 			if(StringUtils.isNotEmpty(correctionLink)){
-				final int invoiceId = Translator.parseInt(invoiceVO.getInvoiceId());
+				final String invoiceId = invoiceVO.getInvoiceId();
 				invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
 				invoiceVO.setStatus(InvoiceStatus.PENDING);
 			}
@@ -310,6 +315,7 @@ public class CorrectionController extends BaseController {
 			final InvoiceVO invoiceVO, final HttpServletRequest request,
 			final HttpServletResponse response) {
 		try {
+			populateForm(invoiceVO, request);
 			if(hasChanged(invoiceVO)){
 				//TODO:
 			}
@@ -382,7 +388,6 @@ public class CorrectionController extends BaseController {
 		final UserContext userContext = getUserContext(request);
 
 		final InvoiceVO invoiceVO = (InvoiceVO) getForm(InvoiceVO.class, request);
-		populateForm(invoiceVO, request);
 
 		final Event event = getEvent(request, Event.CORRECT);
 
@@ -472,6 +477,12 @@ public class CorrectionController extends BaseController {
 
 	public void setTargetPage(final String targetPage) {
 		this.targetPage = targetPage;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

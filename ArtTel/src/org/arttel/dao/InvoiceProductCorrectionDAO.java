@@ -19,20 +19,101 @@ public class InvoiceProductCorrectionDAO extends BaseDao {
 
 	@Autowired
 	private ProductDAO productDao;
-	
-	private static final String DELETE_PRODUCT_CORRECTION_QUERY = 
-			"DELETE FROM InvoceProductCorrection WHERE invoiceId = %s";
-	private static final String INVOICE_PRODUCT_CORRECTION_QUERY = 
-			"SELECT "
-			+ "invoceProductCorrectionId, invoceProductId, productId, quantity, quantityDiff, netSumAmount, "
-			+ "vatAmount, grossSumAmount, netSumAmountDiff, vatAmountDiff, grossSumAmountDiff, invoiceId "
-			+ "FROM InvoceProductCorrection WHERE true ";
 
-	public void insertInvoiceProductsCorrection(final List<InvoceProductVO> invoiceProducts, 
+	private static final String DELETE_PRODUCT_CORRECTION_QUERY =
+			"DELETE FROM InvoceProductCorrection WHERE invoiceId = %s";
+	private static final String INVOICE_PRODUCT_CORRECTION_QUERY =
+			"SELECT "
+					+ "invoceProductCorrectionId, invoceProductId, productId, quantity, quantityDiff, netSumAmount, "
+					+ "vatAmount, grossSumAmount, netSumAmountDiff, vatAmountDiff, grossSumAmountDiff, invoiceId "
+					+ "FROM InvoceProductCorrection WHERE true ";
+
+	public void deleteInvoiceProductsCorrection(final List<InvoceProductVO> invoiceProducts,
+			final String invoiceId, final Statement stmt) throws SQLException {
+
+		final String deleteQuery = String.format(DELETE_PRODUCT_CORRECTION_QUERY, invoiceId);
+		stmt.executeUpdate(deleteQuery);
+	}
+
+	private InvoceProductCorrectionVO extractInvoiceProductCorrection(final ResultSet rs)
+			throws SQLException {
+		final InvoceProductCorrectionVO result = new InvoceProductCorrectionVO();
+		result.setInvoceProductCorrectionId(rs.getString(1));
+		result.setInvoceProductId(rs.getString(2));
+		final String productId = rs.getString(3);
+		final ProductVO productDefinition = productDao.getProductById(productId);
+		result.setProductDefinition(productDefinition);
+		result.setQuantity(rs.getString(4));
+		result.setQuantityDiff(rs.getString(5));
+		result.setNetSumAmount(rs.getString(6));
+		result.setVatAmount(rs.getString(7));
+		result.setGrossSumAmount(rs.getString(8));
+		result.setNetSumAmountDiff(rs.getString(9));
+		result.setVatAmountDiff(rs.getString(10));
+		result.setGrossSumAmountDiff(rs.getString(11));
+		result.setInvoiceId(rs.getString(12));
+		return result;
+	}
+
+	public List<InvoceProductCorrectionVO> getCorrectionAddedProducts(final String invoiceId)
+			throws DaoException {
+		final List<InvoceProductCorrectionVO> result = Lists.newArrayList();
+		if (invoiceId != null && !"".equals(invoiceId)) {
+			final String query = getCorrectionByInvoiceIdQuery(invoiceId);
+			Statement stmt = null;
+			ResultSet rs = null;
+			try {
+				stmt = getConnection().createStatement();
+				rs = stmt.executeQuery(query);
+				while(rs.next()){
+					result.add(extractInvoiceProductCorrection(rs));
+				}
+			} catch (final SQLException e) {
+				throw new DaoException("InvoiceProductCorrectionDAO exception", e);
+			} finally {
+				disconnect(stmt, rs);
+			}
+		}
+		return result;
+	}
+
+	private String getCorrectionByInvoiceIdQuery(final String invoiceId) {
+		return String.format(INVOICE_PRODUCT_CORRECTION_QUERY
+				.concat(" AND invoceProductId IS NULL " +
+						" AND invoiceId = %s"), invoiceId);
+	}
+
+	private String getCorrectionByInvoiceProductIdQuery(final String invoiceProductId) {
+		return String.format(INVOICE_PRODUCT_CORRECTION_QUERY
+				.concat(" AND invoceProductId = %s"), invoiceProductId);
+	}
+
+	public InvoceProductCorrectionVO getInvoiceProductCorrection(final String invoiceProductId) {
+		InvoceProductCorrectionVO result = null;
+		if (invoiceProductId != null && !"".equals(invoiceProductId)) {
+			final String query = getCorrectionByInvoiceProductIdQuery(invoiceProductId);
+			Statement stmt = null;
+			ResultSet rs = null;
+			try {
+				stmt = getConnection().createStatement();
+				rs = stmt.executeQuery(query);
+				if(rs.next()){
+					result = extractInvoiceProductCorrection(rs);
+				}
+			} catch (final SQLException e) {
+				e.printStackTrace();
+			} finally {
+				disconnect(stmt, rs);
+			}
+		}
+		return result;
+	}
+
+	public void insertInvoiceProductsCorrection(final List<InvoceProductVO> invoiceProducts,
 			final String invoiceId, final Statement stmt) throws SQLException {
 
 		for (final InvoceProductVO productVO : invoiceProducts) {
-			InvoceProductCorrectionVO productCorrection = productVO.getCorrection();
+			final InvoceProductCorrectionVO productCorrection = productVO.getCorrection();
 			stmt.executeUpdate("insert into invoceProductCorrection(invoceProductId, productId, invoiceId, quantity, quantityDiff, "
 					+ "netSumAmount, netSumAmountDiff, vatAmount, vatAmountDiff, grossSumAmount, grossSumAmountDiff) "
 					+ "values ("
@@ -54,9 +135,9 @@ public class InvoiceProductCorrectionDAO extends BaseDao {
 					+ ","
 					+ productCorrection.getVatAmountDiff()
 					+ ","
-					+ productCorrection.getGrossSumAmount() 
+					+ productCorrection.getGrossSumAmount()
 					+ ","
-					+ productCorrection.getGrossSumAmountDiff() 
+					+ productCorrection.getGrossSumAmountDiff()
 					+ ")");
 		}
 	}
@@ -66,86 +147,6 @@ public class InvoiceProductCorrectionDAO extends BaseDao {
 
 		deleteInvoiceProductsCorrection(invoiceProducts, invoiceId, stmt);
 		insertInvoiceProductsCorrection(invoiceProducts, invoiceId, stmt);
-	}
-
-	public void deleteInvoiceProductsCorrection(final List<InvoceProductVO> invoiceProducts, 
-			final String invoiceId, final Statement stmt) throws SQLException {
-		
-		final String deleteQuery = String.format(DELETE_PRODUCT_CORRECTION_QUERY, invoiceId);
-		stmt.executeUpdate(deleteQuery);
-	}
-
-	public InvoceProductCorrectionVO getInvoiceProductCorrection(final String invoiceProductId) 
-			throws SQLException {
-		InvoceProductCorrectionVO result = null;
-		if (invoiceProductId != null && !"".equals(invoiceProductId)) {
-			final String query = getCorrectionByInvoiceProductIdQuery(invoiceProductId);
-			Statement stmt = null;
-			ResultSet rs = null;
-			try {
-				stmt = getConnection().createStatement();
-				rs = stmt.executeQuery(query);
-				if(rs.next()){
-					result = extractInvoiceProductCorrection(rs);
-				}
-			} finally {
-				disconnect(stmt, rs);
-			}
-		}
-		return result;
-	}
-
-	private String getCorrectionByInvoiceProductIdQuery(final String invoiceProductId) {
-		return String.format(INVOICE_PRODUCT_CORRECTION_QUERY
-				.concat(" AND invoceProductId = %s"), invoiceProductId);
-	}
-	
-	private String getCorrectionByInvoiceIdQuery(final String invoiceId) {
-		return String.format(INVOICE_PRODUCT_CORRECTION_QUERY
-				.concat(" AND invoceProductId IS NULL " +
-						" AND invoiceId = %s"), invoiceId);
-	}
-
-	private InvoceProductCorrectionVO extractInvoiceProductCorrection(final ResultSet rs) 
-			throws SQLException {
-		final InvoceProductCorrectionVO result = new InvoceProductCorrectionVO();
-		result.setInvoceProductCorrectionId(rs.getString(1));
-		result.setInvoceProductId(rs.getString(2));
-		final String productId = rs.getString(3);
-		final ProductVO productDefinition = productDao.getProductById(productId);
-		result.setProductDefinition(productDefinition);
-		result.setQuantity(rs.getString(4));
-		result.setQuantityDiff(rs.getString(5));
-		result.setNetSumAmount(rs.getString(6));
-		result.setVatAmount(rs.getString(7));
-		result.setGrossSumAmount(rs.getString(8));
-		result.setNetSumAmountDiff(rs.getString(9));
-		result.setVatAmountDiff(rs.getString(10));
-		result.setGrossSumAmountDiff(rs.getString(11));
-		result.setInvoiceId(rs.getString(12));
-		return result;
-	}
-
-	public List<InvoceProductCorrectionVO> getCorrectionAddedProducts(String invoiceId) 
-			throws DaoException {
-		final List<InvoceProductCorrectionVO> result = Lists.newArrayList();
-		if (invoiceId != null && !"".equals(invoiceId)) {
-			final String query = getCorrectionByInvoiceIdQuery(invoiceId);
-			Statement stmt = null;
-			ResultSet rs = null;
-			try {
-				stmt = getConnection().createStatement();
-				rs = stmt.executeQuery(query);
-				while(rs.next()){
-					result.add(extractInvoiceProductCorrection(rs));
-				}
-			} catch (SQLException e) {
-				throw new DaoException("InvoiceProductCorrectionDAO exception", e);
-			} finally {
-				disconnect(stmt, rs);
-			}
-		}
-		return result;
 	}
 
 }

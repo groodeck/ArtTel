@@ -13,6 +13,10 @@ import com.google.common.base.Joiner;
 
 public class Translator {
 
+	private static String commaNumber(final String numericString) {
+		return numericString.replaceAll(",", ".");
+	}
+
 	public static String complement(final String word, final char c, final int resultLenght) {
 
 		final StringBuilder sb = new StringBuilder(word != null ? word : "");
@@ -23,6 +27,7 @@ public class Translator {
 		}
 		return sb.toString();
 	}
+
 	public static String emptyAsNull(final String parameter) {
 
 		return parameter == null || parameter.isEmpty() ? null : parameter;
@@ -30,7 +35,6 @@ public class Translator {
 	public static boolean getBoolean(final String parameter) {
 		return StringUtils.isNotEmpty(parameter) && TRUE.equals(parameter);
 	}
-
 	public static String getCalendarMonthName(final Calendar calendarDayFrom) {
 		final String result;
 		switch (calendarDayFrom.get(Calendar.MONTH)) {
@@ -180,6 +184,26 @@ public class Translator {
 			return Integer.parseInt(value);
 		} catch (final NumberFormatException e) {
 			return -1;
+		}
+	}
+
+	public static BigDecimal toDecimal(final String value, final int scale) {
+		BigDecimal decimal = BigDecimal.ZERO;
+		if(StringUtils.isNotBlank(value)){
+			try {
+				decimal = new BigDecimal(commaNumber(value));
+			} catch (final Exception e) {
+				log.warn("Cannot convert to decimal value: " + value);
+			}
+		}
+		return decimal.setScale(scale);
+	}
+
+	public static String toString(final BigDecimal decimal) {
+		if(decimal == null){
+			return null;
+		} else {
+			return decimal.toPlainString();
 		}
 	}
 

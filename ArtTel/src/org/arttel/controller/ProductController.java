@@ -14,6 +14,7 @@ import org.arttel.dao.ProductDAO;
 import org.arttel.dictionary.UnitType;
 import org.arttel.dictionary.VatRate;
 import org.arttel.exception.DaoException;
+import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -176,6 +177,12 @@ public class ProductController extends BaseController {
 
 	public void setTargetPage(String targetPage) {
 		this.targetPage = targetPage;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -10,9 +10,19 @@
     <style type="text/css" >
     	 @IMPORT url("data/css/instalations.css");
 	</style> 
-    
 
  <html xmlns="http://www.w3.org/1999/xhtml">
+ 
+ 		<jsp:text>
+			<![CDATA[ 
+				<?xml version="1.0" encoding="UTF8" ?> 
+			 	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+	
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+				<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+			 ]]>
+		</jsp:text>
+		
  <body style="background-color: #F0FFF0">
      
     <form method="post" action="invoices.app" enctype="application/x-www-form-urlencoded" accept-charset="UTF-8" >
@@ -45,24 +55,24 @@
 		<input type="button" value="Dodaj" onclick="submitForm('new')"/>
 		<br/><br/>
 		
-		<c:if test="${not empty invoiceList}">
+		<c:if test="${not empty invoiceList.records}">
 		<table class="borderedTable" cellpadding="2" cellspacing="1" >
 			
 			<tr class="tableHeader">
-				<td>Numer</td>
-				<td>Klient</td>
-				<td>Kwota brutto</td>
-				<td>Kwota netto</td>
-				<td>Data wystawienia</td>
-				<td>Data płatności</td>
-				<td>Uwagi</td>
-				<td>Status</td>
-				<td>Wystawił</td>
+				<custom:sortableHeader column="${tableHeader.columns.invoiceNumber}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.clientName}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.grossAmount}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.netAmount}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.createDate}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.paymentDate}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.comments}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.invoiceStatus}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
+				<custom:sortableHeader column="${tableHeader.columns.user}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
 				<td></td>
 				<td></td>
 			</tr>
 			
-			<c:forEach items="${invoiceList}" var="invoice" varStatus="rowStatus">
+			<c:forEach items="${invoiceList.records}" var="invoice" varStatus="rowStatus">
 				<tr class="row${rowStatus.index%2}">
 				
 					<td  onclick="submitFormWithParam('edit',${invoice.invoiceId})" ><c:out value="${invoice.number}"/></td>
@@ -94,6 +104,11 @@
 					</td>
 				</tr>
 			</c:forEach>
+			<tr>
+				<td colspan="11" style="text-align: center;">
+					<custom:pageNav page="${invoiceList}" pageChangeUrl="invoices.app?event=changePage&amp;newPageNo="/>
+				</td>
+			</tr>
 		</table>
 		</c:if>
 		
@@ -247,17 +262,21 @@
 						style="width: 80" disabled="disabled"/>
 				</td>
 				<td class="field">
-					<input type="button" value="  -  " onclick="submitFormWithParam('del_product_row',${rowStatus.index})"/>
+					<c:if test="${not selectedInvoice.hasCorrection()}">
+						<input type="button" value="  -  " onclick="submitFormWithParam('del_product_row',${rowStatus.index})"/>
+					</c:if>
 				</td>
 			</tr>
 			
 			</c:forEach>
-			<tr>
-				<td class="field" align="right" colspan="8">
-					<input type="button" value="Definiuj produkt" onclick="redirectToUrl('products.app?event=new');" />
-					<input type="button" value="Dodaj wiersz" onclick="submitForm('add_product_row')" />
-				</td>
-			</tr>
+			<c:if test="${not selectedInvoice.hasCorrection()}">
+				<tr>
+					<td class="field" align="right" colspan="8">
+						<input type="button" value="Definiuj produkt" onclick="redirectToUrl('products.app?event=new');" />
+						<input type="button" value="Dodaj wiersz" onclick="submitForm('add_product_row')" />
+					</td>
+				</tr>
+			</c:if>
 			<tr>
 				<td class="field" colspan="3"/>
 				<td class="field" align="right">

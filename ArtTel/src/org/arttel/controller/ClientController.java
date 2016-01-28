@@ -12,6 +12,7 @@ import org.arttel.controller.vo.ClientVO;
 import org.arttel.controller.vo.filter.ClientFilterVO;
 import org.arttel.dao.ClientDAO;
 import org.arttel.dictionary.context.DictionaryPurpose;
+import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -80,7 +81,7 @@ public class ClientController extends BaseController {
 		final String clientId = request.getParameter(EVENT_PARAM);
 
 		if (clientId != null) {
-			ClientVO clientDetails = clientDao.getClientById(clientId);
+			ClientVO clientDetails = clientDao.getClientVoById(clientId);
 			request.setAttribute(SELECTED_CLIENT, clientDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
@@ -165,6 +166,12 @@ public class ClientController extends BaseController {
 
 	public void setTargetPage(String targetPage) {
 		this.targetPage = targetPage;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

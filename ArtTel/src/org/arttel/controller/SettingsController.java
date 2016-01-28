@@ -22,6 +22,7 @@ import org.arttel.dao.FundsEntryDAO;
 import org.arttel.dao.UserDAO;
 import org.arttel.exception.DaoException;
 import org.arttel.mapper.ControlMapper;
+import org.arttel.ui.TableHeader;
 import org.arttel.util.IdnTranslator;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -208,5 +209,11 @@ public class SettingsController extends BaseController {
 			log.error("DaoException", e);
 		}
 		return selectsMap;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

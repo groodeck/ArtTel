@@ -15,6 +15,7 @@ import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
 import org.arttel.exception.UserNotLoggedException;
 import org.arttel.generator.report.ReportsGenerator;
+import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -99,6 +100,12 @@ public class ReportsController extends BaseController {
 			event = Event.valueOf( eventStr.toUpperCase() );
 		}
 		return event;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

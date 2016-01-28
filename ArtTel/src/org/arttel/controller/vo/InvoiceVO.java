@@ -15,14 +15,29 @@ import org.arttel.controller.vo.filter.InvoiceFilterVO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.dictionary.VatRate;
+import org.arttel.ui.SortOrder;
+import org.arttel.ui.SortableColumn;
+import org.arttel.ui.TableHeader;
 import org.arttel.util.Translator;
 
 import com.google.common.collect.Lists;
 
 public class InvoiceVO extends BasePageVO{
 
+	public static final TableHeader resultTableHeader = new TableHeader(
+			new SortableColumn("invoiceNumber", "i.invoiceNumber", "Numer"),
+			new SortableColumn("clientName", "i.client.clientDesc", "Klient", SortOrder.ASC),
+			new SortableColumn("grossAmount", "i.netAmount+i.vatAmount", "Kwota brutto"),
+			new SortableColumn("netAmount", "i.netAmount", "Kwota netto"),
+			new SortableColumn("createDate", "i.createDate", "Data wystawienia"),
+			new SortableColumn("paymentDate", "i.paymentDate", "Data p³atnoœci"),
+			new SortableColumn("comments", "i.comments", "Uwagi"),
+			new SortableColumn("invoiceStatus", "i.invoiceStatus", "Status"),
+			new SortableColumn("user", "u.userName", "Wystawi³")
+			);
+
 	private InvoiceFilterVO invoiceFilter = new InvoiceFilterVO();
-	
+
 	private List<InvoceProductVO> invoiceProducts = new ArrayList<InvoceProductVO>();
 	private String invoiceId;
 	private String number;
@@ -44,8 +59,186 @@ public class InvoiceVO extends BasePageVO{
 	private InvoiceStatus status;
 	private CorrectionVO correction;
 	private String sellerBankAccountId;
-	
-	public void populate(HttpServletRequest request) {
+
+	public void addNewInvoiceProduct() {
+		invoiceProducts.add(new InvoceProductVO());
+	}
+
+	public void clearProductList() {
+		invoiceProducts.clear();
+	}
+
+	public String getAdditionalComments() {
+		return additionalComments;
+	}
+
+	public String getClientDesc() {
+		return clientDesc;
+	}
+
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public CorrectionVO getCorrection() {
+		return correction;
+	}
+
+	public Map<VatRate, InvoiceValuesVO> getCorrectionDetailValueMap(){
+
+		final Map<VatRate, InvoiceValuesVO> result = initializeInvoiceValuesMap();
+		for(final InvoceProductVO product : invoiceProducts){
+			final InvoceProductCorrectionVO productCorrection = product.getCorrection();
+			if(productCorrection != null
+					&& productCorrection.getProductDefinition() != null){
+				final VatRate vatRate = productCorrection.getProductDefinition().getVatRate();
+				final InvoiceValuesVO rateValues = result.get(vatRate);
+				final BigDecimal productNetValue = Translator.getDecimal(productCorrection.getNetSumAmountDiff());
+				final BigDecimal productVatValue = Translator.getDecimal(productCorrection.getVatAmountDiff());
+
+				rateValues.addValue(productNetValue,  productVatValue, vatRate);
+				result.put(vatRate, rateValues);
+			}
+		}
+		return result;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public String getGrossAmount() {
+		final BigDecimal net = Translator.getDecimal(netAmount);
+		final BigDecimal vat = Translator.getDecimal(vatAmount);
+		return net.add(vat).setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
+	}
+
+	public Map<VatRate, InvoiceValuesVO> getInvoiceDetailValueMap(){
+
+		final Map<VatRate, InvoiceValuesVO> result = initializeInvoiceValuesMap();
+		for(final InvoceProductVO product : invoiceProducts){
+			if(product.getProductDefinition() != null){
+				final VatRate vatRate = product.getProductDefinition().getVatRate();
+				final InvoiceValuesVO rateValues = result.get(vatRate);
+				final BigDecimal productNetValue = Translator.getDecimal(product.getNetSumAmount());
+				final BigDecimal productVatValue = Translator.getDecimal(product.getVatAmount());
+
+				rateValues.addValue(productNetValue,  productVatValue, vatRate);
+				result.put(vatRate, rateValues);
+			}
+		}
+		return result;
+	}
+
+	public Collection<InvoiceValuesVO> getInvoiceDetailValues(){
+
+		final Map<VatRate, InvoiceValuesVO> values;
+		if(hasCorrection()){
+			values = getCorrectionDetailValueMap();
+		} else {
+			values = getInvoiceDetailValueMap();
+		}
+		return Lists.newArrayList(
+				values.get(VatRate.VAT_ZW),
+				values.get(VatRate.VAT_0),
+				values.get(VatRate.VAT_5),
+				values.get(VatRate.VAT_8),
+				values.get(VatRate.VAT_23)) ;
+	}
+
+	public InvoiceFilterVO getInvoiceFilter() {
+		return invoiceFilter;
+	}
+
+	public String getInvoiceId() {
+		return invoiceId;
+	}
+
+	public List<InvoceProductVO> getInvoiceProducts() {
+		return invoiceProducts;
+	}
+
+	public String getNetAmount() {
+		return netAmount;
+	}
+
+	public String getNumber() {
+		return number;
+	}
+
+	public String getPaid() {
+		return paid;
+	}
+
+	public String getPaidWords() {
+		return paidWords;
+	}
+
+	public Date getPaymentDate() {
+		return paymentDate;
+	}
+
+	public String getPaymentLeft() {
+		final BigDecimal gross = Translator.getDecimal(getGrossAmount());
+		final BigDecimal paid = Translator.getDecimal(getPaid());
+		return gross.subtract(paid).toPlainString();
+	}
+
+	public PaymentType getPaymentType() {
+		return paymentType;
+	}
+
+	public InvoceProductVO getProduct(final int index) {
+		return invoiceProducts.get(index);
+	}
+
+	public String getSellerBankAccountId() {
+		return sellerBankAccountId;
+	}
+
+	public String getSellerId() {
+		return sellerId;
+	}
+
+	public Date getSignDate() {
+		return signDate;
+	}
+
+	public InvoiceStatus getStatus() {
+		return status;
+	}
+
+	@Override
+	public String getUser() {
+		return user;
+	}
+
+	public String getVatAmount() {
+		return vatAmount;
+	}
+
+	public boolean hasCorrection(){
+		return getCorrection() != null;
+	}
+
+	private HashMap<VatRate, InvoiceValuesVO> initializeInvoiceValuesMap() {
+		final HashMap<VatRate, InvoiceValuesVO> valuesMap = new HashMap<VatRate, InvoiceValuesVO>();
+		for(final VatRate rate : VatRate.values()){
+			valuesMap.put(rate, new InvoiceValuesVO(rate));
+		}
+		return valuesMap;
+	}
+
+	public boolean isEditable() {
+		return editable;
+	}
+
+	public void populate(final HttpServletRequest request) {
 		invoiceId = request.getParameter("invoiceId");
 		number = request.getParameter("number");
 		sellerId = request.getParameter("sellerId");
@@ -64,289 +257,111 @@ public class InvoiceVO extends BasePageVO{
 		sellerBankAccountId = request.getParameter("sellerBankAccountId");
 		populateProducts(request);
 	}
-	
-	private void populateProducts(HttpServletRequest request) {
+
+	private void populateProducts(final HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		final String prefix = "product";
 		for(int i =0 ; i<invoiceProducts.size(); i++){
-			InvoceProductVO product = invoiceProducts.get(i);
+			final InvoceProductVO product = invoiceProducts.get(i);
 			product.populate(request, prefix+"["+i+"].");
 		}
-	}
-
-	@Override
-	public String getUser() {
-		return user;
-	}
-
-	@Override
-	protected void setEditable(boolean editable) {
-		this.editable = editable;
-	}
-
-
-	public void setUser(String user) {
-		this.user = user;
-	}
-
-	public boolean isEditable() {
-		return editable;
-	}
-
-	public InvoiceFilterVO getInvoiceFilter() {
-		return invoiceFilter;
-	}
-
-	public void setInvoiceFilter(InvoiceFilterVO invoiceFilter) {
-		this.invoiceFilter = invoiceFilter;
-	}
-
-	public String getComments() {
-		return comments;
-	}
-
-	public void setComments(String comments) {
-		this.comments = comments;
-	}
-
-	public String getInvoiceId() {
-		return invoiceId;
-	}
-
-	public void setInvoiceId(String invoiceId) {
-		this.invoiceId = invoiceId;
-	}
-
-	public String getNumber() {
-		return number;
-	}
-
-	public void setNumber(String number) {
-		this.number = number;
-	}
-
-	public String getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-
-	public Date getCreateDate() {
-		return createDate;
-	}
-
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
-
-	public Date getSignDate() {
-		return signDate;
-	}
-
-	public void setSignDate(Date signDate) {
-		this.signDate = signDate;
-	}
-
-	public String getNetAmount() {
-		return netAmount;
-	}
-
-	public void setNetAmount(String netAmount) {
-		this.netAmount = netAmount;
-	}
-
-	public String getVatAmount() {
-		return vatAmount;
-	}
-
-	public void setVatAmount(String vatAmount) {
-		this.vatAmount = vatAmount;
-	}
-	
-	public InvoceProductVO getProduct(final int index) {
-		return invoiceProducts.get(index);
-	}
-
-	public List<InvoceProductVO> getInvoiceProducts() {
-		return invoiceProducts;
-	}
-
-	public void setInvoiceProducts(List<InvoceProductVO> invoiceProducts) {
-		this.invoiceProducts = invoiceProducts;
-	}
-
-	public void addNewInvoiceProduct() {
-		invoiceProducts.add(new InvoceProductVO());
-	}
-
-	public void clearProductList() {
-		invoiceProducts.clear();
-	}
-
-	public Date getPaymentDate() {
-		return paymentDate;
-	}
-
-	public void setPaymentDate(Date paymentDate) {
-		this.paymentDate = paymentDate;
-	}
-
-	public String getClientDesc() {
-		return clientDesc;
-	}
-
-	public void setClientDesc(String clientDesc) {
-		this.clientDesc = clientDesc;
-	}
-
-	public String getGrossAmount() {
-		final BigDecimal net = Translator.getDecimal(netAmount);
-		final BigDecimal vat = Translator.getDecimal(vatAmount);
-		return net.add(vat).setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
-	}
-	
-	public Collection<InvoiceValuesVO> getInvoiceDetailValues(){
-		
-		final Map<VatRate, InvoiceValuesVO> values;
-		if(hasCorrection()){
-			values = getCorrectionDetailValueMap();
-		} else {
-			values = getInvoiceDetailValueMap();
-		}
-		return Lists.newArrayList(
-				values.get(VatRate.VAT_ZW),
-				values.get(VatRate.VAT_0),
-				values.get(VatRate.VAT_5),
-				values.get(VatRate.VAT_8),
-				values.get(VatRate.VAT_23)) ;
-	}
-	
-	public Map<VatRate, InvoiceValuesVO> getInvoiceDetailValueMap(){
-		
-		final Map<VatRate, InvoiceValuesVO> result = initializeInvoiceValuesMap();
-		for(InvoceProductVO product : invoiceProducts){
-			if(product.getProductDefinition() != null){
-				final VatRate vatRate = product.getProductDefinition().getVatRate();
-				final InvoiceValuesVO rateValues = result.get(vatRate);
-				final BigDecimal productNetValue = Translator.getDecimal(product.getNetSumAmount());
-				final BigDecimal productVatValue = Translator.getDecimal(product.getVatAmount());
-				
-				rateValues.addValue(productNetValue,  productVatValue, vatRate);
-				result.put(vatRate, rateValues);
-			}
-		}
-		return result;
-	}
-	
-	public Map<VatRate, InvoiceValuesVO> getCorrectionDetailValueMap(){
-		
-		final Map<VatRate, InvoiceValuesVO> result = initializeInvoiceValuesMap();
-		for(InvoceProductVO product : invoiceProducts){
-			final InvoceProductCorrectionVO productCorrection = product.getCorrection();
-			if(productCorrection != null 
-					&& productCorrection.getProductDefinition() != null){
-				final VatRate vatRate = productCorrection.getProductDefinition().getVatRate();
-				final InvoiceValuesVO rateValues = result.get(vatRate);
-				final BigDecimal productNetValue = Translator.getDecimal(productCorrection.getNetSumAmountDiff());
-				final BigDecimal productVatValue = Translator.getDecimal(productCorrection.getVatAmountDiff());
-				
-				rateValues.addValue(productNetValue,  productVatValue, vatRate);
-				result.put(vatRate, rateValues);
-			}
-		}
-		return result;
-	}
-
-	private HashMap<VatRate, InvoiceValuesVO> initializeInvoiceValuesMap() {
-		final HashMap<VatRate, InvoiceValuesVO> valuesMap = new HashMap<VatRate, InvoiceValuesVO>();
-		for(final VatRate rate : VatRate.values()){
-			valuesMap.put(rate, new InvoiceValuesVO(rate));
-		}
-		return valuesMap;
-	}
-
-	public String getPaid() {
-		return paid;
-	}
-
-	public void setPaid(String paid) {
-		this.paid = paid;
-	}
-	
-	public String getPaymentLeft() {
-		final BigDecimal gross = Translator.getDecimal(getGrossAmount()); 
-		final BigDecimal paid = Translator.getDecimal(getPaid());
-		return gross.subtract(paid).toPlainString();
-	}
-
-	public PaymentType getPaymentType() {
-		return paymentType;
-	}
-
-	public void setPaymentType(PaymentType paymentType) {
-		this.paymentType = paymentType;
-	}
-
-	public String getPaidWords() {
-		return paidWords;
-	}
-
-	public void setPaidWords(String paidWords) {
-		this.paidWords = paidWords;
-	}
-
-	public InvoiceStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(InvoiceStatus status) {
-		this.status = status;
-	}
-
-	public CorrectionVO getCorrection() {
-		return correction;
-	}
-
-	public void setCorrection(CorrectionVO correction) {
-		this.correction = correction;
-	}
-	
-	public boolean hasCorrection(){
-		return getCorrection() != null;
 	}
 
 	public void prepareProductsCorrection() {
 		final InvoceProductCorrectionVOFactory correctionFactory = new InvoceProductCorrectionVOFactory();
 		for(final InvoceProductVO invoiceProduct : invoiceProducts){
-			final InvoceProductCorrectionVO productCorrection = 
+			final InvoceProductCorrectionVO productCorrection =
 					correctionFactory.correctInvoiceProduct(invoiceProduct);
 			invoiceProduct.setCorrection(productCorrection);
 		}
 	}
 
-	public String getSellerId() {
-		return sellerId;
-	}
-
-	public void setSellerId(String sellerId) {
-		this.sellerId = sellerId;
-	}
-
-	public String getAdditionalComments() {
-		return additionalComments;
-	}
-
-	public void setAdditionalComments(String additionalComments) {
+	public void setAdditionalComments(final String additionalComments) {
 		this.additionalComments = additionalComments;
 	}
 
-	public String getSellerBankAccountId() {
-		return sellerBankAccountId;
+	public void setClientDesc(final String clientDesc) {
+		this.clientDesc = clientDesc;
 	}
 
-	public void setSellerBankAccountId(String sellerBankAccountId) {
+	public void setClientId(final String clientId) {
+		this.clientId = clientId;
+	}
+
+	public void setComments(final String comments) {
+		this.comments = comments;
+	}
+
+	public void setCorrection(final CorrectionVO correction) {
+		this.correction = correction;
+	}
+
+	public void setCreateDate(final Date createDate) {
+		this.createDate = createDate;
+	}
+
+	@Override
+	protected void setEditable(final boolean editable) {
+		this.editable = editable;
+	}
+
+	public void setInvoiceFilter(final InvoiceFilterVO invoiceFilter) {
+		this.invoiceFilter = invoiceFilter;
+	}
+
+	public void setInvoiceId(final String invoiceId) {
+		this.invoiceId = invoiceId;
+	}
+
+	public void setInvoiceProducts(final List<InvoceProductVO> invoiceProducts) {
+		this.invoiceProducts = invoiceProducts;
+	}
+
+	public void setNetAmount(final String netAmount) {
+		this.netAmount = netAmount;
+	}
+
+	public void setNumber(final String number) {
+		this.number = number;
+	}
+
+	public void setPaid(final String paid) {
+		this.paid = paid;
+	}
+
+	public void setPaidWords(final String paidWords) {
+		this.paidWords = paidWords;
+	}
+
+	public void setPaymentDate(final Date paymentDate) {
+		this.paymentDate = paymentDate;
+	}
+
+	public void setPaymentType(final PaymentType paymentType) {
+		this.paymentType = paymentType;
+	}
+
+	public void setSellerBankAccountId(final String sellerBankAccountId) {
 		this.sellerBankAccountId = sellerBankAccountId;
+	}
+
+	public void setSellerId(final String sellerId) {
+		this.sellerId = sellerId;
+	}
+
+	public void setSignDate(final Date signDate) {
+		this.signDate = signDate;
+	}
+
+	public void setStatus(final InvoiceStatus status) {
+		this.status = status;
+	}
+
+	public void setUser(final String user) {
+		this.user = user;
+	}
+
+	public void setVatAmount(final String vatAmount) {
+		this.vatAmount = vatAmount;
 	}
 }

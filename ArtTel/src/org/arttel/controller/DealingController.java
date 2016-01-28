@@ -29,6 +29,7 @@ import org.arttel.dictionary.DealingType;
 import org.arttel.dictionary.DictionaryType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
+import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -300,5 +301,11 @@ public class DealingController extends BaseController {
 	private int getCurrentYear() {
 		final Calendar calendar = GregorianCalendar.getInstance();
 		return calendar.get(Calendar.YEAR);
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

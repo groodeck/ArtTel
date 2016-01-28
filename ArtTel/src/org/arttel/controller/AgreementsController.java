@@ -20,6 +20,7 @@ import org.arttel.dictionary.Status;
 import org.arttel.dictionary.YesNo;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
+import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -219,5 +220,11 @@ public class AgreementsController extends BaseController {
 			log.error("DaoException", e);
 		}
 		return selectsMap;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

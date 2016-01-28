@@ -20,6 +20,7 @@ import org.arttel.dao.SqueezeDAO;
 import org.arttel.dictionary.SqueezeStatus;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
+import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -228,6 +229,12 @@ public class SqueezesController extends BaseController {
 		}
 		request.setAttribute("selectsMap", prepareSelectsMap(userContext.getUserName()));
 		return "squeezes";
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

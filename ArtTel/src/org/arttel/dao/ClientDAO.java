@@ -6,11 +6,15 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.ClientVO;
 import org.arttel.controller.vo.filter.ClientFilterVO;
 import org.arttel.dictionary.context.ClauseFactory;
 import org.arttel.dictionary.context.DictionaryPurpose;
+import org.arttel.entity.Client;
 import org.arttel.view.ComboElement;
 import org.arttel.view.EmptyComboElement;
 import org.springframework.stereotype.Component;
@@ -20,16 +24,32 @@ import com.google.common.collect.Lists;
 @Component
 public class ClientDAO extends BaseDao {
 
-	private static final String CLIENT_QUERY = 
+	@PersistenceContext
+	private EntityManager em;
+
+	private static final String CLIENT_QUERY =
 			"SELECT clientId, clientDesc,forInstalation,forOrder,forReport,forSqueeze,forDealing,forInvoice, nip, city, street, house, appartment, zip " +
-			"FROM Client " +
-			"WHERE true ";
-	
+					"FROM Client " +
+					"WHERE true ";
+
 	private final ClauseFactory clauseFactory = new ClauseFactory();
-	
-	public void create(ClientVO client, String userName) {
+
+	private boolean checkClientAlreadyUsed(final String clientId) throws SQLException {
+		final Statement stmt = getConnection().createStatement();
+		final ResultSet rs = stmt.executeQuery(
+				"SELECT count(*) FROM Invoice WHERE clientId=" + clientId);
+		if(rs.next()){
+			final long clientInvoicesCount = rs.getLong(1);
+			if(clientInvoicesCount > 0){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void create(final ClientVO client, final String userName) {
 		Statement stmt = null;
-		ResultSet rs = null;
+		final ResultSet rs = null;
 		try {
 			stmt = getConnection().createStatement();
 			stmt.executeUpdate("insert into Client (clientDesc,forInstalation,forOrder,forReport,forSqueeze,forDealing,forInvoice, nip, city, street, house, appartment, zip, user) "
@@ -49,14 +69,31 @@ public class ClientDAO extends BaseDao {
 					client.getZip() + "','" +
 					userName +
 					"')");
-		} catch (SQLException e) {
+		} catch (final SQLException e) {
 			log.error("ClientDAO SQLException", e);
 		} finally {
 			disconnect(stmt, rs);
 		}
 	}
 
-	private ClientVO extractClient(ResultSet rs) throws SQLException {
+	public void deleteClientById(final String clientId) {
+		if (clientId != null && !"".equals(clientId)) {
+			final String query = String.format("DELETE FROM Client WHERE clientId = %s", clientId);
+			Statement stmt = null;
+			try {
+				if(!checkClientAlreadyUsed(clientId)){
+					stmt = getConnection().createStatement();
+					stmt.executeUpdate(query);
+				}
+			} catch (final SQLException e) {
+				log.error("ClientDAO exception: ", e);
+			} finally {
+				disconnect(stmt, null);
+			}
+		}
+	}
+
+	private ClientVO extractClient(final ResultSet rs) throws SQLException {
 		final ClientVO clientVO = new ClientVO(rs.getString(1), rs.getString(2));
 		clientVO.setForInstalation(rs.getBoolean(3));
 		clientVO.setForOrder(rs.getBoolean(4));
@@ -73,6 +110,12 @@ public class ClientDAO extends BaseDao {
 		return clientVO;
 	}
 
+	public Client getClientById(final String clientId) {
+		return (Client) em.createQuery("from Client where clientId = :clientId")
+				.setParameter("clientId", Integer.parseInt(clientId))
+				.getSingleResult();
+	}
+
 	public List<ComboElement> getClientDictionary(final boolean withEmptyOption, final ClientFilterVO clientFilter) {
 		final List<ComboElement> clientList = Lists.newArrayList();
 		if(withEmptyOption){
@@ -82,7 +125,27 @@ public class ClientDAO extends BaseDao {
 		return clientList;
 	}
 
-	public ClientVO getClientById(final String clientId) {
+	public List<ClientVO> getClientList(final ClientFilterVO clientFilterVO) {
+		final List<ClientVO> clientList = new ArrayList<ClientVO>();
+		Statement stmt = null;
+		ResultSet rs = null;
+		final String query = prepareQuery(clientFilterVO);
+		try {
+			stmt = getConnection().createStatement();
+			rs = stmt.executeQuery(query);
+			while(rs.next()){
+				clientList.add(extractClient(rs));
+			}
+		} catch (final SQLException e) {
+			log.error("ClientDAO SQLException", e);
+		} finally {
+			disconnect(stmt, rs);
+		}
+		return clientList;
+	}
+
+	public ClientVO getClientVoById(final String clientId) {
+		//TODO wywal to i przenis konwersje do ClientService
 		ClientVO result = null;
 		if (StringUtils.isNotEmpty(clientId)) {
 			final String query = CLIENT_QUERY.concat(
@@ -95,7 +158,7 @@ public class ClientDAO extends BaseDao {
 				if (rs.next()) {
 					result = extractClient(rs);
 				}
-			} catch (SQLException e) {
+			} catch (final SQLException e) {
 				log.error("ProductDAO SQLException", e);
 			} finally {
 				disconnect(stmt, rs);
@@ -104,92 +167,6 @@ public class ClientDAO extends BaseDao {
 		return result;
 	}
 
-	public void deleteClientById(String clientId) {
-		if (clientId != null && !"".equals(clientId)) {
-			final String query = String.format("DELETE FROM Client WHERE clientId = %s", clientId);
-			Statement stmt = null;
-			try {
-				if(!checkClientAlreadyUsed(clientId)){
-					stmt = getConnection().createStatement();
-					stmt.executeUpdate(query);
-				}
-			} catch (SQLException e) {
-				log.error("ClientDAO exception: ", e);
-			} finally {
-				disconnect(stmt, null);
-			}
-		}
-	}
-
-	private boolean checkClientAlreadyUsed(String clientId) throws SQLException {
-		final Statement stmt = getConnection().createStatement();
-		final ResultSet rs = stmt.executeQuery(
-				"SELECT count(*) FROM Invoice WHERE clientId=" + clientId);
-		if(rs.next()){
-			long clientInvoicesCount = rs.getLong(1);
-			if(clientInvoicesCount > 0){
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public void save(final ClientVO clientVO, final String userName) {
-		if(StringUtils.isNotEmpty(clientVO.getClientId())){
-			update(clientVO, userName);
-		} else {
-			create(clientVO, userName);
-		}
-	}
-
-	private void update(final ClientVO clientVO, final String userName) {
-		Statement stmt = null;
-		try {
-			stmt = getConnection().createStatement();
-			final String query = 
-					"UPDATE Client SET "
-					+ "clientDesc = '" + clientVO.getClientDesc()
-					+ "', forInstalation = " + clientVO.isForInstalation()
-					+ ", forOrder = " + clientVO.isForOrder()
-					+ ", forReport = " + clientVO.isForReport()
-					+ ", forSqueeze = " + clientVO.isForSqueeze()
-					+ ", forDealing = " + clientVO.isForDealing()
-					+ ", forInvoice = " + clientVO.isForInvoice()
-					+ ", nip = '" + clientVO.getNip()
-					+ "', city = '" + clientVO.getCity()
-					+ "', street = '" + clientVO.getStreet()
-					+ "', house = '" + clientVO.getHouse()
-					+ "', appartment = '" + clientVO.getAppartment()
-					+ "', zip = '" + clientVO.getZip()
-					+ "' WHERE clientId = " + clientVO.getClientId();
-			stmt.executeUpdate(query);
-			
-		} catch (SQLException e) {
-			log.error("ClientDAO SQLException", e);
-		} finally {
-			disconnect(stmt, null);
-		}
-	}
-
-	public List<ClientVO> getClientList(ClientFilterVO clientFilterVO) {
-		List<ClientVO> clientList = new ArrayList<ClientVO>();
-		Statement stmt = null;
-		ResultSet rs = null;
-		String query = prepareQuery(clientFilterVO);
-		try {
-			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(query);
-			while(rs.next()){
-				clientList.add(extractClient(rs));
-			}
-		} catch (SQLException e) {
-			log.error("ClientDAO SQLException", e);
-		} finally {
-			disconnect(stmt, rs);
-		}
-		return clientList;
-	}
-	
 	private String prepareQuery(final ClientFilterVO clientFilterVO) {
 
 		final StringBuilder query = new StringBuilder(CLIENT_QUERY);
@@ -209,5 +186,42 @@ public class ClientDAO extends BaseDao {
 
 		return query.toString();
 	}
-	
+
+	public void save(final ClientVO clientVO, final String userName) {
+		if(StringUtils.isNotEmpty(clientVO.getClientId())){
+			update(clientVO, userName);
+		} else {
+			create(clientVO, userName);
+		}
+	}
+
+	private void update(final ClientVO clientVO, final String userName) {
+		Statement stmt = null;
+		try {
+			stmt = getConnection().createStatement();
+			final String query =
+					"UPDATE Client SET "
+							+ "clientDesc = '" + clientVO.getClientDesc()
+							+ "', forInstalation = " + clientVO.isForInstalation()
+							+ ", forOrder = " + clientVO.isForOrder()
+							+ ", forReport = " + clientVO.isForReport()
+							+ ", forSqueeze = " + clientVO.isForSqueeze()
+							+ ", forDealing = " + clientVO.isForDealing()
+							+ ", forInvoice = " + clientVO.isForInvoice()
+							+ ", nip = '" + clientVO.getNip()
+							+ "', city = '" + clientVO.getCity()
+							+ "', street = '" + clientVO.getStreet()
+							+ "', house = '" + clientVO.getHouse()
+							+ "', appartment = '" + clientVO.getAppartment()
+							+ "', zip = '" + clientVO.getZip()
+							+ "' WHERE clientId = " + clientVO.getClientId();
+			stmt.executeUpdate(query);
+
+		} catch (final SQLException e) {
+			log.error("ClientDAO SQLException", e);
+		} finally {
+			disconnect(stmt, null);
+		}
+	}
+
 }

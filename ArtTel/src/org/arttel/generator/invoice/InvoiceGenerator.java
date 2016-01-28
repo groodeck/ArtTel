@@ -59,7 +59,7 @@ public class InvoiceGenerator {
 				CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(9, 5, new DataCell(getPaymentTypeDescription(invoiceVO), CellType.WRAPABLE_TEXT));
 		
-		final ClientVO client = clientDao.getClientById(invoiceVO.getClientId());
+		final ClientVO client = clientDao.getClientVoById(invoiceVO.getClientId());
 		dataSheet.addDetailsCell(5, 5, new DataCell(formatParticipantDescription(client), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(8, 5, new DataCell("NIP: "+client.getNip(), CellType.TEXT));
 

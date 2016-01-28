@@ -220,6 +220,17 @@ public class CorrectionDAO extends BaseDao {
 		return getCorrectionId(stmt);
 	}
 
+	public void removeCorrectionForInvoice(final String invoiceId) {
+		try {
+			final CorrectionVO correction = getCorrectionForInvoice(invoiceId);
+			if(correction != null){
+				deleteCorrectionById(correction.getCorrectionId());;
+			}
+		} catch (final DaoException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public String save(final InvoiceVO invoiceVO, final String userName)
 			throws DaoException {
 		final String correctionId = invoiceVO.getCorrection().getCorrectionId();

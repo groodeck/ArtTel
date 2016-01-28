@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.arttel.controller.vo.HomePageVO;
 import org.arttel.dao.UserDAO;
 import org.arttel.exception.DaoException;
+import org.arttel.ui.TableHeader;
 import org.arttel.util.AppSecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -99,6 +100,12 @@ public class HomePageController extends BaseController {
 		
 		userContext.setUserLogged(false);
 		userContext.setUserName(null);
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
