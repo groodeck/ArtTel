@@ -1,5 +1,7 @@
 package org.arttel.service;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.arttel.controller.vo.InvoiceVO;
 import org.arttel.controller.vo.filter.InvoiceFilterVO;
@@ -29,9 +31,11 @@ public class InvoiceService {
 	@Autowired
 	private CorrectionDAO correctionDao;
 
-	public void deleteInvoice(final String invoiceId) {
-		correctionDao.removeCorrectionForInvoice(invoiceId);
-		invoiceDao.deleteInvoice(invoiceId);
+	public void deleteInvoice(final List<String> invoiceIds) {
+		for(final String invoiceId : invoiceIds){
+			correctionDao.removeCorrectionForInvoice(invoiceId);
+			invoiceDao.deleteInvoice(invoiceId);
+		}
 	}
 
 	public InvoiceVO getInvoice(final String invoiceId) {

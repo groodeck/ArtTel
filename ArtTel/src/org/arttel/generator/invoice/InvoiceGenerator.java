@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.arttel.controller.vo.ClientVO;
 import org.arttel.controller.vo.InvoceProductVO;
@@ -15,17 +16,23 @@ import org.arttel.controller.vo.InvoiceVO;
 import org.arttel.controller.vo.InvoiceValuesVO;
 import org.arttel.controller.vo.SellerVO;
 import org.arttel.dao.ClientDAO;
+import org.arttel.dao.InvoiceDAO;
 import org.arttel.dao.SellerBankAccountDao;
 import org.arttel.dao.SellerDAO;
+import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.dictionary.VatRate;
 import org.arttel.entity.SellerBankAccount;
 import org.arttel.exception.DaoException;
+import org.arttel.generator.BaseXlsGenerator;
 import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
 import org.arttel.generator.DataSheet;
+import org.arttel.print.FilePrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 @Component
 public class InvoiceGenerator {
@@ -39,11 +46,37 @@ public class InvoiceGenerator {
 	@Autowired
 	private SellerBankAccountDao bankAccountDao;
 
+	@Autowired
+	private InvoiceDAO invoiceDao;
+
+	@Autowired
+	private FilePrinter printer;
+
 	private static final int PRODUCT_ROW_OFFSET = 14;
 	private static final String OUTPUT_FILE_NAME = "Faktura.xlsx";
 	private static final String TEMPLATE_XLS_NAME = "InvoiceTemplate.xlsx";
 
-	public String generateInvoice(final InvoiceVO invoiceVO, final String sessionId) 
+	private String formatParticipantDescription(final InvoiceParticipant client) {
+		final StringBuilder sb = new StringBuilder(client.getDesc() + " \n ");
+		if(isNotEmpty(client.getZip())){
+			sb.append(client.getZip() + " ");
+		}
+		if(isNotEmpty(client.getCity())){
+			sb.append(client.getCity() + " \n ");
+		}
+		if(isNotEmpty(client.getStreet())){
+			sb.append(client.getStreet());
+		}
+		if(isNotEmpty(client.getHouse())){
+			sb.append(" " + client.getHouse());
+		}
+		if(isNotEmpty(client.getAppartment())){
+			sb.append("/" + client.getAppartment());
+		}
+		return sb.toString();
+	}
+
+	public String generateInvoice(final InvoiceVO invoiceVO, final String sessionId)
 			throws DaoException, IOException, InvalidFormatException {
 
 		DataSheet dataSheet = new DataSheet();
@@ -79,20 +112,50 @@ public class InvoiceGenerator {
 		dataSheet.addDetailsCell(24 + productCount, 0, new DataCell("Uwagi: " + invoiceVO.getComments(), CellType.WRAPABLE_TEXT));
 		
 		generateVatDetailsValues(dataSheet, productCount, invoiceVO.getInvoiceDetailValueMap());
-		
-		return XlsInvoiceGenerator.generate(TEMPLATE_XLS_NAME, OUTPUT_FILE_NAME, dataSheet, sessionId);
-	}
 
-	private String getPaymentTypeDescription(final InvoiceVO invoiceVO) {
-		final PaymentType paymentType = invoiceVO.getPaymentType();
-		String result = "Sposób zap³aty: \n"+paymentType.getDesc();
-		if(paymentType.isTransfer()){
-			result = result.concat(". Termin p³atnoœci: " + invoiceVO.getPaymentDate());
+		final String invoiceLink = XlsInvoiceGenerator.generate(TEMPLATE_XLS_NAME, OUTPUT_FILE_NAME, dataSheet, sessionId);
+
+		if(StringUtils.isNotEmpty(invoiceLink)){
+			updateStatus(invoiceVO);
 		}
-		return result;
+		return invoiceLink;
 	}
 
-	private void generateVatDetailsValues(final DataSheet dataSheet, final int productCount, 
+	public String generateInvoices(final List<InvoiceVO> invoices, final String sessionId) throws Exception {
+		final List<String> invoiceGenerated = Lists.newArrayList();
+		for(final InvoiceVO invoice : invoices){
+			final String invoiceRelativePath = generateInvoice(invoice, sessionId);
+			final String invoiceFileAbsolutePath = BaseXlsGenerator.BASE_DIR + "/" + invoiceRelativePath;
+			invoiceGenerated.add(invoiceFileAbsolutePath);
+			printer.printFile(invoiceFileAbsolutePath);
+
+		}
+		return null;
+	}
+
+	private void generateProductRow(final InvoceProductVO product, final DataSheet dataSheet,
+			final int productNumber) {
+
+		dataSheet.setDataRowsOffset(PRODUCT_ROW_OFFSET);
+		final List<DataCell> row = new ArrayList<DataCell>();
+		row.add(new DataCell(productNumber+1, CellType.INT));
+		row.add(new DataCell(product.getProductDefinition().getDesc(), CellType.TEXT));
+		row.add(null);
+		row.add(new DataCell(product.getProductDefinition().getUnitType().getDesc(), CellType.TEXT));
+		row.add(new DataCell(product.getQuantity(), CellType.TEXT));
+		row.add(new DataCell(getDouble(product.getProductDefinition().getNetPrice()), CellType.DOUBLE));
+		row.add(null);
+		row.add(new DataCell(getDouble(product.getNetSumAmount()), CellType.DOUBLE));
+		row.add(null);
+		row.add(new DataCell(product.getProductDefinition().getVatRate().getDesc(), CellType.TEXT));
+		row.add(new DataCell(getDouble(product.getVatAmount()), CellType.DOUBLE));
+		row.add(null);
+		row.add(new DataCell(getDouble(product.getGrossSumAmount()), CellType.DOUBLE));
+
+		dataSheet.getRows().add(row);
+	}
+
+	private void generateVatDetailsValues(final DataSheet dataSheet, final int productCount,
 			final Map<VatRate, InvoiceValuesVO> invoiceDetailValueMap) {
 		
 		//Invoice detailed values (per VatRate)
@@ -122,28 +185,6 @@ public class InvoiceGenerator {
 		dataSheet.addDetailsCell(19 + productCount, 12, new DataCell(getDouble(rate0.getGrossAmount()), CellType.DOUBLE));
 	}
 
-	private void generateProductRow(final InvoceProductVO product, final DataSheet dataSheet, 
-			final int productNumber) {
-		
-		dataSheet.setDataRowsOffset(PRODUCT_ROW_OFFSET);
-		final List<DataCell> row = new ArrayList<DataCell>();
-		row.add(new DataCell(productNumber+1, CellType.INT));
-		row.add(new DataCell(product.getProductDefinition().getDesc(), CellType.TEXT));
-		row.add(null);
-		row.add(new DataCell(product.getProductDefinition().getUnitType().getDesc(), CellType.TEXT));
-		row.add(new DataCell(product.getQuantity(), CellType.TEXT));
-		row.add(new DataCell(getDouble(product.getProductDefinition().getNetPrice()), CellType.DOUBLE));
-		row.add(null);
-		row.add(new DataCell(getDouble(product.getNetSumAmount()), CellType.DOUBLE));
-		row.add(null);
-		row.add(new DataCell(product.getProductDefinition().getVatRate().getDesc(), CellType.TEXT));
-		row.add(new DataCell(getDouble(product.getVatAmount()), CellType.DOUBLE));
-		row.add(null);
-		row.add(new DataCell(getDouble(product.getGrossSumAmount()), CellType.DOUBLE));
-
-		dataSheet.getRows().add(row);
-	}
-
 	private double getDouble(final String value) {
 		if(isNotEmpty(value)){
 			return new Double(value).doubleValue();
@@ -152,23 +193,18 @@ public class InvoiceGenerator {
 		}
 	}
 
-	private String formatParticipantDescription(final InvoiceParticipant client) {
-		final StringBuilder sb = new StringBuilder(client.getDesc() + " \n ");
-		if(isNotEmpty(client.getZip())){
-			sb.append(client.getZip() + " ");
-		} 
-		if(isNotEmpty(client.getCity())){
-			sb.append(client.getCity() + " \n ");
+	private String getPaymentTypeDescription(final InvoiceVO invoiceVO) {
+		final PaymentType paymentType = invoiceVO.getPaymentType();
+		String result = "Sposób zap³aty: \n"+paymentType.getDesc();
+		if(paymentType.isTransfer()){
+			result = result.concat(". Termin p³atnoœci: " + invoiceVO.getPaymentDate());
 		}
-		if(isNotEmpty(client.getStreet())){
-			sb.append(client.getStreet());
-		}
-		if(isNotEmpty(client.getHouse())){
-			sb.append(" " + client.getHouse());
-		} 
-		if(isNotEmpty(client.getAppartment())){
-			sb.append("/" + client.getAppartment());
-		}
-		return sb.toString();
+		return result;
+	}
+
+	private void updateStatus(final InvoiceVO invoiceVO) {
+		final String invoiceId = invoiceVO.getInvoiceId();
+		invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
+		invoiceVO.setStatus(InvoiceStatus.PENDING);
 	}
 }

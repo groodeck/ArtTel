@@ -31,7 +31,7 @@ public class BaseXlsGenerator {
 //	protected static final String BASE_DIR = "D:/develop/servers/apache-tomcat-7.0.50/webapps/ArtTel";
 	
 	//produkcja
-	protected static final String BASE_DIR = "D:/arttel/apache-tomcat-7.0.50/webapps/ArtTel";
+	public static final String BASE_DIR = "D:/arttel/apache-tomcat-7.0.50/webapps/ArtTel";
 	
 	protected static Workbook getWorkbook(final String templateFileName)
 			throws FileNotFoundException, IOException, InvalidFormatException {

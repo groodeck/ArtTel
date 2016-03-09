@@ -59,6 +59,7 @@
 		<table class="borderedTable" cellpadding="2" cellspacing="1" >
 			
 			<tr class="tableHeader">
+				<td/>
 				<custom:sortableHeader column="${tableHeader.columns.invoiceNumber}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
 				<custom:sortableHeader column="${tableHeader.columns.clientName}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
 				<custom:sortableHeader column="${tableHeader.columns.grossAmount}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
@@ -69,12 +70,14 @@
 				<custom:sortableHeader column="${tableHeader.columns.invoiceStatus}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
 				<custom:sortableHeader column="${tableHeader.columns.user}" sortUrl="invoices.app?event=sort&amp;sortColumn=" />
 				<td></td>
-				<td></td>
 			</tr>
 			
 			<c:forEach items="${invoiceList.records}" var="invoice" varStatus="rowStatus">
 				<tr class="row${rowStatus.index%2}">
 				
+					<td>
+						<custom:checkbox name="invoiceSelect_${rowStatus.index}" value="" />				
+					</td>
 					<td  onclick="submitFormWithParam('edit',${invoice.invoiceId})" ><c:out value="${invoice.number}"/></td>
 					<td  onclick="submitFormWithParam('edit',${invoice.invoiceId})" ><c:out value="${invoice.clientDesc}"/></td>
 					<td  onclick="submitFormWithParam('edit',${invoice.invoiceId})" ><c:out value="${invoice.grossAmount}"/></td>
@@ -89,18 +92,13 @@
 					<td >
 						<c:choose>
 							<c:when test="${invoice.editable}">
-								<input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete',${invoice.invoiceId})"/>
+								<!-- <input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete',${invoice.invoiceId})"/> -->
 								<input type="button" value="Kopiuj" onclick="submitFormWithParam('copy',${invoice.invoiceId})"/>
+								<c:if test="${invoice.status.idn=='PENDING'}">
+									<input type="button" value="Rozliczona" onclick="submitFormWithParam('settle_invoice',${invoice.invoiceId})"/>
+								</c:if>
 							</c:when>
-							<c:otherwise>
-								<input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete',${invoice.invoiceId})" disabled="disabled"/>
-							</c:otherwise>
 						</c:choose>
-					</td>
-					<td >
-						<c:if test="${invoice.status.idn=='PENDING'}">
-							<input type="button" value="Rozliczona" onclick="submitFormWithParam('settle_invoice',${invoice.invoiceId})"/>
-						</c:if>
 					</td>
 				</tr>
 			</c:forEach>
@@ -110,6 +108,9 @@
 				</td>
 			</tr>
 		</table>
+		<br/>
+			<input type="button" value="Usuń zaznaczone" onclick="submitForm('delete_selected')"/>
+			<input type="button" value="Drukuj zaznaczone" onclick="submitForm('print_selected')"/>
 		</c:if>
 		
 		<br/><br/>
