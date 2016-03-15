@@ -97,7 +97,7 @@ public class CorrectionController extends BaseController {
 			final List<InvoceProductCorrectionVO>correctionAddedProducts =
 					invoiceProductCorrectionDao.getCorrectionAddedProducts(invoice.getInvoiceId());
 			for(final InvoceProductCorrectionVO correctionAddedProduct : correctionAddedProducts){
-				invoice.addNewInvoiceProduct();
+				invoice.addNewProduct();
 				final InvoceProductVO invoiceProduct = Iterables.getLast(invoice.getInvoiceProducts());
 				invoiceProduct.setCorrection(correctionAddedProduct);
 				resultList.add(invoiceProduct);
@@ -180,7 +180,7 @@ public class CorrectionController extends BaseController {
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 
 		populateForm(invoiceVO, request);
-		invoiceVO.addNewInvoiceProduct();
+		invoiceVO.addNewProduct();
 		final InvoceProductVO invoiceProduct =
 				Iterables.getLast(invoiceVO.getInvoiceProducts(), null);
 		final InvoceProductCorrectionVO productCorrection =

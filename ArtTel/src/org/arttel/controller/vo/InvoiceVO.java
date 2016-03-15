@@ -19,7 +19,7 @@ import org.arttel.util.Translator;
 
 import com.google.common.collect.Lists;
 
-public class InvoiceVO extends FinancialDocumentVO implements PrintableContent{
+public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements PrintableContent{
 
 	public static final TableHeader resultTableHeader = new TableHeader(
 			new SortableColumn("invoiceNumber", "i.invoiceNumber", "Numer"),
@@ -42,10 +42,12 @@ public class InvoiceVO extends FinancialDocumentVO implements PrintableContent{
 	private String paidWords;
 	private CorrectionVO correction;
 
-	public void addNewInvoiceProduct() {
+	@Override
+	public void addNewProduct() {
 		invoiceProducts.add(new InvoceProductVO());
 	}
 
+	@Override
 	public void clearProductList() {
 		invoiceProducts.clear();
 	}
@@ -116,6 +118,7 @@ public class InvoiceVO extends FinancialDocumentVO implements PrintableContent{
 				values.get(VatRate.VAT_23)) ;
 	}
 
+	@Override
 	public List<InvoceProductVO> getInvoiceProducts() {
 		return invoiceProducts;
 	}
@@ -138,6 +141,7 @@ public class InvoiceVO extends FinancialDocumentVO implements PrintableContent{
 		return gross.subtract(paid).toPlainString();
 	}
 
+	@Override
 	public InvoceProductVO getProduct(final int index) {
 		return invoiceProducts.get(index);
 	}
