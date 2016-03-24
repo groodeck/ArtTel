@@ -3,18 +3,18 @@ package org.arttel.util;
 import java.util.Date;
 import java.util.List;
 
-import org.arttel.dao.InvoiceDAO;
+import org.arttel.dao.BillDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public final class InvoiceNumberGenerator extends NumberGenerator {
+public final class BillNumberGenerator extends NumberGenerator {
 
 	@Autowired
-	private InvoiceDAO invoiceDao;
+	private BillDAO billDao;
 
 	@Override
 	protected List<String> getDocumentNumbers(final Date dateFrom, final String userName) {
-		return invoiceDao.getDocumentNumbers(dateFrom, userName);
+		return billDao.getDocumentNumbers(dateFrom, userName);
 	}
 }

@@ -95,10 +95,10 @@ public class CorrectionController extends BaseController {
 		final List<InvoceProductVO> resultList = Lists.newArrayList();
 		try {
 			final List<InvoceProductCorrectionVO>correctionAddedProducts =
-					invoiceProductCorrectionDao.getCorrectionAddedProducts(invoice.getInvoiceId());
+					invoiceProductCorrectionDao.getCorrectionAddedProducts(invoice.getDocumentId());
 			for(final InvoceProductCorrectionVO correctionAddedProduct : correctionAddedProducts){
 				invoice.addNewProduct();
-				final InvoceProductVO invoiceProduct = Iterables.getLast(invoice.getInvoiceProducts());
+				final InvoceProductVO invoiceProduct = Iterables.getLast(invoice.getDocumentProducts());
 				invoiceProduct.setCorrection(correctionAddedProduct);
 				resultList.add(invoiceProduct);
 			}
@@ -109,7 +109,7 @@ public class CorrectionController extends BaseController {
 	}
 
 	private void deleteProductsWithoutCorrection(final InvoiceVO invoice) {
-		final List<InvoceProductVO> invoiceProducts = invoice.getInvoiceProducts();
+		final List<InvoceProductVO> invoiceProducts = invoice.getDocumentProducts();
 		final List<InvoceProductVO> productsWithoutCorrection = Lists.newArrayList();
 		for(final InvoceProductVO product : invoiceProducts){
 			if(product.getCorrection() == null){
@@ -145,6 +145,12 @@ public class CorrectionController extends BaseController {
 		return invoice;
 	}
 
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	private String getNextCorrectionNumber(final String userName) {
 		return correctionNumberGenerator.getNextNumber(userName);
 	}
@@ -171,6 +177,11 @@ public class CorrectionController extends BaseController {
 		return productDefinition;
 	}
 
+	@Override
+	protected String getTableHeaderAttrName() {
+		return "correctionTableHeader";
+	}
+
 	private boolean hasChanged(final InvoiceVO invoiceVO) {
 		// TODO zaimplementowac metodê equals i uzyc
 		return false;
@@ -182,7 +193,7 @@ public class CorrectionController extends BaseController {
 		populateForm(invoiceVO, request);
 		invoiceVO.addNewProduct();
 		final InvoceProductVO invoiceProduct =
-				Iterables.getLast(invoiceVO.getInvoiceProducts(), null);
+				Iterables.getLast(invoiceVO.getDocumentProducts(), null);
 		final InvoceProductCorrectionVO productCorrection =
 				new InvoceProductCorrectionVOFactory().correctInvoiceProduct(invoiceProduct);
 		invoiceProduct.setCorrection(productCorrection);
@@ -267,7 +278,7 @@ public class CorrectionController extends BaseController {
 		populateForm(invoiceVO, request);
 		final int selectedProduct = Translator.parseInt(request
 				.getParameter(EVENT_PARAM));
-		invoiceVO.getInvoiceProducts().remove(selectedProduct);
+		invoiceVO.getDocumentProducts().remove(selectedProduct);
 		recalculateCorrection(invoiceVO);
 		request.setAttribute(SELECTED_INVOICE, invoiceVO);
 		request.setAttribute(EVENT, Event.EDIT);
@@ -299,7 +310,7 @@ public class CorrectionController extends BaseController {
 			final String sessionId = request.getSession().getId();
 			final String correctionLink = correctionGenerator.generateCorrection(invoiceVO, sessionId);
 			if(StringUtils.isNotEmpty(correctionLink)){
-				final String invoiceId = invoiceVO.getInvoiceId();
+				final String invoiceId = invoiceVO.getDocumentId();
 				invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
 				invoiceVO.setStatus(InvoiceStatus.PENDING);
 			}
@@ -329,7 +340,7 @@ public class CorrectionController extends BaseController {
 	private void populateForm(final InvoiceVO invoiceVO, final HttpServletRequest request) {
 		if(invoiceVO.hasCorrection()){
 			invoiceVO.getCorrection().populate(request);
-			populateProductsCorrection(invoiceVO.getInvoiceProducts(), request);
+			populateProductsCorrection(invoiceVO.getDocumentProducts(), request);
 		}
 	}
 
@@ -348,7 +359,7 @@ public class CorrectionController extends BaseController {
 		final Date currentDate = getCurrentDate();
 		correction.setCreateDate(currentDate);
 		correction.setCorrectionNumber(getNextCorrectionNumber(userContext.getUserName()));
-		correction.setInvoiceId(invoice.getInvoiceId());
+		correction.setInvoiceId(invoice.getDocumentId());
 		correction.setNetAmount(invoice.getNetAmount());
 		correction.setVatAmount(invoice.getVatAmount());
 		correction.setPaid(invoice.getPaid());
@@ -430,7 +441,7 @@ public class CorrectionController extends BaseController {
 
 	private void recalculateCorrection(final InvoiceVO invoiceVO) {
 		BigDecimal vatAmount = new BigDecimal(0), netAmount = new BigDecimal(0);
-		for (final InvoceProductVO product : invoiceVO.getInvoiceProducts()) {
+		for (final InvoceProductVO product : invoiceVO.getDocumentProducts()) {
 			final InvoceProductCorrectionVO productCorrection = product.getCorrection();
 			vatAmount = vatAmount.add(Translator.getDecimal(productCorrection.getVatAmount()));
 			netAmount = netAmount.add(Translator.getDecimal(productCorrection.getNetSumAmount()));
@@ -477,12 +488,6 @@ public class CorrectionController extends BaseController {
 
 	public void setTargetPage(final String targetPage) {
 		this.targetPage = targetPage;
-	}
-
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

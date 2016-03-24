@@ -97,11 +97,11 @@ public class InvoiceGenerator {
 		dataSheet.addDetailsCell(8, 5, new DataCell("NIP: "+client.getNip(), CellType.TEXT));
 
 		int rowCounter = 0;
-		for(final InvoceProductVO product : invoiceVO.getInvoiceProducts()){
+		for(final InvoceProductVO product : invoiceVO.getDocumentProducts()){
 			generateProductRow(product, dataSheet, rowCounter);
 			rowCounter++;
 		}
-		final int productCount = invoiceVO.getInvoiceProducts().size();
+		final int productCount = invoiceVO.getDocumentProducts().size();
 		
 		dataSheet.addDetailsCell(14 + productCount, 7, new DataCell(getDouble(invoiceVO.getNetAmount()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(14 + productCount, 10, new DataCell(getDouble(invoiceVO.getVatAmount()), CellType.DOUBLE));
@@ -203,7 +203,7 @@ public class InvoiceGenerator {
 	}
 
 	private void updateStatus(final InvoiceVO invoiceVO) {
-		final String invoiceId = invoiceVO.getInvoiceId();
+		final String invoiceId = invoiceVO.getDocumentId();
 		invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
 		invoiceVO.setStatus(InvoiceStatus.PENDING);
 	}

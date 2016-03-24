@@ -23,8 +23,6 @@ public abstract class BaseController {
 
 	protected String jspContextPrefix = "jsp/";
 
-	public static final String TABLE_HEADER = "tableHeader";
-
 	protected PageInfo getCurrentPageInfo(final HttpServletRequest request) {
 		final TableHeader tableHeader = getOrCreateTableHeader(request);
 		return tableHeader.getPageInfo();
@@ -55,13 +53,15 @@ public abstract class BaseController {
 	}
 
 	public TableHeader getOrCreateTableHeader(final HttpServletRequest request) {
-		TableHeader tableHeader = (TableHeader)request.getSession().getAttribute(TABLE_HEADER);
+		TableHeader tableHeader = (TableHeader)request.getSession().getAttribute(getTableHeaderAttrName());
 		if(tableHeader == null){
 			tableHeader = getModelDefaultHeader();
 			storeTableHeader(request, tableHeader);
 		}
 		return tableHeader;
 	}
+
+	protected abstract String getTableHeaderAttrName();
 
 	protected UserContext getUserContext( final HttpServletRequest request ) {
 		UserContext userContext = (UserContext)request.getSession().getAttribute("userContext");
@@ -74,7 +74,7 @@ public abstract class BaseController {
 
 	private void storeTableHeader(final HttpServletRequest request,
 			final TableHeader tableHeader) {
-		request.getSession().setAttribute(TABLE_HEADER, tableHeader);
+		request.getSession().setAttribute(getTableHeaderAttrName(), tableHeader);
 	}
 
 	protected PageInfo updatePage(final String newPageNo, final HttpServletRequest request) {

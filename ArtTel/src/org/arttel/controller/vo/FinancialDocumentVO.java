@@ -13,9 +13,9 @@ import org.arttel.util.Translator;
 
 public abstract class FinancialDocumentVO<Product extends FinancialDocumentProductVO> extends BasePageVO {
 
-	private InvoiceFilterVO invoiceFilter = new InvoiceFilterVO();
+	private InvoiceFilterVO documentFilter = new InvoiceFilterVO();
 
-	private String invoiceId;
+	private String documentId;
 	private String number;
 	private String clientId;
 	private String sellerId;
@@ -24,6 +24,7 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 	private Date paymentDate;
 	private String user;
 	private String comments;
+	private String additionalComments;
 	private PaymentType paymentType;
 	private boolean editable;
 	private InvoiceStatus status;
@@ -32,6 +33,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 	public abstract void addNewProduct();
 
 	public abstract void clearProductList();
+
+	public String getAdditionalComments() {
+		return additionalComments;
+	}
 
 	public String getClientDesc() {
 		return clientDesc;
@@ -49,15 +54,15 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 		return createDate;
 	}
 
-	public InvoiceFilterVO getInvoiceFilter() {
-		return invoiceFilter;
+	public InvoiceFilterVO getDocumentFilter() {
+		return documentFilter;
 	}
 
-	public String getInvoiceId() {
-		return invoiceId;
+	public String getDocumentId() {
+		return documentId;
 	}
 
-	public abstract List<Product> getInvoiceProducts();
+	public abstract List<Product> getDocumentProducts();
 
 	public String getNumber() {
 		return number;
@@ -90,23 +95,30 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 		return user;
 	}
 
+	public abstract boolean hasCorrection();
+
 	public boolean isEditable() {
 		return editable;
 	}
 
 	public void populate(final HttpServletRequest request) {
-		invoiceId = request.getParameter("invoiceId");
+		documentId = request.getParameter("documentId");
 		number = request.getParameter("number");
 		sellerId = request.getParameter("sellerId");
 		clientId = request.getParameter("clientId");
 		createDate = Translator.parseDate(request.getParameter("createDate"), null);
 		paymentDate = Translator.parseDate(request.getParameter("paymentDate"), null);
 		comments = request.getParameter("comments");
+		additionalComments = request.getParameter("additionalComments");
 		final String paymentTypeIdn = request.getParameter("paymentType");
 		if(StringUtils.isNotEmpty(paymentTypeIdn)){
 			paymentType = PaymentType.getValueByIdn(paymentTypeIdn);
 		}
 		sellerBankAccountId = request.getParameter("sellerBankAccountId");
+	}
+
+	public void setAdditionalComments(final String additionalComments) {
+		this.additionalComments = additionalComments;
 	}
 
 	public void setClientDesc(final String clientDesc) {
@@ -125,17 +137,17 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 		this.createDate = createDate;
 	}
 
+	public void setDocumentFilter(final InvoiceFilterVO documentFilter) {
+		this.documentFilter = documentFilter;
+	}
+
+	public void setDocumentId(final String invoiceId) {
+		this.documentId = invoiceId;
+	}
+
 	@Override
 	protected void setEditable(final boolean editable) {
 		this.editable = editable;
-	}
-
-	public void setInvoiceFilter(final InvoiceFilterVO invoiceFilter) {
-		this.invoiceFilter = invoiceFilter;
-	}
-
-	public void setInvoiceId(final String invoiceId) {
-		this.invoiceId = invoiceId;
 	}
 
 	public void setNumber(final String number) {

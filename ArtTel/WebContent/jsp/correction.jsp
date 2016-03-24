@@ -23,7 +23,7 @@
 	
 	
 	<c:if test="${event=='EDIT'}">
-		<input type="hidden" name="invoiceId" value="${selectedInvoice.invoiceId}" />
+		<input type="hidden" name="documentId" value="${selectedInvoice.documentId}" />
 		
 		<br/>
 		<b><c:out value="KOREKTA FAKTURY - EDYCJA"/></b>
@@ -99,7 +99,7 @@
 				<td class="label">Kwota VAT</td>
 				<td class="label">Wartość brutto</td>
 			</tr>
-			<c:forEach items="${selectedInvoice.invoiceProducts}" var="product" varStatus="rowStatus">
+			<c:forEach items="${selectedInvoice.documentProducts}" var="product" varStatus="rowStatus">
 				<tr>
 				<td class="field">
 					<custom:select name="product[${rowStatus.index}].productDefinition.productId" values="${selectsMap.productDictionary}" 

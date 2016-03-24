@@ -108,4 +108,10 @@ public class HomePageController extends BaseController {
 		return null;
 	}
 
+	@Override
+	protected String getTableHeaderAttrName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

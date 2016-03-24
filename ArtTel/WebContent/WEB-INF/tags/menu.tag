@@ -82,6 +82,11 @@
 					<a href="invoices.app" >Faktury</a>
 				</td>
 			</c:if>
+			<c:if test="${userContext.userPrivileges['bills.app']}">
+				<td width="80px" align="center">
+					<a href="bills.app" >Rachunki</a>
+				</td>
+			</c:if>
 			<c:if test="${userContext.userPrivileges['products.app']}">
 				<td width="80px" align="center">
 					<a href="products.app" >Produkty</a>

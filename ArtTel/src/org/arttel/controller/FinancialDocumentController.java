@@ -57,10 +57,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 
 	private final Logger log = Logger.getLogger(FinancialDocumentController.class);
 
-	protected static final String SELECTED_DOCUMENT = "selectedInvoice";
-	protected static final String DOCUMENTS_LIST = "invoiceList";
 	protected static final String CORRECTION_LIST = "correctionList";
-	protected static final String INVOICES_FILTER = "nvoiceFilter";
 
 	private void applyPermissions(final List<VO> documentList,
 			final List<CorrectionVO> correctionList, final String loggedUser) {
@@ -90,6 +87,10 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 	}
 
 	protected abstract Class<VO> getDocumentClass();
+
+	protected abstract String getDocumentFilterAttrName();
+
+	protected abstract String getDocumentListAttrName();
 
 	protected Event getEvent(final HttpServletRequest request,
 			final Event defaultValue) {
@@ -151,19 +152,21 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		return checkedBoxesIndex;
 	}
 
+	protected abstract String getSelectedDocumentAttrName();
+
 	protected List<String> getSelectedDocumentIds(final HttpServletRequest request) {
 		final List<VO> selectedInvoices = getSelectedDocuments(request);
 		return FluentIterable.from(selectedInvoices)
 				.transform(new Function<VO,String>(){
 					@Override
 					public String apply(final VO document) {
-						return document.getInvoiceId();
+						return document.getDocumentId();
 					}}).toList();
 	}
 
 	protected List<VO> getSelectedDocuments(final HttpServletRequest request) {
 		final List<String> selectedIndexes = getSelectedBoxIndexes(request);
-		final ResultPage<VO> resultsPage = (ResultPage)request.getSession().getAttribute(DOCUMENTS_LIST);
+		final ResultPage<VO> resultsPage = (ResultPage)request.getSession().getAttribute(getDocumentListAttrName());
 		final List<VO> documentList = resultsPage.getRecords();
 		return FluentIterable.from(selectedIndexes)
 				.transform(new Function<String, VO>() {
@@ -173,9 +176,11 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 					}}).toList();
 	}
 
+	protected abstract String getTargetPage();
+
 	private void performActionAddProductRow(final UserContext userContext, final VO documentVO, final HttpServletRequest request) {
 		documentVO.addNewProduct();
-		request.setAttribute(SELECTED_DOCUMENT, documentVO);
+		request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
@@ -192,7 +197,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		final Date paymentDate = getPaymentDate(createDate, paymentType);
 		documentVO.setPaymentDate(paymentDate);
 
-		request.setAttribute(SELECTED_DOCUMENT, documentVO);
+		request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
@@ -208,7 +213,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			product.setProductDefinition(productDefinition);
 			recalculateProduct(product);
 			recalculateDocument(documentVO);
-			request.setAttribute(SELECTED_DOCUMENT, documentVO);
+			request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 			request.setAttribute(EVENT, Event.EDIT);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
@@ -220,7 +225,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 
 		if (documentId != null) {
 			final VO financialDocument = getFinancialDocument(documentId);
-			financialDocument.setInvoiceId(null);
+			financialDocument.setDocumentId(null);
 			clearInvoiceRecordsIds(financialDocument);
 			financialDocument.setNumber(getNextDocumentNumber(userContext.getUserName()));
 			final Date currentDate = getCurrentDate();
@@ -230,7 +235,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			financialDocument.setStatus(InvoiceStatus.DRAFT);
 			financialDocument.applyPermissions(userContext.getUserName());
 			request.getSession().setAttribute(FORM, financialDocument);
-			request.setAttribute(SELECTED_DOCUMENT, financialDocument);
+			request.setAttribute(getSelectedDocumentAttrName(), financialDocument);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 	}
@@ -255,9 +260,9 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			final VO documentVO, final HttpServletRequest request) {
 		final int selectedProduct = Translator.parseInt(request
 				.getParameter(EVENT_PARAM));
-		documentVO.getInvoiceProducts().remove(selectedProduct);
+		documentVO.getDocumentProducts().remove(selectedProduct);
 		recalculateDocument(documentVO);
-		request.setAttribute(SELECTED_DOCUMENT, documentVO);
+		request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
@@ -269,7 +274,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			document.applyPermissions(userContext.getUserName());
 			getCorrections(Lists.newArrayList(document));
 			request.getSession().setAttribute(FORM, document);
-			request.setAttribute(SELECTED_DOCUMENT, document);
+			request.setAttribute(getSelectedDocumentAttrName(), document);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 	}
@@ -277,7 +282,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 	private void performActionMain(final UserContext userContext, final VO documentVO, final HttpServletRequest request) {
 		documentVO.clearProductList();
 		request.setAttribute(EVENT, Event.MAIN);
-		request.setAttribute(SELECTED_DOCUMENT, documentVO);
+		request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 	}
 
 	private void performActionNew(final UserContext userContext, final HttpServletRequest request) {
@@ -291,12 +296,12 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		document.setStatus(InvoiceStatus.DRAFT);
 		document.applyPermissions(userContext.getUserName());
 		request.getSession().setAttribute(FORM, document);
-		request.setAttribute(SELECTED_DOCUMENT, document);
+		request.setAttribute(getSelectedDocumentAttrName(), document);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
 	private void performActionPaymentEntered(final UserContext userContext, final VO documentVO, final HttpServletRequest request) {
-		request.setAttribute(SELECTED_DOCUMENT, documentVO);
+		request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
@@ -306,7 +311,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			final String documentLink = generateInvoice(documentVO, sessionId);
 
 			request.setAttribute(RESULT_FILE_LINK, documentLink);
-			request.setAttribute(SELECTED_DOCUMENT, documentVO);
+			request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 			request.setAttribute(EVENT, Event.EDIT);
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -333,10 +338,9 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 
 	private void performActionSearch(final UserContext userContext,
 			final InvoiceFilterVO documentFilterVO, final HttpServletRequest request) {
-		final PageInfo pageInfo = getCurrentPageInfo(request);
-		documentFilterVO.populate(request);
+		documentFilterVO.populate(getDocumentFilterAttrName(), request);
 		documentFilterVO.setUser(userContext.getUserName());
-		request.getSession().setAttribute(INVOICES_FILTER, documentFilterVO);
+		request.getSession().setAttribute(getDocumentFilterAttrName(), documentFilterVO);
 		searchDocumentsByFilter(userContext, request);
 	}
 
@@ -412,7 +416,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			performActionDeleteDocuments(userContext, request);
 			break;
 		case SEARCH:
-			performActionSearch(userContext, documentVO.getInvoiceFilter(), request);
+			performActionSearch(userContext, documentVO.getDocumentFilter(), request);
 			break;
 		case BACK:
 			searchDocumentsByFilter(userContext, request);
@@ -444,7 +448,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		default:
 		}
 		request.setAttribute("selectsMap", prepareSelectsMap(userContext));
-		return "invoices";
+		return getTargetPage();
 	}
 
 	protected abstract void recalculateDocument(final VO documentVO);
@@ -454,13 +458,13 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 	protected abstract void saveFinancialDocument(final UserContext userContext, final VO documentVO);
 
 	private void searchDocumentsByFilter(final UserContext userContext, final HttpServletRequest request) {
-		final InvoiceFilterVO documentFilterVO = (InvoiceFilterVO) request.getSession().getAttribute(INVOICES_FILTER);
+		final InvoiceFilterVO documentFilterVO = (InvoiceFilterVO) request.getSession().getAttribute(getDocumentFilterAttrName());
 		final PageInfo pageInfo = getCurrentPageInfo(request);
 		try {
 			final ResultPage<VO> documentList = getFinancialDocumentList(userContext, documentFilterVO, pageInfo);
 			final List<CorrectionVO> correctionList = getCorrections(documentList.getRecords());
 			applyPermissions(documentList.getRecords(), correctionList, userContext.getUserName());
-			request.getSession().setAttribute(DOCUMENTS_LIST, documentList);
+			request.getSession().setAttribute(getDocumentListAttrName(), documentList);
 			request.getSession().setAttribute(CORRECTION_LIST, correctionList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);

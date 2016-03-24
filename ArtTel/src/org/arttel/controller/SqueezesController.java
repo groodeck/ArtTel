@@ -70,8 +70,19 @@ public class SqueezesController extends BaseController {
 		return event;
 	}
 
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	private SqueezeBalanceVO getSqueezeBalance() {
 		return squeezeBalanceCalculator.getSqueezeBalance();
+	}
+
+	@Override
+	protected String getTableHeaderAttrName() {
+		return "squeezesTableHeader";
 	}
 
 	private void performActionBackToSearchresults( final UserContext userContext, final HttpServletRequest request) {
@@ -137,6 +148,7 @@ public class SqueezesController extends BaseController {
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
+
 	private void performActionMain( final UserContext userContext, final HttpServletRequest request) {
 		request.setAttribute(SQUEEZE_BALANCE, getSqueezeBalance());
 		request.setAttribute(EVENT, Event.MAIN);
@@ -151,7 +163,6 @@ public class SqueezesController extends BaseController {
 		request.setAttribute(SELECTED_SQUEEZE, squeezeDetails);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
-
 
 	private void performActionSave( final UserContext userContext,
 			final SqueezeVO squeezeVO, final HttpServletRequest request ) {
@@ -229,12 +240,6 @@ public class SqueezesController extends BaseController {
 		}
 		request.setAttribute("selectsMap", prepareSelectsMap(userContext.getUserName()));
 		return "squeezes";
-	}
-
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

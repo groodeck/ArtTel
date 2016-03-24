@@ -29,9 +29,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class AgreementsController extends BaseController {
 
+	private enum Event {
+		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK
+	}
+
 	@Autowired
 	AgreementDAO agreementDao;
-	
+
 	@Autowired
 	private CityDAO cityDao;
 
@@ -39,26 +43,165 @@ public class AgreementsController extends BaseController {
 	private ClientDAO clientDao;
 
 	private final Logger log = Logger.getLogger(AgreementsController.class);
-	
-	private enum Event { 
-		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK
-	}
-	
+
 	private static final String SELECTED_AGREEMENT = "selectedAgreement";
 	private static final String AGREEMENT_LIST = "agreementList";
 	private static final String AGREEMENT_FILTER = "agreementFilter";
-	
+
+	private void applyPermissions(final List<AgreementVO> agreementList,
+			final String loggedUser) {
+
+		for(final AgreementVO agreement : agreementList){
+			agreement.applyPermissions(loggedUser);
+		}
+	}
+
+	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
+
+		Event event = defaultValue;
+		final String eventStr = request.getParameter("event");
+		if( eventStr != null ){
+			event = Event.valueOf( eventStr.toUpperCase() );
+		}
+		return event;
+	}
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected String getTableHeaderAttrName() {
+		return "agreementTableHeader";
+	}
+
+	private void performActionBackToSearchresults( final UserContext userContext, final HttpServletRequest request) {
+		final AgreementFilterVO agreementFilterVO = (AgreementFilterVO) request.getSession().getAttribute(AGREEMENT_FILTER);
+		try{
+			final List<AgreementVO> agreementList = agreementDao.getAgreementList(agreementFilterVO);
+			applyPermissions(agreementList, userContext.getUserName());
+			request.setAttribute(AGREEMENT_LIST, agreementList);
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+		request.setAttribute(EVENT, Event.SEARCH);
+	}
+
+	private void performActionCopy(final UserContext userContext,
+			final HttpServletRequest request) {
+
+		final String agreementId = request.getParameter(EVENT_PARAM);
+		try{
+			if(agreementId != null){
+				final AgreementVO agreementDetails = agreementDao.getAgreementById(agreementId);
+				agreementDetails.setAgreementId(null);
+				agreementDetails.setUser(null);
+				agreementDetails.applyPermissions(userContext.getUserName());
+				request.setAttribute(SELECTED_AGREEMENT, agreementDetails);
+			}
+		} catch (final DaoException e) {
+			log.error("DaoException",e);
+		}
+		request.setAttribute(EVENT, Event.EDIT);
+
+	}
+
+	private void performActionDelete( final UserContext userContext,
+			final HttpServletRequest request ) {
+
+		final String agreementId = request.getParameter(EVENT_PARAM);
+		try{
+			if(agreementId != null){
+				agreementDao.deleteAgreementById(agreementId);
+			}
+		} catch (final DaoException e) {
+			log.error("DaoException",e);
+		}
+		performActionBackToSearchresults(userContext, request);
+	}
+
+	private void performActionEdit( final UserContext userContext,
+			final HttpServletRequest request ) {
+
+		final String agreementId = request.getParameter(EVENT_PARAM);
+
+		try {
+			if(agreementId != null){
+				final AgreementVO agreementDetails = agreementDao.getAgreementById(agreementId);
+				agreementDetails.applyPermissions(userContext.getUserName());
+				request.setAttribute(SELECTED_AGREEMENT, agreementDetails);
+			}
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+		request.setAttribute(EVENT, Event.EDIT);
+	}
+
+	private void performActionMain( final UserContext userContext, final HttpServletRequest request) {
+		request.setAttribute(EVENT, Event.MAIN);
+	}
+
+
+	private void performActionNew( final UserContext userContext,
+			final HttpServletRequest request ) {
+
+		final AgreementVO agreementDetails = new AgreementVO();
+		agreementDetails.applyPermissions(userContext.getUserName());
+		request.setAttribute(SELECTED_AGREEMENT, agreementDetails);
+		request.setAttribute(EVENT, Event.EDIT);
+	}
+
+	private void performActionSave( final UserContext userContext,
+			final AgreementVO agreementVO, final HttpServletRequest request ) {
+		try {
+			agreementDao.save(agreementVO, userContext.getUserName());
+			performActionBackToSearchresults(userContext, request);
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+	}
+
+	private void performActionSearch( final UserContext userContext, final AgreementFilterVO agreementFilterVO, final HttpServletRequest request) {
+		agreementFilterVO.populate(request);
+		request.getSession().setAttribute(AGREEMENT_FILTER, agreementFilterVO);
+		try{
+			final List<AgreementVO> agreementList = agreementDao.getAgreementList(agreementFilterVO);
+			applyPermissions(agreementList, userContext.getUserName());
+			request.setAttribute(AGREEMENT_LIST, agreementList);
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+		request.setAttribute(EVENT, Event.SEARCH);
+	}
+
+	private Map<String,List<? extends ComboElement>> prepareSelectsMap(final String user) {
+		final Map<String,List<? extends ComboElement>> selectsMap = new HashMap<String,List<? extends ComboElement>>();
+		selectsMap.put( "status", Status.getComboElementList(false));
+		selectsMap.put( "yesNo", YesNo.getComboElementList(false));
+		selectsMap.put( "signPlace", SignPlace.getComboElementList(false));
+		try {
+			final ClientFilterVO clientFilter = new ClientFilterVO(user, DictionaryPurpose.forAgreement);
+			selectsMap.put( "clients", clientDao.getClientDictionary(true, clientFilter));
+			selectsMap.put( "cityDictionary", cityDao.getCityDictionary(false, DictionaryPurpose.forAgreement));
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+		return selectsMap;
+	}
+
 	@RequestMapping("/agreements.app")
 	public String process(final HttpServletRequest request,
 			final HttpServletResponse response) {
-		
-		UserContext userContext = getUserContext(request);
 
-		AgreementVO agreementVO = (AgreementVO) getForm(AgreementVO.class, request);
+		final UserContext userContext = getUserContext(request);
+
+		final AgreementVO agreementVO = (AgreementVO) getForm(AgreementVO.class, request);
 		agreementVO.populate(request);
-		
+
 		final Event event = getEvent(request, Event.MAIN);
-		
+
 		switch(event){
 		case MAIN:
 			performActionMain(userContext, request);
@@ -88,143 +231,5 @@ public class AgreementsController extends BaseController {
 		}
 		request.setAttribute("selectsMap", prepareSelectsMap(userContext.getUserName()));
 		return "agreement";
-	}
-
-	private void performActionEdit( final UserContext userContext,
-			final HttpServletRequest request ) {
-
-		final String agreementId = request.getParameter(EVENT_PARAM);
-		
-		try {
-			if(agreementId != null){
-				AgreementVO agreementDetails = agreementDao.getAgreementById(agreementId);
-				agreementDetails.applyPermissions(userContext.getUserName());
-				request.setAttribute(SELECTED_AGREEMENT, agreementDetails);
-			}
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-		request.setAttribute(EVENT, Event.EDIT);
-	}
-	
-	private void performActionCopy(final UserContext userContext,
-			final HttpServletRequest request) {
-		
-		final String agreementId = request.getParameter(EVENT_PARAM);
-		try{
-			if(agreementId != null){
-				final AgreementVO agreementDetails = agreementDao.getAgreementById(agreementId);
-				agreementDetails.setAgreementId(null);
-				agreementDetails.setUser(null);
-				agreementDetails.applyPermissions(userContext.getUserName());
-				request.setAttribute(SELECTED_AGREEMENT, agreementDetails);
-			}
-		} catch (DaoException e) {
-			log.error("DaoException",e);
-		}
-		request.setAttribute(EVENT, Event.EDIT);
-		
-	}
-
-	private void performActionNew( final UserContext userContext,
-			final HttpServletRequest request ) {
-
-		final AgreementVO agreementDetails = new AgreementVO();
-		agreementDetails.applyPermissions(userContext.getUserName());
-		request.setAttribute(SELECTED_AGREEMENT, agreementDetails);
-		request.setAttribute(EVENT, Event.EDIT);
-	}
-
-	private void performActionDelete( final UserContext userContext,
-			final HttpServletRequest request ) {
-
-		final String agreementId = request.getParameter(EVENT_PARAM);
-		try{
-			if(agreementId != null){
-				agreementDao.deleteAgreementById(agreementId);
-			}
-		} catch (DaoException e) {
-			log.error("DaoException",e);
-		}
-		performActionBackToSearchresults(userContext, request);
-	}
-
-	private void performActionSave( final UserContext userContext,
-			final AgreementVO agreementVO, final HttpServletRequest request ) {
-		try {
-			agreementDao.save(agreementVO, userContext.getUserName());
-			performActionBackToSearchresults(userContext, request);
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-	}
-	
-	private void performActionSearch( final UserContext userContext, final AgreementFilterVO agreementFilterVO, final HttpServletRequest request) {
-		agreementFilterVO.populate(request);
-		request.getSession().setAttribute(AGREEMENT_FILTER, agreementFilterVO);
-		try{
-			final List<AgreementVO> agreementList = agreementDao.getAgreementList(agreementFilterVO);
-			applyPermissions(agreementList, userContext.getUserName());
-			request.setAttribute(AGREEMENT_LIST, agreementList);
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-		request.setAttribute(EVENT, Event.SEARCH);
-	}
-	
-	private void applyPermissions(final List<AgreementVO> agreementList,
-			final String loggedUser) {
-		
-		for(final AgreementVO agreement : agreementList){
-			agreement.applyPermissions(loggedUser);
-		}
-	}
-
-	private void performActionBackToSearchresults( final UserContext userContext, final HttpServletRequest request) {
-		final AgreementFilterVO agreementFilterVO = (AgreementFilterVO) request.getSession().getAttribute(AGREEMENT_FILTER);
-		try{
-			final List<AgreementVO> agreementList = agreementDao.getAgreementList(agreementFilterVO);
-			applyPermissions(agreementList, userContext.getUserName());
-			request.setAttribute(AGREEMENT_LIST, agreementList);
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-		request.setAttribute(EVENT, Event.SEARCH);
-	}
-
-	
-	private void performActionMain( final UserContext userContext, final HttpServletRequest request) {
-		request.setAttribute(EVENT, Event.MAIN);
-	}
-
-	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
-		
-		Event event = defaultValue;
-		String eventStr = request.getParameter("event");
-		if( eventStr != null ){
-			event = Event.valueOf( eventStr.toUpperCase() );
-		}
-		return event;
-	}
-
-	private Map<String,List<? extends ComboElement>> prepareSelectsMap(final String user) {
-		final Map<String,List<? extends ComboElement>> selectsMap = new HashMap<String,List<? extends ComboElement>>();
-		selectsMap.put( "status", Status.getComboElementList(false));
-		selectsMap.put( "yesNo", YesNo.getComboElementList(false));
-		selectsMap.put( "signPlace", SignPlace.getComboElementList(false));
-		try {
-			final ClientFilterVO clientFilter = new ClientFilterVO(user, DictionaryPurpose.forAgreement);
-			selectsMap.put( "clients", clientDao.getClientDictionary(true, clientFilter));
-			selectsMap.put( "cityDictionary", cityDao.getCityDictionary(false, DictionaryPurpose.forAgreement));
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-		return selectsMap;
-	}
-
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

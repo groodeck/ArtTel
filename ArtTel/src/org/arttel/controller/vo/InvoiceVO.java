@@ -22,14 +22,14 @@ import com.google.common.collect.Lists;
 public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements PrintableContent{
 
 	public static final TableHeader resultTableHeader = new TableHeader(
-			new SortableColumn("invoiceNumber", "i.invoiceNumber", "Numer"),
+			new SortableColumn("documentNumber", "i.documentNumber", "Numer"),
 			new SortableColumn("clientName", "i.client.clientDesc", "Klient", SortOrder.ASC),
 			new SortableColumn("grossAmount", "i.netAmount+i.vatAmount", "Kwota brutto"),
 			new SortableColumn("netAmount", "i.netAmount", "Kwota netto"),
 			new SortableColumn("createDate", "i.createDate", "Data wystawienia"),
 			new SortableColumn("paymentDate", "i.paymentDate", "Data p³atnoœci"),
 			new SortableColumn("comments", "i.comments", "Uwagi"),
-			new SortableColumn("invoiceStatus", "i.invoiceStatus", "Status"),
+			new SortableColumn("documentStatus", "i.documentStatus", "Status"),
 			new SortableColumn("user", "u.userName", "Wystawi³")
 			);
 
@@ -37,7 +37,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	private Date signDate;
 	private String netAmount;
 	private String vatAmount;
-	private String additionalComments;
 	private String paid;
 	private String paidWords;
 	private CorrectionVO correction;
@@ -50,10 +49,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	@Override
 	public void clearProductList() {
 		invoiceProducts.clear();
-	}
-
-	public String getAdditionalComments() {
-		return additionalComments;
 	}
 
 	public CorrectionVO getCorrection() {
@@ -119,7 +114,7 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	}
 
 	@Override
-	public List<InvoceProductVO> getInvoiceProducts() {
+	public List<InvoceProductVO> getDocumentProducts() {
 		return invoiceProducts;
 	}
 
@@ -154,6 +149,7 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 		return vatAmount;
 	}
 
+	@Override
 	public boolean hasCorrection(){
 		return getCorrection() != null;
 	}
@@ -170,7 +166,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	public void populate(final HttpServletRequest request) {
 		super.populate(request);
 		signDate = Translator.parseDate(request.getParameter("signDate"), null);
-		additionalComments = request.getParameter("additionalComments");
 		paid = Translator.parseDecimalStr(request.getParameter("paid"));
 		paidWords = request.getParameter("paidWords");
 		populateProducts(request);
@@ -191,10 +186,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 					correctionFactory.correctInvoiceProduct(invoiceProduct);
 			invoiceProduct.setCorrection(productCorrection);
 		}
-	}
-
-	public void setAdditionalComments(final String additionalComments) {
-		this.additionalComments = additionalComments;
 	}
 
 	public void setCorrection(final CorrectionVO correction) {

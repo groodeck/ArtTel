@@ -34,6 +34,10 @@ import com.google.common.collect.Lists;
 @Controller
 public class InvoicesController extends FinancialDocumentController<InvoiceVO, InvoceProductVO>{
 
+	private static final String SELECTED_INVOICE = "selectedInvoice";
+	private static final String INVOICE_LIST = "invoiceList";
+	private static final String INVOICE_FILTER = "invoiceFilter";
+
 	@Autowired
 	private InvoiceDAO invoiceDao;
 
@@ -53,7 +57,7 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 
 	@Override
 	protected void clearInvoiceRecordsIds(final InvoiceVO invoice) {
-		for(final InvoceProductVO product : invoice.getInvoiceProducts()){
+		for(final InvoceProductVO product : invoice.getDocumentProducts()){
 			product.setInvoiceProductId(null);
 		}
 	}
@@ -81,7 +85,7 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	private CorrectionVO getCorrection(final InvoiceVO invoice) {
 		try {
 			final CorrectionVO correction =
-					correctionDao.getCorrectionForInvoice(invoice.getInvoiceId());
+					correctionDao.getCorrectionForInvoice(invoice.getDocumentId());
 			if(correction != null){
 				correction.setInvoiceNumber(invoice.getNumber());
 			}
@@ -111,6 +115,16 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
+	protected String getDocumentFilterAttrName() {
+		return INVOICE_FILTER;
+	}
+
+	@Override
+	protected String getDocumentListAttrName() {
+		return INVOICE_LIST;
+	}
+
+	@Override
 	protected InvoiceVO getFinancialDocument(final String invoiceId) {
 		return invoiceService.getInvoice(invoiceId);
 	}
@@ -132,6 +146,21 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
+	protected String getSelectedDocumentAttrName() {
+		return SELECTED_INVOICE;
+	}
+
+	@Override
+	protected String getTableHeaderAttrName() {
+		return "invoicesTableHeader";
+	}
+
+	@Override
+	protected String getTargetPage() {
+		return "invoices";
+	}
+
+	@Override
 	@RequestMapping("/invoices.app")
 	public String process(final HttpServletRequest request, final HttpServletResponse response) {
 		return super.process(request, response);
@@ -140,7 +169,7 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	@Override
 	protected void recalculateDocument(final InvoiceVO invoiceVO) {
 		BigDecimal vatAmount = new BigDecimal(0), netAmount = new BigDecimal(0);
-		for (final InvoceProductVO product : invoiceVO.getInvoiceProducts()) {
+		for (final InvoceProductVO product : invoiceVO.getDocumentProducts()) {
 			vatAmount = vatAmount.add(Translator.getDecimal(product.getVatAmount()));
 			netAmount = netAmount.add(Translator.getDecimal(product.getNetSumAmount()));
 		}

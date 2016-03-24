@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 @Component
-public class CorrectionDAO extends BaseDao {
+public class CorrectionDAO extends BaseDao{
 
 	@Autowired
 	private InvoiceProductCorrectionDAO invoiceProductCorrectionDao;
@@ -39,7 +39,7 @@ public class CorrectionDAO extends BaseDao {
 
 	private static final String LAST_CORRECTION_NUMBER_QUERY =
 			"SELECT correctionNumber FROM Correction c "
-					+ "JOIN Invoice i on c.invoiceId = i.invoiceId "
+					+ "JOIN Invoice i on c.invoiceId = i.documentId "
 					+ "JOIN Seller s on i.sellerId = s.sellerId "
 					+ "JOIN User u on s.user = u.userName "
 					+ "WHERE c.createDate >= '%s' "
@@ -56,7 +56,7 @@ public class CorrectionDAO extends BaseDao {
 			final InvoiceProductCorrectionDAO invoiceProductCorrectionDAO =
 					invoiceProductCorrectionDao;
 			invoiceProductCorrectionDAO.insertInvoiceProductsCorrection(
-					invoiceVO.getInvoiceProducts(),invoiceVO.getInvoiceId(), stmt);
+					invoiceVO.getDocumentProducts(),invoiceVO.getDocumentId(), stmt);
 			return correctionId;
 		} catch (final SQLException e) {
 			throw new DaoException("InvoicesCorrectionDAO SQLException", e);
@@ -127,13 +127,11 @@ public class CorrectionDAO extends BaseDao {
 	}
 
 	private String getCorrectionByIdQuery(final String correctionId) {
-		return CORRECTION_QUERY.concat(String.format(" and c.correctionId = %s",
-				correctionId));
+		return CORRECTION_QUERY.concat(String.format(" and c.correctionId = %s", correctionId));
 	}
 
 	private String getCorrectionByInvoiceQuery(final String invoiceId) {
-		return CORRECTION_QUERY.concat(String.format(" and c.invoiceId = %s",
-				invoiceId));
+		return CORRECTION_QUERY.concat(String.format(" and c.invoiceId = %s", invoiceId));
 	}
 
 	public CorrectionVO getCorrectionForInvoice(final String invoiceId)
@@ -164,8 +162,7 @@ public class CorrectionDAO extends BaseDao {
 		return result;
 	}
 
-	public List<String> getCorrectionNumbers(final java.util.Date date, final String userName)
-			throws DaoException {
+	public List<String> getDocumentNumbers(final java.util.Date date, final String userName){
 		final List<String> results = Lists.newArrayList();
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -176,7 +173,7 @@ public class CorrectionDAO extends BaseDao {
 				results.add(rs.getString(1));
 			}
 		} catch (final SQLException e) {
-			throw new DaoException("CorrectionDAO exception", e);
+			log.error(e);
 		} finally {
 			disconnect(stmt, rs);
 		}
@@ -247,7 +244,7 @@ public class CorrectionDAO extends BaseDao {
 		try {
 			stmt = getConnection().createStatement();
 			stmt.executeUpdate(String.format(
-					"UPDATE Invoice SET InvoiceStatus='%s' WHERE invoiceId=%s",
+					"UPDATE Invoice SET DocumentStatus='%s' WHERE documentId=%s",
 					newStatus.getIdn(), invoiceId));
 		} catch (final SQLException e) {
 			throw new DaoException("InvoiceDAO exception", e);
@@ -265,9 +262,9 @@ public class CorrectionDAO extends BaseDao {
 			final CorrectionVO correction = invoice.getCorrection();
 			updateCorrection(correction, userName, stmt);
 
-			final List<InvoceProductVO> invoiceProducts = invoice.getInvoiceProducts();
+			final List<InvoceProductVO> invoiceProducts = invoice.getDocumentProducts();
 			invoiceProductCorrectionDao.updateInvoiceProductsCorrection(invoiceProducts,
-					invoice.getInvoiceId(), stmt);
+					invoice.getDocumentId(), stmt);
 
 		} catch (final SQLException e) {
 			throw new DaoException("InvoiceDAO SQLException", e);

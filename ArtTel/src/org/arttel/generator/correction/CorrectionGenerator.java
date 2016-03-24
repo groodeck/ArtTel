@@ -70,11 +70,11 @@ public class CorrectionGenerator {
 		dataSheet.addDetailsCell(9, 5, new DataCell("NIP: "+client.getNip(), CellType.TEXT));
 
 		int rowCounter = 0;
-		for(final InvoceProductVO product : invoiceVO.getInvoiceProducts()){
+		for(final InvoceProductVO product : invoiceVO.getDocumentProducts()){
 			generateProductRow(product, dataSheet, rowCounter);
 			rowCounter++;
 		}
-		final int productCount = invoiceVO.getInvoiceProducts().size()*3;
+		final int productCount = invoiceVO.getDocumentProducts().size()*3;
 		
 		dataSheet.addDetailsCell(15 + productCount, 8, new DataCell(getDouble(correction.getNetAmountDiff()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(15 + productCount, 11, new DataCell(getDouble(correction.getVatAmountDiff()), CellType.DOUBLE));

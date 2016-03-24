@@ -24,33 +24,82 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class ReportsController extends BaseController {
 
+	private enum Event {
+		MAIN, GENERATE
+	}
+
 	@Autowired
 	private ReportsGenerator reportsGenerator;
 
 	@Autowired
 	private CityDAO cityDao;
-	
 	private final Logger log = Logger.getLogger(ReportsController.class);
+
 	private static final String REPORT_PARAMS = "reportParams";
-	
-	private enum Event { 
-		MAIN, GENERATE
+
+	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
+
+		Event event = defaultValue;
+		final String eventStr = request.getParameter("event");
+		if( eventStr != null ){
+			event = Event.valueOf( eventStr.toUpperCase() );
+		}
+		return event;
 	}
-	
+
+	@Override
+	protected TableHeader getModelDefaultHeader() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected String getTableHeaderAttrName() {
+		return "reportsTableHeader";
+	}
+
+	private void performActionGenerate( final UserContext userContext,
+			final HttpServletRequest request, final ReportParamsVO reportParamsVO) {
+		try {
+			final String reportPath = reportsGenerator.generateReport(reportParamsVO, request.getSession().getId());
+			request.setAttribute("reportLink", reportPath);
+		} catch (final Exception e) {
+			log.error("Exception", e);
+		}
+	}
+
+	private void performActionMain( final UserContext userContext, final HttpServletRequest request, final ReportParamsVO reportVO) {
+
+		request.setAttribute(REPORT_PARAMS, reportVO);
+
+	}
+
+	private Map<String,List<? extends ComboElement>> prepareSelectsMap() {
+
+		final Map<String,List<? extends ComboElement>> selectsMap = new HashMap<String,List<? extends ComboElement>>();
+		selectsMap.put( "reportType", ReportType.getComboElementList());
+		try {
+			selectsMap.put( "cityDictionary", cityDao.getCityDictionary(true, DictionaryPurpose.forReport));
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+		return selectsMap;
+	}
+
 	@RequestMapping("/reports.app")
-	public String process(HttpServletRequest request,
-			HttpServletResponse response) throws UserNotLoggedException {
-		
-		UserContext userContext = getUserContext(request);
+	public String process(final HttpServletRequest request,
+			final HttpServletResponse response) throws UserNotLoggedException {
+
+		final UserContext userContext = getUserContext(request);
 		if(!userContext.isUserLogged()){
 			throw new UserNotLoggedException();
 		}
 
-		ReportParamsVO reportsVO = (ReportParamsVO) getForm(ReportParamsVO.class, request);
+		final ReportParamsVO reportsVO = (ReportParamsVO) getForm(ReportParamsVO.class, request);
 		reportsVO.populate(request);
-		
+
 		final Event event = getEvent(request, Event.MAIN);
-		
+
 		switch(event){
 		case MAIN:
 			performActionMain(userContext, request, reportsVO);
@@ -62,50 +111,6 @@ public class ReportsController extends BaseController {
 		}
 		request.setAttribute("selectsMap", prepareSelectsMap());
 		return "reports";
-	}
-
-	private Map<String,List<? extends ComboElement>> prepareSelectsMap() {
-		
-		final Map<String,List<? extends ComboElement>> selectsMap = new HashMap<String,List<? extends ComboElement>>();
-		selectsMap.put( "reportType", ReportType.getComboElementList());
-		try {
-			selectsMap.put( "cityDictionary", cityDao.getCityDictionary(true, DictionaryPurpose.forReport));
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-		return selectsMap;
-	}
-
-	private void performActionGenerate( final UserContext userContext,
-			final HttpServletRequest request, final ReportParamsVO reportParamsVO) {
-		try {
-			final String reportPath = reportsGenerator.generateReport(reportParamsVO, request.getSession().getId());
-			request.setAttribute("reportLink", reportPath);
-		} catch (Exception e) {
-			log.error("Exception", e);
-		}
-	}
-
-	private void performActionMain( final UserContext userContext, final HttpServletRequest request, final ReportParamsVO reportVO) {
-
-		request.setAttribute(REPORT_PARAMS, reportVO);
-		
-	}
-
-	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
-		
-		Event event = defaultValue;
-		String eventStr = request.getParameter("event");
-		if( eventStr != null ){
-			event = Event.valueOf( eventStr.toUpperCase() );
-		}
-		return event;
-	}
-
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

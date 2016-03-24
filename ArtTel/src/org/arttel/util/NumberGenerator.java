@@ -1,5 +1,6 @@
 package org.arttel.util;
 
+import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -8,8 +9,7 @@ import org.joda.time.DateTime;
 
 public abstract class NumberGenerator {
 
-	protected abstract List<String> getInvoiceNumbers(final DateTime startDate, final String userName)
-			throws DaoException ;
+	protected abstract List<String> getDocumentNumbers(final Date date, final String userName);
 
 	public String getNextNumber(final String userName) {
 		String result = "";
@@ -25,7 +25,8 @@ public abstract class NumberGenerator {
 	}
 
 	private int getNextSequence(final DateTime startDate, final String userName) throws DaoException {
-		final List<String> invoiceNumbers = getInvoiceNumbers(startDate, userName);
+		final List<String> invoiceNumbers = getDocumentNumbers(startDate.toDate(), userName);
+
 		int maxInvoiceNumber = 0;
 		for(final String invoiceNumber : invoiceNumbers){
 			final String numberSequenceStr =
