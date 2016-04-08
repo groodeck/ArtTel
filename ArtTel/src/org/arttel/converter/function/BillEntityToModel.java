@@ -6,7 +6,11 @@ import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.BillProductVO;
 import org.arttel.controller.vo.BillVO;
 import org.arttel.controller.vo.InvoceProductCorrectionVO;
+import org.arttel.controller.vo.SellerVO;
+import org.arttel.converter.ClientConverter;
 import org.arttel.dao.ProductDAO;
+import org.arttel.dao.SellerBankAccountDao;
+import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.entity.Bill;
@@ -24,6 +28,15 @@ public final class BillEntityToModel implements Function<Bill, BillVO> {
 
 	@Autowired
 	private ProductDAO productDao;
+
+	@Autowired
+	private SellerDAO sellerDao;
+
+	@Autowired
+	private SellerBankAccountDao sellerBankAccountDao;
+
+	@Autowired
+	private ClientConverter clientConverter;
 
 	@Override
 	public BillVO apply(final Bill entity) {
@@ -49,6 +62,10 @@ public final class BillEntityToModel implements Function<Bill, BillVO> {
 		model.setSellerBankAccountId(entity.getSellerBankAccountId());
 		model.setDocumentProducts(convertProductsToModel(entity.getDocumentProducts()));
 		model.setAmount(Translator.toString(entity.getAmount()));
+		final SellerVO seller = getSeller(entity.getSellerId());
+		model.setSeller(seller);
+		model.setClient(clientConverter.convert(entity.getClient()));
+		model.setRealizationDate(entity.getRealizationDate());
 		return model;
 	}
 
@@ -66,6 +83,8 @@ public final class BillEntityToModel implements Function<Bill, BillVO> {
 				model.setSumAmount(Translator.toString(entity.getSumAmount()));
 				model.setTaxReleaseBasis(entity.getTaxReleaseBasis());
 				model.setProductClassification(entity.getProductClassification());
+				model.setTaxReleaseBasis(entity.getTaxReleaseBasis());
+				model.setProductClassification(entity.getProductClassification());
 				//				model.setCorrection(getProductCorrection(invoiceProductId));
 				return model;
 			}
@@ -75,6 +94,10 @@ public final class BillEntityToModel implements Function<Bill, BillVO> {
 				return null; //TODO
 			}
 		}));
+	}
+
+	private SellerVO getSeller(final Integer sellerId) {
+		return sellerDao.getSellerById(sellerId.toString());
 	}
 
 };

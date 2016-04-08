@@ -16,7 +16,7 @@ import org.arttel.controller.vo.filter.InvoiceFilterVO;
 import org.arttel.dao.CorrectionDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.exception.DaoException;
-import org.arttel.generator.invoice.InvoiceGenerator;
+import org.arttel.generator.bill.BillGenerator;
 import org.arttel.service.BillService;
 import org.arttel.ui.PageInfo;
 import org.arttel.ui.ResultPage;
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 @Controller
@@ -37,7 +38,7 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	private static final String BILL_FILTER = "billFilter";
 
 	@Autowired
-	private InvoiceGenerator invoiceGenerator;
+	private BillGenerator billGenerator;
 
 	@Autowired
 	private CorrectionDAO correctionDao;
@@ -68,15 +69,8 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	}
 
 	@Override
-	protected String generateInvoice(final BillVO billVO, final String sessionId) throws Exception {
-		//		return invoiceGenerator.generateInvoice(invoiceVO, sessionId);
-		return "";//TODO
-	}
-
-	@Override
-	protected String generateInvoices(final List<BillVO> selectedBills, final String sessionId) throws Exception {
-		//		return invoiceGenerator.generateInvoices(selectedBills, sessionId);
-		return "";//TODO
+	protected Optional<String> printDocument(final List<BillVO> bills, final String sessionId) throws Exception {
+		return billGenerator.printDocuments(bills, sessionId);
 	}
 
 	private CorrectionVO getCorrection(final BillVO invoice) {

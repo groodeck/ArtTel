@@ -14,6 +14,7 @@ import org.arttel.dictionary.ReportType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
 import org.arttel.exception.UserNotLoggedException;
+import org.arttel.generator.FileGenerator;
 import org.arttel.generator.report.ReportsGenerator;
 import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
@@ -33,8 +34,12 @@ public class ReportsController extends BaseController {
 
 	@Autowired
 	private CityDAO cityDao;
-	private final Logger log = Logger.getLogger(ReportsController.class);
 
+	@Autowired
+	private FileResponseHandler fileResponse;
+
+	private final Logger log = Logger.getLogger(ReportsController.class);
+	
 	private static final String REPORT_PARAMS = "reportParams";
 
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
@@ -58,11 +63,11 @@ public class ReportsController extends BaseController {
 		return "reportsTableHeader";
 	}
 
-	private void performActionGenerate( final UserContext userContext,
-			final HttpServletRequest request, final ReportParamsVO reportParamsVO) {
+	private void performActionGenerate(final HttpServletRequest request, final HttpServletResponse response,
+			final ReportParamsVO reportParamsVO) {
 		try {
 			final String reportPath = reportsGenerator.generateReport(reportParamsVO, request.getSession().getId());
-			request.setAttribute("reportLink", reportPath);
+			fileResponse.sendToClient(FileGenerator.BASE_DIR + reportPath, response);
 		} catch (final Exception e) {
 			log.error("Exception", e);
 		}
@@ -71,7 +76,6 @@ public class ReportsController extends BaseController {
 	private void performActionMain( final UserContext userContext, final HttpServletRequest request, final ReportParamsVO reportVO) {
 
 		request.setAttribute(REPORT_PARAMS, reportVO);
-
 	}
 
 	private Map<String,List<? extends ComboElement>> prepareSelectsMap() {
@@ -105,7 +109,7 @@ public class ReportsController extends BaseController {
 			performActionMain(userContext, request, reportsVO);
 			break;
 		case GENERATE:
-			performActionGenerate(userContext, request, reportsVO);
+			performActionGenerate(request, response, reportsVO);
 			break;
 		default:
 		}

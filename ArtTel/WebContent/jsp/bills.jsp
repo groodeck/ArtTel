@@ -197,6 +197,12 @@
 				</td>
 			</tr>
 			<tr>
+				<td class="label">Data dokonania/zakończenia dostawy,<br/> wykonania usługi</td>
+				<td class="field">
+					<custom:date name="realizationDate" identifier="realizationDate" value="${selectedBill.realizationDate}" />
+				</td>
+			</tr>
+			<tr>
 				<td class="label">Status</td>
 				<td class="field" style="background-color: ${selectedBill.status.color}">
 					<c:out value="${selectedBill.status.desc}"/>
@@ -263,16 +269,17 @@
 				</tr>
 			</c:if>
 			<tr>
-				<td class="field" colspan="5"/>
+				<td class="field" colspan="4"/>
 				<td class="field" align="right">
-					<c:out value="RAZEM" />
+					<b><c:out value="RAZEM" /></b>
 				</td>
 				<td class="field" align="right">
 					<c:out value="-" />
 				</td>
 				<td class="field" align="right">
-					<c:out value="${selectedBill.amount}" />
+					<b><c:out value="${selectedBill.amount}"/></b>
 				</td>
+				<td class="field"/>
 			</tr>
 
 		</table>
@@ -349,9 +356,6 @@
 					Rachunek korygowany
 				</c:if >
 				<td><input type="button" value="Drukuj" onclick="submitForm('print')"/></td>
-				<c:if test="${not empty reportLink}">
-					<td><a href="${reportLink}">Rachunek</a></td>
-				</c:if>
 			</tr>
 		</table>
 	

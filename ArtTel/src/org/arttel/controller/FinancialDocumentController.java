@@ -32,11 +32,13 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
-public abstract class FinancialDocumentController<VO extends FinancialDocumentVO<Product>, Product extends FinancialDocumentProductVO> extends BaseController  {
+public abstract class FinancialDocumentController<VO extends FinancialDocumentVO<Product>, Product extends FinancialDocumentProductVO> 
+	extends BaseController  {
 
 	protected enum Event {
 		MAIN, SAVE, EDIT, ADD_PRODUCT_ROW, DEL_PRODUCT_ROW, NEW, DELETE_SELECTED, SEARCH, BACK, CHANGE_PRODUCT, PAID_ENTERED, PRINT, CHANGE_PAYMENT_TYPE,
@@ -54,6 +56,9 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 
 	@Autowired
 	private SellerDAO sellerDao;
+
+	@Autowired
+	private FileResponseHandler fileResponse;
 
 	private final Logger log = Logger.getLogger(FinancialDocumentController.class);
 
@@ -75,10 +80,6 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 	protected abstract VO createNewDocument();
 
 	protected abstract void deleteInvoice(final List<String> documentIds);
-
-	protected abstract String generateInvoice(final VO documentVO, final String sessionId) throws Exception;
-
-	protected abstract String generateInvoices(final List<VO> selectedDocuments, final String sessionId) throws Exception;
 
 	protected abstract List<CorrectionVO> getCorrections(List<VO> records);
 
@@ -305,26 +306,26 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
-	private void performActionPrint(final UserContext userContext, final VO documentVO, final HttpServletRequest request) {
+	private void performActionPrint(final UserContext userContext, final VO documentVO, final HttpServletRequest request,
+			final HttpServletResponse response) {
 		try {
 			final String sessionId = request.getSession().getId();
-			final String documentLink = generateInvoice(documentVO, sessionId);
-
-			request.setAttribute(RESULT_FILE_LINK, documentLink);
+			final Optional<String> filePath = printDocument(Lists.newArrayList(documentVO), sessionId);
 			request.setAttribute(getSelectedDocumentAttrName(), documentVO);
 			request.setAttribute(EVENT, Event.EDIT);
+			sendFileBack(filePath, response);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void performActionPrintSelected(final UserContext userContext, final HttpServletRequest request) {
+	private void performActionPrintSelected(final UserContext userContext, final HttpServletRequest request, final HttpServletResponse response) {
 		try {
 			final List<VO> selectedDocuments = getSelectedDocuments(request);
 			final String sessionId = request.getSession().getId();
-			final String documentLink = generateInvoices(selectedDocuments, sessionId);
-
-			request.setAttribute(RESULT_FILE_LINK, documentLink);
+			final Optional<String> filePath = printDocument(selectedDocuments, sessionId);
+			searchDocumentsByFilter(userContext, request);
+			sendFileBack(filePath, response);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -378,6 +379,8 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		return selectsMap;
 	}
 
+	protected abstract Optional<String> printDocument(final List<VO> documentVO, final String sessionId) throws Exception;
+
 	protected String process(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final UserContext userContext = getUserContext(request);
@@ -422,7 +425,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			searchDocumentsByFilter(userContext, request);
 			break;
 		case PRINT:
-			performActionPrint(userContext, documentVO, request);
+			performActionPrint(userContext, documentVO, request, response);
 			break;
 		case CHANGE_PAYMENT_TYPE:
 			performActionChangePaymentType(userContext, documentVO, request);
@@ -443,7 +446,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 			performActionChangePage(userContext, request);
 			break;
 		case PRINT_SELECTED:
-			performActionPrintSelected(userContext, request);
+			performActionPrintSelected(userContext, request, response);
 			break;
 		default:
 		}
@@ -472,5 +475,12 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
+	private void sendFileBack(final Optional<String> filePath, final HttpServletResponse response) {
+		if(filePath.isPresent()){
+			fileResponse.sendToClient(filePath.get(), response);
+		}
+	}
+
 	protected abstract void settleFinancialDocument(final String documentId);
+
 }

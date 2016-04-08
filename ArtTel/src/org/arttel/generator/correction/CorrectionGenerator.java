@@ -45,7 +45,14 @@ public class CorrectionGenerator {
 	private static final String OUTPUT_FILE_NAME = "Korekta.xlsx";
 	private static final String TEMPLATE_XLS_NAME = "CorrectionTemplate.xlsx";
 
-	public String generateCorrection(final InvoiceVO invoiceVO, final String sessionId) 
+	private String formatParticipantDescription(final InvoiceParticipant participant) {
+		final StringBuilder sb = new StringBuilder(participant.getName() + " \n ");
+		sb.append(participant.getAddressCity() + " \n ");
+		sb.append(participant.getAddressStreet());
+		return sb.toString();
+	}
+
+	public String generateCorrection(final InvoiceVO invoiceVO, final String sessionId)
 			throws DaoException, IOException, InvalidFormatException {
 
 		final CorrectionVO correction = invoiceVO.getCorrection();
@@ -54,17 +61,17 @@ public class CorrectionGenerator {
 		dataSheet.addDetailsCell(1, 11, new DataCell(invoiceVO.getNumber(), CellType.TEXT));
 		dataSheet.addDetailsCell(2, 4, new DataCell("Data wystawienia " + correction.getCreateDate(), CellType.TEXT));
 		dataSheet.addDetailsCell(3, 4, new DataCell("Data sprzeda¿y " + invoiceVO.getSignDate(), CellType.TEXT));
-		
+
 		final SellerVO seller = sellerDao.getSellerById(invoiceVO.getSellerId());
 		dataSheet.addDetailsCell(6, 0, new DataCell(formatParticipantDescription(seller), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(9, 0, new DataCell("NIP: "+seller.getNip(), CellType.TEXT));
 		if(invoiceVO.getSellerBankAccountId() != null){
 			final SellerBankAccount bankAccount = bankAccountDao.getBankAccountById(invoiceVO.getSellerBankAccountId());
-			dataSheet.addDetailsCell(10, 0, new DataCell("Nr rachunku: "+bankAccount.getBankName() + " \n " + bankAccount.getAccountNumber(), 
+			dataSheet.addDetailsCell(10, 0, new DataCell("Nr rachunku: "+bankAccount.getBankName() + " \n " + bankAccount.getAccountNumber(),
 					CellType.WRAPABLE_TEXT));
 		}
 		dataSheet.addDetailsCell(10, 5, new DataCell(getPaymentTypeDescription(correction), CellType.WRAPABLE_TEXT));
-		
+
 		final ClientVO client = clientDao.getClientVoById(invoiceVO.getClientId());
 		dataSheet.addDetailsCell(6, 5, new DataCell(formatParticipantDescription(client), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(9, 5, new DataCell("NIP: "+client.getNip(), CellType.TEXT));
@@ -75,7 +82,7 @@ public class CorrectionGenerator {
 			rowCounter++;
 		}
 		final int productCount = invoiceVO.getDocumentProducts().size()*3;
-		
+
 		dataSheet.addDetailsCell(15 + productCount, 8, new DataCell(getDouble(correction.getNetAmountDiff()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(15 + productCount, 11, new DataCell(getDouble(correction.getVatAmountDiff()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(15 + productCount, 13, new DataCell(getDouble(correction.getGrossAmountDiff()), CellType.DOUBLE));
@@ -85,58 +92,19 @@ public class CorrectionGenerator {
 		dataSheet.addDetailsCell(17 + productCount, 8, new DataCell(getDouble(correction.getNetAmount()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(17 + productCount, 11, new DataCell(getDouble(correction.getVatAmount()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(17 + productCount, 13, new DataCell(getDouble(correction.getGrossAmount()), CellType.DOUBLE));
-		
+
 		dataSheet.addDetailsCell(21 + productCount, 0, new DataCell(correction.getPaidWords(), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(24 + productCount, 3, new DataCell(correction.getGrossAmountDiff(), CellType.WRAPABLE_TEXT));
 		dataSheet.addDetailsCell(27 + productCount, 0, new DataCell("Uwagi: " + correction.getComments(), CellType.WRAPABLE_TEXT));
-		
+
 		generateVatDetailsValues(dataSheet, productCount, invoiceVO.getCorrectionDetailValueMap());
-		
+
 		return XlsCorrectionGenerator.generate(TEMPLATE_XLS_NAME, OUTPUT_FILE_NAME, dataSheet, sessionId);
 	}
 
-	private String getPaymentTypeDescription(final CorrectionVO correction) {
-		final PaymentType paymentType = correction.getPaymentType();
-		String result = "Sposób zap³aty: \n"+paymentType.getDesc();
-		if(paymentType.isTransfer()){
-			result = result.concat(". Termin p³atnoœci: " + correction.getPaymentDate());
-		}
-		return result;
-	}
-
-	private void generateVatDetailsValues(final DataSheet dataSheet, final int productCount, 
-			final Map<VatRate, InvoiceValuesVO> invoiceDetailValueMap) {
-		
-		//Invoice detailed values (per VatRate)
-		final InvoiceValuesVO rateZW = invoiceDetailValueMap.get(VatRate.VAT_ZW);
-		dataSheet.addDetailsCell(18 + productCount, 8, new DataCell(rateZW.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(18 + productCount, 11, new DataCell(rateZW.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(18 + productCount, 13, new DataCell(getDouble(rateZW.getGrossAmount()), CellType.DOUBLE));
-				
-		final InvoiceValuesVO rate23 = invoiceDetailValueMap.get(VatRate.VAT_23);
-		dataSheet.addDetailsCell(19 + productCount, 8, new DataCell(rate23.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(19 + productCount, 11, new DataCell(rate23.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(19 + productCount, 13, new DataCell(getDouble(rate23.getGrossAmount()), CellType.DOUBLE));
-
-		final InvoiceValuesVO rate8 = invoiceDetailValueMap.get(VatRate.VAT_8);
-		dataSheet.addDetailsCell(20 + productCount, 8, new DataCell(rate8.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(20 + productCount, 11, new DataCell(rate8.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(20 + productCount, 13, new DataCell(getDouble(rate8.getGrossAmount()), CellType.DOUBLE));
-		
-		final InvoiceValuesVO rate5 = invoiceDetailValueMap.get(VatRate.VAT_5);
-		dataSheet.addDetailsCell(21 + productCount, 8, new DataCell(rate5.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(21 + productCount, 11, new DataCell(rate5.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(21 + productCount, 13, new DataCell(getDouble(rate5.getGrossAmount()), CellType.DOUBLE));
-		
-		final InvoiceValuesVO rate0 = invoiceDetailValueMap.get(VatRate.VAT_0);
-		dataSheet.addDetailsCell(22 + productCount, 8, new DataCell(rate0.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(22 + productCount, 11, new DataCell(rate0.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(22 + productCount, 13, new DataCell(getDouble(rate0.getGrossAmount()), CellType.DOUBLE));
-	}
-
-	private void generateProductRow(final InvoceProductVO product, final DataSheet dataSheet, 
+	private void generateProductRow(final InvoceProductVO product, final DataSheet dataSheet,
 			final int productNumber) {
-		
+
 		final InvoceProductCorrectionVO correction = product.getCorrection();
 		dataSheet.setDataRowsOffset(PRODUCT_ROW_OFFSET);
 		final List<DataCell> row = new ArrayList<DataCell>();
@@ -156,7 +124,7 @@ public class CorrectionGenerator {
 		row.add(new DataCell(getDouble(product.getGrossSumAmount()), CellType.DOUBLE));
 
 		dataSheet.getRows().add(row);
-		
+
 		final List<DataCell> rowCorrected = new ArrayList<DataCell>();
 		rowCorrected.add(null);
 		rowCorrected.add(new DataCell(correction.getProductDefinition().getDesc(), CellType.TEXT));
@@ -172,9 +140,9 @@ public class CorrectionGenerator {
 		rowCorrected.add(new DataCell(getDouble(correction.getVatAmount()), CellType.DOUBLE));
 		rowCorrected.add(null);
 		rowCorrected.add(new DataCell(getDouble(correction.getGrossSumAmount()), CellType.DOUBLE));
-		
+
 		dataSheet.getRows().add(rowCorrected);
-		
+
 		final List<DataCell> correctDiff = new ArrayList<DataCell>();
 		correctDiff.add(null);
 		correctDiff.add(null);
@@ -190,19 +158,46 @@ public class CorrectionGenerator {
 		correctDiff.add(new DataCell(getDouble(correction.getVatAmountDiff()), CellType.DOUBLE));
 		correctDiff.add(null);
 		correctDiff.add(new DataCell(getDouble(correction.getGrossSumAmountDiff()), CellType.DOUBLE));
-		
+
 		dataSheet.getRows().add(correctDiff);
 	}
 
-	private String getVatRateIfDefined(final InvoceProductVO product) {
-		final ProductVO productDef = product.getProductDefinition();
-		final String vatRate;
-		if(productDef == null){
-			vatRate = "";
-		} else {
-			vatRate = productDef.getVatRate().getDesc();
+	private void generateVatDetailsValues(final DataSheet dataSheet, final int productCount,
+			final Map<VatRate, InvoiceValuesVO> invoiceDetailValueMap) {
+
+		//Invoice detailed values (per VatRate)
+		final InvoiceValuesVO rateZW = invoiceDetailValueMap.get(VatRate.VAT_ZW);
+		dataSheet.addDetailsCell(18 + productCount, 8, new DataCell(rateZW.getNetAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(18 + productCount, 11, new DataCell(rateZW.getVatAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(18 + productCount, 13, new DataCell(getDouble(rateZW.getGrossAmount()), CellType.DOUBLE));
+
+		final InvoiceValuesVO rate23 = invoiceDetailValueMap.get(VatRate.VAT_23);
+		dataSheet.addDetailsCell(19 + productCount, 8, new DataCell(rate23.getNetAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(19 + productCount, 11, new DataCell(rate23.getVatAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(19 + productCount, 13, new DataCell(getDouble(rate23.getGrossAmount()), CellType.DOUBLE));
+
+		final InvoiceValuesVO rate8 = invoiceDetailValueMap.get(VatRate.VAT_8);
+		dataSheet.addDetailsCell(20 + productCount, 8, new DataCell(rate8.getNetAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(20 + productCount, 11, new DataCell(rate8.getVatAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(20 + productCount, 13, new DataCell(getDouble(rate8.getGrossAmount()), CellType.DOUBLE));
+
+		final InvoiceValuesVO rate5 = invoiceDetailValueMap.get(VatRate.VAT_5);
+		dataSheet.addDetailsCell(21 + productCount, 8, new DataCell(rate5.getNetAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(21 + productCount, 11, new DataCell(rate5.getVatAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(21 + productCount, 13, new DataCell(getDouble(rate5.getGrossAmount()), CellType.DOUBLE));
+
+		final InvoiceValuesVO rate0 = invoiceDetailValueMap.get(VatRate.VAT_0);
+		dataSheet.addDetailsCell(22 + productCount, 8, new DataCell(rate0.getNetAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(22 + productCount, 11, new DataCell(rate0.getVatAmount().doubleValue(), CellType.DOUBLE));
+		dataSheet.addDetailsCell(22 + productCount, 13, new DataCell(getDouble(rate0.getGrossAmount()), CellType.DOUBLE));
+	}
+
+	private double getDouble(final String value) {
+		if(isNotEmpty(value)){
+			return new Double(value).doubleValue();
+		}else{
+			return 0;
 		}
-		return vatRate;
 	}
 
 	private String getNetPriceIfDefined(final InvoceProductVO product) {
@@ -214,6 +209,15 @@ public class CorrectionGenerator {
 			netPrice = productDef.getNetPrice();
 		}
 		return netPrice;
+	}
+
+	private String getPaymentTypeDescription(final CorrectionVO correction) {
+		final PaymentType paymentType = correction.getPaymentType();
+		String result = "Sposób zap³aty: \n"+paymentType.getDesc();
+		if(paymentType.isTransfer()){
+			result = result.concat(". Termin p³atnoœci: " + correction.getPaymentDate());
+		}
+		return result;
 	}
 
 	private String getProductDescriptionIfDefined(final InvoceProductVO product) {
@@ -238,31 +242,14 @@ public class CorrectionGenerator {
 		return unitType;
 	}
 
-	private double getDouble(final String value) {
-		if(isNotEmpty(value)){
-			return new Double(value).doubleValue();
-		}else{
-			return 0;
+	private String getVatRateIfDefined(final InvoceProductVO product) {
+		final ProductVO productDef = product.getProductDefinition();
+		final String vatRate;
+		if(productDef == null){
+			vatRate = "";
+		} else {
+			vatRate = productDef.getVatRate().getDesc();
 		}
-	}
-
-	private String formatParticipantDescription(final InvoiceParticipant client) {
-		final StringBuilder sb = new StringBuilder(client.getDesc() + " \n ");
-		if(isNotEmpty(client.getZip())){
-			sb.append(client.getZip() + " ");
-		} 
-		if(isNotEmpty(client.getCity())){
-			sb.append(client.getCity() + " \n ");
-		}
-		if(isNotEmpty(client.getStreet())){
-			sb.append(client.getStreet());
-		}
-		if(isNotEmpty(client.getHouse())){
-			sb.append(" " + client.getHouse());
-		} 
-		if(isNotEmpty(client.getAppartment())){
-			sb.append("/" + client.getAppartment());
-		}
-		return sb.toString();
+		return vatRate;
 	}
 }

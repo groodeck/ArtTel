@@ -2,6 +2,8 @@ package org.arttel.controller.vo;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.arttel.util.Translator;
+
 
 public class BillProductVO extends FinancialDocumentProductVO {
 
@@ -10,11 +12,11 @@ public class BillProductVO extends FinancialDocumentProductVO {
 	private String productClassification;
 
 	public String getAmountDecimalPart(){
-		return ""; //TODO
+		return Translator.getNumberParts(sumAmount).getDecimalPart();
 	}
 
 	public String getAmountWholePart(){
-		return "";//TODO
+		return Translator.getNumberParts(sumAmount).getWholePart();
 	}
 
 	public String getProductClassification() {

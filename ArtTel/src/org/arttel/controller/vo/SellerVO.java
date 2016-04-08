@@ -2,6 +2,8 @@ package org.arttel.controller.vo;
 
 import org.arttel.view.ComboElement;
 
+import com.google.common.base.Joiner;
+
 public class SellerVO implements ComboElement, InvoiceParticipant {
 	
 	private String sellerId;
@@ -14,88 +16,85 @@ public class SellerVO implements ComboElement, InvoiceParticipant {
 	private String house;
 	private String appartment;
 	private String zip;
-	
-	private String bankName;
- 	private String accountNumber;                                                                                           				
-	
-	public String getSellerId() {
-		return sellerId;
-	}
-	public void setSellerId(String sellerId) {
-		this.sellerId = sellerId;
-	}
-	public String getSellerDesc() {
-		return sellerDesc;
-	}
-	public void setSellerDesc(String sellerDesc) {
-		this.sellerDesc = sellerDesc;
-	}
-	
-	public String getNip() {
-		return nip;
-	}
 
-	public void setNip(String nip) {
-		this.nip = nip;
+	@Override
+	public String getAddressCity() {
+		return Joiner.on(" ").skipNulls().join(getZip(), getCity());
+	}
+	@Override
+	public String getAddressStreet() {
+		final String houseAndApptmnt = Joiner.on("/").skipNulls().join(getHouse(), getAppartment());
+		return Joiner.on(" ").skipNulls().join(getStreet(), houseAndApptmnt);
+	}
+	public String getAppartment() {
+		return appartment;
 	}
 
 	public String getCity() {
 		return city;
 	}
 
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getStreet() {
-		return street;
-	}
-
-	public void setStreet(String street) {
-		this.street = street;
+	@Override
+	public String getDesc() {
+		return getSellerDesc();
 	}
 
 	public String getHouse() {
 		return house;
 	}
 
-	public void setHouse(String house) {
-		this.house = house;
+	@Override
+	public String getIdn() {
+		return getSellerId();
 	}
 
-	public String getAppartment() {
-		return appartment;
+	@Override
+	public String getName() {
+		return getSellerDesc();
 	}
 
-	public void setAppartment(String appartment) {
-		this.appartment = appartment;
+	public String getNip() {
+		return nip;
+	}
+
+	public String getSellerDesc() {
+		return sellerDesc;
+	}
+
+	public String getSellerId() {
+		return sellerId;
+	}
+
+	public String getStreet() {
+		return street;
 	}
 
 	public String getZip() {
 		return zip;
 	}
 
-	public void setZip(String zip) {
+	public void setAppartment(final String appartment) {
+		this.appartment = appartment;
+	}
+	public void setCity(final String city) {
+		this.city = city;
+	}
+	public void setHouse(final String house) {
+		this.house = house;
+	}
+	public void setNip(final String nip) {
+		this.nip = nip;
+	}
+	public void setSellerDesc(final String sellerDesc) {
+		this.sellerDesc = sellerDesc;
+	}
+	public void setSellerId(final String sellerId) {
+		this.sellerId = sellerId;
+	}
+	public void setStreet(final String street) {
+		this.street = street;
+	}
+	public void setZip(final String zip) {
 		this.zip = zip;
-	}
-	@Override
-	public String getDesc() {
-		return getSellerDesc();
-	}
-	public String getBankName() {
-		return bankName;
-	}
-	public void setBankName(String bankName) {
-		this.bankName = bankName;
-	}
-	public String getAccountNumber() {
-		return accountNumber;
-	}
-	public void setAccountNumber(String accountNumber) {
-		this.accountNumber = accountNumber;
-	}
-	@Override
-	public String getIdn() {
-		return getSellerId();
 	}
 }

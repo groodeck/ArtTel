@@ -1,3 +1,6 @@
 eclipse.preferences.version=1
 encoding//WebContent/WEB-INF/tags/menu.tag=UTF-8
 encoding//WebContent/data/js/common.js=UTF-8
+encoding//src/org/arttel/controller/FileResponseHandler.java=UTF-8
+encoding//src/org/arttel/generator/bill/BillFileGenerator.java=UTF-8
+encoding//src/org/arttel/generator/invoice/InvoiceFileGenerator.java=UTF-8

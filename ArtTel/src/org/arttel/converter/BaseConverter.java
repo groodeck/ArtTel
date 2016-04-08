@@ -1,14 +1,13 @@
 package org.arttel.converter;
 
-import org.arttel.entity.FinancialDocument;
+import org.arttel.entity.UserSet;
 import org.arttel.ui.ResultPage;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
-public abstract class BaseConverter<Model, Entity extends FinancialDocument<?>> { /*TODO zamienic FinancialDocument na UserSet w momencie
- 																					u¿ycia tej klasy bazowej dla converterow encji nie-finansowych */
+public abstract class BaseConverter<Model, Entity extends UserSet> {
 
 	public Model convert(final Entity entity) {
 		return toModel().apply(entity);

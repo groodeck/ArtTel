@@ -6,6 +6,8 @@ import org.arttel.controller.vo.filter.ClientFilterVO;
 import org.arttel.util.Translator;
 import org.arttel.view.ComboElement;
 
+import com.google.common.base.Joiner;
+
 public class ClientVO extends FormsDictionaryVO implements ComboElement, InvoiceParticipant  {
 
 	private ClientFilterVO clientFilter = new ClientFilterVO(null, null);
@@ -21,38 +23,78 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 	private String house;
 	private String appartment;
 	private String zip;
-	
-	public ClientVO(String clientId, String clientDesc) {
+
+	public ClientVO(){
+	}
+
+	public ClientVO(final String clientId, final String clientDesc) {
 		this.clientId = clientId;
 		this.clientDesc = clientDesc;
 	}
-	
-	public ClientVO(){
+
+	@Override
+	public String getAddressCity() {
+		return Joiner.on(" ").skipNulls().join(getZip(), getCity());
+	}
+	@Override
+	public String getAddressStreet() {
+		final String houseAndApptmnt = Joiner.on("/").skipNulls().join(getHouse(), getAppartment());
+		return Joiner.on(" ").skipNulls().join(getStreet(), houseAndApptmnt);
+	}
+	public String getAppartment() {
+		return appartment;
+	}
+	public String getCity() {
+		return city;
+	}
+
+	public String getClientDesc() {
+		return clientDesc;
+	}
+	public ClientFilterVO getClientFilter() {
+		return clientFilter;
 	}
 
 	public String getClientId() {
 		return clientId;
 	}
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-	public String getClientDesc() {
-		return clientDesc;
-	}
-	public void setClientDesc(String clientDesc) {
-		this.clientDesc = clientDesc;
-	}
-	
-	@Override
-	public String getIdn() {
-		return clientId;
-	}
+
 	@Override
 	public String getDesc() {
 		return clientDesc;
 	}
 
-	public void populate(HttpServletRequest request, String prefix) {
+	public String getHouse() {
+		return house;
+	}
+
+	@Override
+	public String getIdn() {
+		return clientId;
+	}
+
+	@Override
+	public String getName() {
+		return clientDesc;
+	}
+
+	public String getNip() {
+		return nip;
+	}
+
+	public String getSelectedClient() {
+		return selectedClient;
+	}
+
+	public String getStreet() {
+		return street;
+	}
+
+	public String getZip() {
+		return zip;
+	}
+
+	public void populate(final HttpServletRequest request, final String prefix) {
 		clientId = request.getParameter("clientId");
 		clientDesc = request.getParameter(prefix + "clientDesc");
 		nip = request.getParameter(prefix + "nip");
@@ -69,67 +111,42 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 		setForInvoice(Translator.getBoolean(request.getParameter(prefix + "forInvoice")));
 	}
 
-	public ClientFilterVO getClientFilter() {
-		return clientFilter;
-	}
-
-	public void setClientFilter(ClientFilterVO clientFilter) {
-		this.clientFilter = clientFilter;
-	}
-
-	public String getSelectedClient() {
-		return selectedClient;
-	}
-
-	public void setSelectedClient(String selectedClient) {
-		this.selectedClient = selectedClient;
-	}
-
-	public String getNip() {
-		return nip;
-	}
-
-	public void setNip(String nip) {
-		this.nip = nip;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getStreet() {
-		return street;
-	}
-
-	public void setStreet(String street) {
-		this.street = street;
-	}
-
-	public String getHouse() {
-		return house;
-	}
-
-	public void setHouse(String house) {
-		this.house = house;
-	}
-
-	public String getAppartment() {
-		return appartment;
-	}
-
-	public void setAppartment(String appartment) {
+	public void setAppartment(final String appartment) {
 		this.appartment = appartment;
 	}
 
-	public String getZip() {
-		return zip;
+	public void setCity(final String city) {
+		this.city = city;
 	}
 
-	public void setZip(String zip) {
+	public void setClientDesc(final String clientDesc) {
+		this.clientDesc = clientDesc;
+	}
+
+	public void setClientFilter(final ClientFilterVO clientFilter) {
+		this.clientFilter = clientFilter;
+	}
+
+	public void setClientId(final String clientId) {
+		this.clientId = clientId;
+	}
+
+	public void setHouse(final String house) {
+		this.house = house;
+	}
+
+	public void setNip(final String nip) {
+		this.nip = nip;
+	}
+
+	public void setSelectedClient(final String selectedClient) {
+		this.selectedClient = selectedClient;
+	}
+	public void setStreet(final String street) {
+		this.street = street;
+	}
+
+	public void setZip(final String zip) {
 		this.zip = zip;
 	}
 

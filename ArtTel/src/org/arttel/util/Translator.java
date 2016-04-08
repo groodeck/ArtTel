@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 
 public class Translator {
 
@@ -32,9 +33,17 @@ public class Translator {
 
 		return parameter == null || parameter.isEmpty() ? null : parameter;
 	}
+	public static Optional<BigDecimal> getBigDecimal(final String source) {
+		try {
+			return Optional.of(new BigDecimal(source));
+		} catch (final Exception e) {
+			return Optional.absent();
+		}
+	}
 	public static boolean getBoolean(final String parameter) {
 		return StringUtils.isNotEmpty(parameter) && TRUE.equals(parameter);
 	}
+
 	public static String getCalendarMonthName(final Calendar calendarDayFrom) {
 		final String result;
 		switch (calendarDayFrom.get(Calendar.MONTH)) {
@@ -90,6 +99,16 @@ public class Translator {
 			log.warn("Cannot convert to decimal value: " + vatAmount);
 		}
 		return decimal;
+	}
+
+	public static NumberParts getNumberParts(final String numberStr) {
+		final Optional<BigDecimal> decimal = getBigDecimal(numberStr);
+		if(decimal.isPresent()){
+			final String[] parts = decimal.get().setScale(2).toPlainString().split("\\.");
+			return new NumberParts(parts[0], parts[1]);
+		} else {
+			return new NumberParts("","");
+		}
 	}
 
 	public static String join(final String... parts) {

@@ -8,185 +8,186 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="Client")
-public class Client {
+public class Client implements UserSet {
 
 	@Id
 	@GeneratedValue
 	@Column(name="ClientId")
-	private Integer clientId; 
-	
+	private Integer clientId;
+
 	@Column(name="ClientDesc")
-	private String clientDesc; 
-	
+	private String clientDesc;
+
 	@Column(name="ForInstalation")
-	private Boolean forInstalation; 
-	
+	private Boolean forInstalation;
+
 	@Column(name="ForOrder")
-	private Boolean forOrder; 
-	
+	private Boolean forOrder;
+
 	@Column(name="ForReport")
-	private Boolean forReport; 
-	
+	private Boolean forReport;
+
 	@Column(name="ForSqueeze")
-	private Boolean forSqueeze; 
-	
+	private Boolean forSqueeze;
+
 	@Column(name="ForDealing")
-	private Boolean forDealing; 
-	
+	private Boolean forDealing;
+
 	@Column(name="ForAgreement")
-	private Boolean forAgreement; 
-	
+	private Boolean forAgreement;
+
 	@Column(name="ForInvoice")
-	private Boolean forInvoice; 
-	
+	private Boolean forInvoice;
+
 	@Column(name="Nip")
-	private String nip; 
-	
+	private String nip;
+
 	@Column(name="City")
-	private String city; 
-	
+	private String city;
+
 	@Column(name="Street")
-	private String street; 
-	
+	private String street;
+
 	@Column(name="House")
-	private String house; 
-	
+	private String house;
+
 	@Column(name="Appartment")
-	private String appartment; 
-	
+	private String appartment;
+
 	@Column(name="Zip")
-	private String zip; 
-	
+	private String zip;
+
 	@Column(name="User")
 	private String user;
 
-	public Integer getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(Integer clientId) {
-		this.clientId = clientId;
-	}
-
-	public String getClientDesc() {
-		return clientDesc;
-	}
-
-	public void setClientDesc(String clientDesc) {
-		this.clientDesc = clientDesc;
-	}
-
-	public Boolean getForInstalation() {
-		return forInstalation;
-	}
-
-	public void setForInstalation(Boolean forInstalation) {
-		this.forInstalation = forInstalation;
-	}
-
-	public Boolean getForOrder() {
-		return forOrder;
-	}
-
-	public void setForOrder(Boolean forOrder) {
-		this.forOrder = forOrder;
-	}
-
-	public Boolean getForReport() {
-		return forReport;
-	}
-
-	public void setForReport(Boolean forReport) {
-		this.forReport = forReport;
-	}
-
-	public Boolean getForSqueeze() {
-		return forSqueeze;
-	}
-
-	public void setForSqueeze(Boolean forSqueeze) {
-		this.forSqueeze = forSqueeze;
-	}
-
-	public Boolean getForDealing() {
-		return forDealing;
-	}
-
-	public void setForDealing(Boolean forDealing) {
-		this.forDealing = forDealing;
-	}
-
-	public Boolean getForAgreement() {
-		return forAgreement;
-	}
-
-	public void setForAgreement(Boolean forAgreement) {
-		this.forAgreement = forAgreement;
-	}
-
-	public Boolean getForInvoice() {
-		return forInvoice;
-	}
-
-	public void setForInvoice(Boolean forInvoice) {
-		this.forInvoice = forInvoice;
-	}
-
-	public String getNip() {
-		return nip;
-	}
-
-	public void setNip(String nip) {
-		this.nip = nip;
+	public String getAppartment() {
+		return appartment;
 	}
 
 	public String getCity() {
 		return city;
 	}
 
-	public void setCity(String city) {
-		this.city = city;
+	public String getClientDesc() {
+		return clientDesc;
 	}
 
-	public String getStreet() {
-		return street;
+	public Integer getClientId() {
+		return clientId;
 	}
 
-	public void setStreet(String street) {
-		this.street = street;
+	public Boolean getForAgreement() {
+		return forAgreement;
+	}
+
+	public Boolean getForDealing() {
+		return forDealing;
+	}
+
+	public Boolean getForInstalation() {
+		return forInstalation;
+	}
+
+	public Boolean getForInvoice() {
+		return forInvoice;
+	}
+
+	public Boolean getForOrder() {
+		return forOrder;
+	}
+
+	public Boolean getForReport() {
+		return forReport;
+	}
+
+	public Boolean getForSqueeze() {
+		return forSqueeze;
 	}
 
 	public String getHouse() {
 		return house;
 	}
 
-	public void setHouse(String house) {
-		this.house = house;
+	public String getNip() {
+		return nip;
 	}
 
-	public String getAppartment() {
-		return appartment;
-	}
-
-	public void setAppartment(String appartment) {
-		this.appartment = appartment;
-	}
-
-	public String getZip() {
-		return zip;
-	}
-
-	public void setZip(String zip) {
-		this.zip = zip;
+	public String getStreet() {
+		return street;
 	}
 
 	public String getUser() {
 		return user;
 	}
 
-	public void setUser(String user) {
+	public String getZip() {
+		return zip;
+	}
+
+	public void setAppartment(final String appartment) {
+		this.appartment = appartment;
+	}
+
+	public void setCity(final String city) {
+		this.city = city;
+	}
+
+	public void setClientDesc(final String clientDesc) {
+		this.clientDesc = clientDesc;
+	}
+
+	public void setClientId(final Integer clientId) {
+		this.clientId = clientId;
+	}
+
+	public void setForAgreement(final Boolean forAgreement) {
+		this.forAgreement = forAgreement;
+	}
+
+	public void setForDealing(final Boolean forDealing) {
+		this.forDealing = forDealing;
+	}
+
+	public void setForInstalation(final Boolean forInstalation) {
+		this.forInstalation = forInstalation;
+	}
+
+	public void setForInvoice(final Boolean forInvoice) {
+		this.forInvoice = forInvoice;
+	}
+
+	public void setForOrder(final Boolean forOrder) {
+		this.forOrder = forOrder;
+	}
+
+	public void setForReport(final Boolean forReport) {
+		this.forReport = forReport;
+	}
+
+	public void setForSqueeze(final Boolean forSqueeze) {
+		this.forSqueeze = forSqueeze;
+	}
+
+	public void setHouse(final String house) {
+		this.house = house;
+	}
+
+	public void setNip(final String nip) {
+		this.nip = nip;
+	}
+
+	public void setStreet(final String street) {
+		this.street = street;
+	}
+
+	@Override
+	public void setUser(final String user) {
 		this.user = user;
 	}
-	
-	
+
+	public void setZip(final String zip) {
+		this.zip = zip;
+	}
+
+
 }

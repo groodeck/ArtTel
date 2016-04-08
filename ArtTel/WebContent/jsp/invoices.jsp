@@ -398,9 +398,6 @@
 					Faktura korygowana
 				</c:if >
 				<td><input type="button" value="Drukuj" onclick="submitForm('print')"/></td>
-				<c:if test="${not empty reportLink}">
-					<td><a href="${reportLink}">Faktura</a></td>
-				</c:if>
 			</tr>
 		</table>
 	

@@ -13,7 +13,7 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 
 @MappedSuperclass
-public abstract class FinancialDocument<ProductType> {
+public abstract class FinancialDocument<ProductType> implements UserSet {
 
 	@Id
 	@GeneratedValue
@@ -158,6 +158,7 @@ public abstract class FinancialDocument<ProductType> {
 		this.sellerId = sellerId;
 	}
 
+	@Override
 	public void setUser(final String user) {
 		this.user = user;
 	}

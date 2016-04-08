@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 @Controller
@@ -73,13 +74,8 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
-	protected String generateInvoice(final InvoiceVO invoiceVO, final String sessionId) throws Exception {
-		return invoiceGenerator.generateInvoice(invoiceVO, sessionId);
-	}
-
-	@Override
-	protected String generateInvoices(final List<InvoiceVO> selectedInvoices, final String sessionId) throws Exception {
-		return invoiceGenerator.generateInvoices(selectedInvoices, sessionId);
+	protected Optional<String> printDocument(final List<InvoiceVO> invoices, final String sessionId) throws Exception {
+		return invoiceGenerator.generateInvoices(invoices, sessionId);
 	}
 
 	private CorrectionVO getCorrection(final InvoiceVO invoice) {

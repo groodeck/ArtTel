@@ -23,20 +23,10 @@ public class BaseXlsGenerator {
 	protected static final String DATA_DOWNLOAD = "data/download/";
 	protected static final String DATA_TEMPLATE = "/data/reportTemplate/";
 	
-	//TODO: wypchnac ponizsze do properties file
-	// jesli server uruchomiony z eclipsa
-//	protected static final String BASE_DIR = "D:/develop/repo/ArtTel/ArtTel/WebContent";
-	
-	//jesli serwer uruchomiony osobno
-//	protected static final String BASE_DIR = "D:/develop/servers/apache-tomcat-7.0.50/webapps/ArtTel";
-	
-	//produkcja
-	public static final String BASE_DIR = "D:/arttel/apache-tomcat-7.0.50/webapps/ArtTel";
-	
 	protected static Workbook getWorkbook(final String templateFileName)
 			throws FileNotFoundException, IOException, InvalidFormatException {
 		
-		final InputStream inp = new FileInputStream(BASE_DIR + DATA_TEMPLATE + templateFileName);
+		final InputStream inp = new FileInputStream(FileGenerator.BASE_DIR + DATA_TEMPLATE + templateFileName);
 	    return WorkbookFactory.create(inp);
 	}
 	
@@ -121,15 +111,14 @@ public class BaseXlsGenerator {
 		}
 	}
 	
-	protected static String writeOutputFile(final String outputFileName,
-			final String sessionId, final Workbook wb)
+	protected static String writeOutputFile(final String outputFileName, final String sessionId, final Workbook wb)
 			throws FileNotFoundException, IOException {
 		// Write the output to a file
 	    final String reportRelatedDir =  DATA_DOWNLOAD + sessionId;
-	    File sessionDir = new File(BASE_DIR + "/" + reportRelatedDir);
+	    final File sessionDir = new File(FileGenerator.BASE_DIR + "/" + reportRelatedDir);
 	    sessionDir.mkdir();
 
-	    FileOutputStream fileOut = new FileOutputStream(sessionDir.getAbsolutePath() + "/" + outputFileName);
+	    final FileOutputStream fileOut = new FileOutputStream(sessionDir.getAbsolutePath() + "/" + outputFileName);
 	    wb.write(fileOut);
 	    fileOut.close();
 		return reportRelatedDir;

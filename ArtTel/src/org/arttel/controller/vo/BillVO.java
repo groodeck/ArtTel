@@ -1,5 +1,6 @@
 package org.arttel.controller.vo;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.arttel.generator.PrintableContent;
 import org.arttel.ui.SortOrder;
 import org.arttel.ui.SortableColumn;
 import org.arttel.ui.TableHeader;
+import org.arttel.util.Translator;
 
 public class BillVO extends FinancialDocumentVO<BillProductVO> implements PrintableContent{
 
@@ -27,6 +29,7 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 	private String amount;
 	private String bankAccountName;
 	private String bankAccountNumber;
+	private Date realizationDate;
 	private SellerVO seller;
 	private ClientVO client;
 
@@ -45,11 +48,11 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 	}
 
 	public String getAmountDecimalPart(){
-		return ""; //TODO
+		return Translator.getNumberParts(amount).getDecimalPart();
 	}
 
 	public String getAmountWholePart(){
-		return "";//TODO
+		return Translator.getNumberParts(amount).getWholePart();
 	}
 
 	public String getBankAccountName() {
@@ -74,6 +77,10 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 		return billProducts.get(index);
 	}
 
+	public Date getRealizationDate() {
+		return realizationDate;
+	}
+
 	public SellerVO getSeller() {
 		return seller;
 	}
@@ -87,6 +94,7 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 	@Override
 	public void populate(final HttpServletRequest request) {
 		super.populate(request);
+		realizationDate = Translator.parseDate(request.getParameter("realizationDate"), null);
 		populateProducts(request);
 	}
 
@@ -116,6 +124,10 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 
 	public void setDocumentProducts(final List<BillProductVO> billProducts) {
 		this.billProducts = billProducts;
+	}
+
+	public void setRealizationDate(final Date realizationDate) {
+		this.realizationDate = realizationDate;
 	}
 
 	public void setSeller(final SellerVO seller) {

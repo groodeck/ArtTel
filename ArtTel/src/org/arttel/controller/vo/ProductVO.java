@@ -11,7 +11,7 @@ import org.arttel.view.ComboElement;
 
 public class ProductVO extends BasePageVO implements ComboElement{
 
-	private ProductFilterVO productFilter = new ProductFilterVO();
+	private final ProductFilterVO productFilter = new ProductFilterVO();
 	private String selectedProduct;
 	
 	private String productId ;
@@ -20,7 +20,51 @@ public class ProductVO extends BasePageVO implements ComboElement{
 	private VatRate vatRate;
 	private UnitType unitType;
 	private String comments;
-	
+	private String user;
+
+	public String getComments() {
+		return comments;
+	}
+
+	@Override
+	public String getDesc() {
+		return getProductDescription();
+	}
+	@Override
+	public String getIdn() {
+		return getProductId();
+	}
+	public String getNetPrice() {
+		return netPrice;
+	}
+	public String getPriceDecimalPart(){
+		return Translator.getNumberParts(netPrice).getDecimalPart();
+	}
+	public String getPriceWholePart(){
+		return Translator.getNumberParts(netPrice).getWholePart();
+	}
+	public String getProductDescription() {
+		return productDescription;
+	}
+	public ProductFilterVO getProductFilter() {
+		return productFilter;
+	}
+	public String getProductId() {
+		return productId;
+	}
+	public String getSelectedProduct() {
+		return selectedProduct;
+	}
+	public UnitType getUnitType() {
+		return unitType;
+	}
+	@Override
+	public String getUser() {
+		return user;
+	}
+	public VatRate getVatRate() {
+		return vatRate;
+	}
 	public void populate(final HttpServletRequest request) {
 		productId = request.getParameter("productId");
 		productDescription = request.getParameter("productDescription");
@@ -32,79 +76,46 @@ public class ProductVO extends BasePageVO implements ComboElement{
 		if(StringUtils.isNotEmpty(vatRateStr)){
 			vatRate	 = VatRate.getValueByIdn(vatRateStr);
 		}
-		final String unitTypeStr = request.getParameter("unitType"); 
+		final String unitTypeStr = request.getParameter("unitType");
 		if(StringUtils.isNotEmpty(unitTypeStr)){
 			unitType = UnitType.getValueByIdn(unitTypeStr);
 		}
 		comments = request.getParameter("comments");
 	}
-	
-	public String getProductId() {
-		return productId;
-	}
-	public void setProductId(String productId) {
-		this.productId = productId;
-	}
-	public String getProductDescription() {
-		return productDescription;
-	}
-	public void setProductDescription(String productDescription) {
-		this.productDescription = productDescription;
-	}
-	public String getNetPrice() {
-		return netPrice;
-	}
-	public void setNetPrice(String netPrice) {
-		this.netPrice = netPrice;
-	}
-	public VatRate getVatRate() {
-		return vatRate;
-	}
-	public void setVatRate(VatRate vatRate) {
-		this.vatRate = vatRate;
-	}
-	public UnitType getUnitType() {
-		return unitType;
-	}
-	public void setUnitType(UnitType unitType) {
-		this.unitType = unitType;
-	}
-	public String getComments() {
-		return comments;
-	}
-	public void setComments(String comments) {
+
+	public void setComments(final String comments) {
 		this.comments = comments;
 	}
 
 	@Override
-	public String getIdn() {
-		return getProductId();
+	protected void setEditable(final boolean editable) {
 	}
 
-	@Override
-	public String getDesc() {
-		return getProductDescription();
+	public void setNetPrice(final String netPrice) {
+		this.netPrice = netPrice;
 	}
 
-	@Override
-	protected String getUser() {
-		// TODO Auto-generated method stub
-		return null;
+	public void setProductDescription(final String productDescription) {
+		this.productDescription = productDescription;
 	}
 
-	@Override
-	protected void setEditable(boolean editable) {
+	public void setProductId(final String productId) {
+		this.productId = productId;
 	}
 
-	public String getSelectedProduct() {
-		return selectedProduct;
-	}
-
-	public void setSelectedProduct(String selectedProduct) {
+	public void setSelectedProduct(final String selectedProduct) {
 		this.selectedProduct = selectedProduct;
 	}
 
-	public ProductFilterVO getProductFilter() {
-		return productFilter;
+	public void setUnitType(final UnitType unitType) {
+		this.unitType = unitType;
+	}
+
+	public void setUser(final String user) {
+		this.user = user;
+	}
+
+	public void setVatRate(final VatRate vatRate) {
+		this.vatRate = vatRate;
 	}
 }
