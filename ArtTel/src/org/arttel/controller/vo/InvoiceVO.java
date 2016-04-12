@@ -22,15 +22,18 @@ import com.google.common.collect.Lists;
 public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements PrintableContent{
 
 	public static final TableHeader resultTableHeader = new TableHeader(
-			new SortableColumn("documentNumber", "i.documentNumber", "Numer"),
-			new SortableColumn("clientName", "i.client.clientDesc", "Klient", SortOrder.ASC),
-			new SortableColumn("grossAmount", "i.netAmount+i.vatAmount", "Kwota brutto"),
-			new SortableColumn("netAmount", "i.netAmount", "Kwota netto"),
-			new SortableColumn("createDate", "i.createDate", "Data wystawienia"),
-			new SortableColumn("paymentDate", "i.paymentDate", "Data p³atnoœci"),
-			new SortableColumn("comments", "i.comments", "Uwagi"),
-			new SortableColumn("documentStatus", "i.documentStatus", "Status"),
-			new SortableColumn("user", "u.userName", "Wystawi³")
+			new SortableColumn("documentNumber", "concat("
+					+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 10, 4), "
+					+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 7, 2), "
+					+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 1, 5))", "Numer"),
+					new SortableColumn("clientName", "i.client.clientDesc", "Klient", SortOrder.ASC),
+					new SortableColumn("grossAmount", "i.netAmount+i.vatAmount", "Kwota brutto"),
+					new SortableColumn("netAmount", "i.netAmount", "Kwota netto"),
+					new SortableColumn("createDate", "i.createDate", "Data wystawienia"),
+					new SortableColumn("paymentDate", "i.paymentDate", "Data p³atnoœci"),
+					new SortableColumn("comments", "i.comments", "Uwagi"),
+					new SortableColumn("documentStatus", "i.documentStatus", "Status"),
+					new SortableColumn("user", "u.userName", "Wystawi³")
 			);
 
 	private List<InvoceProductVO> invoiceProducts = new ArrayList<InvoceProductVO>();
@@ -74,6 +77,11 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 		return result;
 	}
 
+	@Override
+	public List<InvoceProductVO> getDocumentProducts() {
+		return invoiceProducts;
+	}
+
 	public String getGrossAmount() {
 		final BigDecimal net = Translator.getDecimal(netAmount);
 		final BigDecimal vat = Translator.getDecimal(vatAmount);
@@ -111,11 +119,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 				values.get(VatRate.VAT_5),
 				values.get(VatRate.VAT_8),
 				values.get(VatRate.VAT_23)) ;
-	}
-
-	@Override
-	public List<InvoceProductVO> getDocumentProducts() {
-		return invoiceProducts;
 	}
 
 	public String getNetAmount() {

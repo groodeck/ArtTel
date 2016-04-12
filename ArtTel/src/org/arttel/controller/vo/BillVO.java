@@ -15,14 +15,17 @@ import org.arttel.util.Translator;
 public class BillVO extends FinancialDocumentVO<BillProductVO> implements PrintableContent{
 
 	public static final TableHeader resultTableHeader = new TableHeader(
-			new SortableColumn("documentNumber", "b.documentNumber", "Numer"),
-			new SortableColumn("clientName", "b.client.clientDesc", "Klient", SortOrder.ASC),
-			new SortableColumn("amount", "b.amount", "Kwota"),
-			new SortableColumn("createDate", "b.createDate", "Data wystawienia"),
-			new SortableColumn("paymentDate", "b.paymentDate", "Data p³atnoœci"),
-			new SortableColumn("comments", "b.comments", "Uwagi"),
-			new SortableColumn("documentStatus", "b.documentStatus", "Status"),
-			new SortableColumn("user", "u.userName", "Wystawi³")
+			new SortableColumn("documentNumber", "concat("
+					+ "substring(substring(concat('00000', b.documentNumber),length(concat('00000', b.documentNumber))-12, 13), 10, 4), "
+					+ "substring(substring(concat('00000', b.documentNumber),length(concat('00000', b.documentNumber))-12, 13), 7, 2), "
+					+ "substring(substring(concat('00000', b.documentNumber),length(concat('00000', b.documentNumber))-12, 13), 1, 5))", "Numer"),
+					new SortableColumn("clientName", "b.client.clientDesc", "Klient", SortOrder.ASC),
+					new SortableColumn("amount", "b.amount", "Kwota"),
+					new SortableColumn("createDate", "b.createDate", "Data wystawienia"),
+					new SortableColumn("paymentDate", "b.paymentDate", "Data p³atnoœci"),
+					new SortableColumn("comments", "b.comments", "Uwagi"),
+					new SortableColumn("documentStatus", "b.documentStatus", "Status"),
+					new SortableColumn("user", "u.userName", "Wystawi³")
 			);
 
 	private List<BillProductVO> billProducts = new ArrayList<BillProductVO>();
