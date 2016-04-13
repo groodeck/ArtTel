@@ -53,6 +53,7 @@ public class SellerVO implements ComboElement, InvoiceParticipant {
 		return getSellerDesc();
 	}
 
+	@Override
 	public String getNip() {
 		return nip;
 	}

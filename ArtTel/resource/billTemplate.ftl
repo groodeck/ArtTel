@@ -82,12 +82,14 @@
 								${seller.name!}<br/>
 								${seller.addressCity!}<br/>
 								${seller.addressStreet!}<br/>
+								NIP: ${seller.nip!}
 							</td>
 							<td></td>
 							<td style="border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;">
 								${client.name!}<br/>
-								${client.addressCity!}
+								${client.addressCity!}<br/>
 								${client.addressStreet!}<br/>
+								NIP: ${client.nip!}
 							</td>
 						</tr>
 					</table>

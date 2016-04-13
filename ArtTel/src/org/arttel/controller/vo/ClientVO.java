@@ -78,6 +78,7 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 		return clientDesc;
 	}
 
+	@Override
 	public String getNip() {
 		return nip;
 	}
