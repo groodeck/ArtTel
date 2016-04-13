@@ -4,6 +4,8 @@ import static org.arttel.util.PropertiesReader.PAPER_PRINT_ON;
 
 import java.util.List;
 
+import org.arttel.controller.vo.FinancialDocumentVO;
+import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.util.PropertiesReader;
 import org.arttel.util.ZipUtil;
 
@@ -24,6 +26,17 @@ public abstract class FinancialDocumentGenerator {
 	protected boolean isPaperPrintOn() {
 		final String isPaperPrintOn = PropertiesReader.getProperty(PAPER_PRINT_ON);
 		return Boolean.parseBoolean(isPaperPrintOn);
+	}
+
+	protected abstract void setPendingStatus(final String documentId);
+
+	protected void updateStatus(final FinancialDocumentVO<?> invoiceVO) {
+		final String invoiceId = invoiceVO.getDocumentId();
+		final InvoiceStatus currentStatus = invoiceVO.getStatus();
+		if(currentStatus == InvoiceStatus.DRAFT){
+			setPendingStatus(invoiceId);
+			invoiceVO.setStatus(InvoiceStatus.PENDING);
+		}
 	}
 
 	private String zip(final List<String> filePaths, final String sessionId) {

@@ -196,9 +196,8 @@ public class InvoiceGenerator extends FinancialDocumentGenerator {
 		return result;
 	}
 
-	private void updateStatus(final InvoiceVO invoiceVO) {
-		final String invoiceId = invoiceVO.getDocumentId();
-		invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
-		invoiceVO.setStatus(InvoiceStatus.PENDING);
+	@Override
+	protected void setPendingStatus(final String documentId) {
+		invoiceDao.setInvoiceStatus(documentId, InvoiceStatus.PENDING);
 	}
 }
