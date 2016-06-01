@@ -12,24 +12,23 @@ import org.arttel.generator.BaseXlsGenerator;
 import org.arttel.generator.DataSheet;
 
 public class XlsInvoiceGenerator extends BaseXlsGenerator {
-	
-	public static String generate(final String templateFileName, final String outputFileName, 
-			final DataSheet dataSheet, final String sessionId) 
-					throws IOException, InvalidFormatException {
+
+	public static String generate(final String templateFileName, final String outputFileName,
+			final DataSheet dataSheet, final String sessionId) throws IOException, InvalidFormatException {
 
 		final Workbook wb = getWorkbook(templateFileName);
-	   
-	    final Sheet targetSheet = wb.getSheetAt(0);
-	    int rowsToInsert = dataSheet.getRows().size()-1;
-		shiftRowsIfRequired(targetSheet, dataSheet.getDataRowsOffset(), rowsToInsert);
-	    fillSingleSheet(targetSheet, dataSheet);
-	    printReportDetails(dataSheet.getReportDetailsList(), targetSheet);
 
-	    final String reportRelatedDir = writeOutputFile(outputFileName, sessionId, wb);
-	    return  reportRelatedDir + "/" + outputFileName;
+		final Sheet targetSheet = wb.getSheetAt(0);
+		final int rowsToInsert = dataSheet.getRows().size()-1;
+		shiftRowsIfRequired(targetSheet, dataSheet.getDataRowsOffset(), rowsToInsert);
+		fillSingleSheet(targetSheet, dataSheet);
+		printReportDetails(dataSheet.getReportDetailsList(), targetSheet);
+
+		final String reportRelatedDir = writeOutputFile(outputFileName, sessionId, wb);
+		return  reportRelatedDir + "/" + outputFileName;
 	}
 
-	private static void shiftRowsIfRequired(final Sheet sheet, int rowInsertOffset, final int rowsToInsert) {
+	private static void shiftRowsIfRequired(final Sheet sheet, final int rowInsertOffset, final int rowsToInsert) {
 		if(rowsToInsert > 0){
 			sheet.shiftRows(rowInsertOffset, sheet.getLastRowNum(), rowsToInsert);
 			final Row sourceRow = sheet.getRow(rowInsertOffset + rowsToInsert);
@@ -38,9 +37,9 @@ public class XlsInvoiceGenerator extends BaseXlsGenerator {
 				final Row newRow = sheet.createRow(newRowIndex);
 				for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
 					final Cell newCell = newRow.createCell(i);
-				    newCell.setCellStyle(sourceRow.getCell(i).getCellStyle());
+					newCell.setCellStyle(sourceRow.getCell(i).getCellStyle());
 				}
-				
+
 				sheet.addMergedRegion(new CellRangeAddress(newRowIndex, newRowIndex, 5, 6));
 				sheet.addMergedRegion(new CellRangeAddress(newRowIndex, newRowIndex, 7, 8));
 				sheet.addMergedRegion(new CellRangeAddress(newRowIndex, newRowIndex, 10, 11));

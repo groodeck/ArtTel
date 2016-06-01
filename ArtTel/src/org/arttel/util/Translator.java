@@ -8,6 +8,7 @@ import java.util.Calendar;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.joda.time.LocalDate;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -99,6 +100,10 @@ public class Translator {
 			log.warn("Cannot convert to decimal value: " + vatAmount);
 		}
 		return decimal;
+	}
+
+	public static Double getDouble(final BigDecimal bigDecimal) {
+		return bigDecimal == null ? null : bigDecimal.doubleValue();
 	}
 
 	public static NumberParts getNumberParts(final String numberStr) {
@@ -206,16 +211,37 @@ public class Translator {
 		}
 	}
 
-	public static BigDecimal toDecimal(final String value, final int scale) {
-		BigDecimal decimal = BigDecimal.ZERO;
+	public static LocalDate parseLocalDate(final String dateStr) {
+		final Date date = parseDate(dateStr);
+		return date == null ? null : LocalDate.fromDateFields(date);
+	}
+
+	public static BigDecimal toDecimal(final String value) {
 		if(StringUtils.isNotBlank(value)){
 			try {
-				decimal = new BigDecimal(commaNumber(value));
+				return new BigDecimal(commaNumber(value));
 			} catch (final Exception e) {
 				log.warn("Cannot convert to decimal value: " + value);
 			}
 		}
-		return decimal.setScale(scale);
+		return null;
+	}
+
+	public static BigDecimal toDecimal(final String value, final int scale) {
+		final BigDecimal decimal  = toDecimal(value);
+		if(decimal == null){
+			return BigDecimal.ZERO.setScale(scale);
+		} else {
+			return decimal.setScale(scale);
+		}
+	}
+
+	public static LocalDate toLocalDate(final Date date) {
+		return date == null ? null : LocalDate.fromDateFields(date);
+	}
+
+	public static java.sql.Date toSqlDate(final LocalDate date) {
+		return date == null ? null : new java.sql.Date(date.toDate().getTime());
 	}
 
 	public static String toString(final BigDecimal decimal) {

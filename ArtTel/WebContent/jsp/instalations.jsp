@@ -8,12 +8,43 @@
         contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" 
         import="org.arttel.util.Translator"/>
 
-	<jsp:text>
+<jsp:text>
  	<![CDATA[
  		<script type="text/javascript" src="data/js/common.js" ></script>
+		<script type="text/javascript" src="data/js/jquery.min.js" ></script>
+		<script type="text/javascript" src="data/js/jquery-ui.min.js" ></script>
+ 		 		
+ 		<script type="text/javascript" defer='defer'>
+ 		
+ 			var changeInstallationType = function(){
+ 				var installationType = $("#installationType");
+ 				if(installationType != null && installationType.val() != null){
+	 				if(installationType.val() == 'zwrot'){
+		 				$("#twoWay1_upstream_row").hide();
+		 				$("#twoWay1_downstream_row").hide();
+		 				
+		 				$("#twoWay2_upstream_row").hide();
+		 				$("#twoWay2_downstream_row").hide();
+		 				
+		 				$("#modem_upstream_row").hide();
+		 				$("#modem_downstream_row").hide();
+	 				} else {
+	 					$("#twoWay1_upstream_row").show();
+		 				$("#twoWay1_downstream_row").show();
+		 				
+		 				$("#twoWay2_upstream_row").show();
+		 				$("#twoWay2_downstream_row").show();
+		 				
+		 				$("#modem_upstream_row").show();
+		 				$("#modem_downstream_row").show();
+	 				}
+ 				}
+ 			};
+ 			
+ 		</script>
  	]]>
  	</jsp:text>
- 
+ 	
     <style type="text/css" >
     	 @IMPORT url("data/css/instalations.css");
 	</style> 
@@ -142,180 +173,218 @@
 				
 			</table>
 		</c:if>
+	
 		
 		<br/>
 		<input type="button" value="Dodaj" onclick="submitForm('new')"/>
 		<br/><br/>
-		<table class="borderedTable" cellpadding="2" cellspacing="1" >
-			
-			<tr class="tableHeader">
-				<td>L.p.</td>
-				<td>Status</td>
-				<td>Data instalacji</td>
-				<td>Rodzaj instalacji</td>
-				<td>Adres</td>
-				<td>Nr seryjny</td>
-				<td>MAC adres</td>
-				<td>Downstream</td>
-				<td>Upstream</td>
-				<td>Uwagi</td>
-				<td>Monter</td>
-			</tr>
-			
-			<c:forEach items="${instalationList}" var="instalation" varStatus="rowStatus">
-				<tr class="row${rowStatus.count%2}">
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.instalationId}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" style="background-color: ${instalation.status.color}"><c:out value="${instalation.status.desc}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.dataInstalacji}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.rodzajInstalacji.desc}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.adres}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.nrSeryjny}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.macAdres}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" style="background-color: ${instalation.downstreamColor}" ><c:out value="${instalation.downstream}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" style="background-color: ${instalation.upstreamColor}" ><c:out value="${instalation.upstream}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.uwagi}"/></td>
-					<td  onclick="submitFormWithParam('edit',${instalation.instalationId})" ><c:out value="${instalation.user}"/></td>
-					<td >
+		<c:if test="${not empty instalationList.records}">
+			<table class="borderedTable" cellpadding="2" cellspacing="1" >
+				
+				<tr class="tableHeader">
+					<td/>
+					<custom:sortableHeader column="${installationsTableHeader.columns.installationId}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.installationType}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.status}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.installationDate}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.address}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.twoWay1_downstream}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.twoWay1_upstream}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.twoWay2_downstream}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.twoWay2_upstream}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.modem_downstream}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.modem_upstream}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.comments}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+					<custom:sortableHeader column="${installationsTableHeader.columns.user}" sortUrl="instalations.app?event=sort&amp;sortColumn=" />
+				</tr>
+				
+				<c:forEach items="${instalationList.records}" var="instalation" varStatus="rowStatus">
+					<tr class="row${rowStatus.count%2}">
+						<td>
+							<custom:checkbox name="resultRecordSelected_${rowStatus.index}" value="" />				
+						</td>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" ><c:out value="${instalation.installationId}"/></td>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" ><c:out value="${instalation.installationType.desc}"/></td>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.status.color}"><c:out value="${instalation.status.desc}"/></td>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" ><c:out value="${instalation.installationDate}"/></td>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" ><c:out value="${instalation.address}"/></td>
 						<c:choose>
-							<c:when test="${instalation.editable}">
-								<input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete',${instalation.instalationId})"/>
+							<c:when test="${not empty instalation.twoWay1}">
+								<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.twoWay1.downstreamColor}"><c:out value="${instalation.twoWay1.downstream}"/></td>
+								<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.twoWay1.upstreamColor}"><c:out value="${instalation.twoWay1.upstream}"/></td>
 							</c:when>
 							<c:otherwise>
-								<input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete',${instalation.instalationId})" disabled="disabled"/>
+								<td/>
+								<td/>			
 							</c:otherwise>
 						</c:choose>
-					</td>
-					<td><input type="button" value="Kopiuj" onclick="submitFormWithParam('copy',${instalation.instalationId})"/></td>
+						<c:choose>
+							<c:when test="${not empty instalation.twoWay2}">
+								<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.twoWay2.downstreamColor}" ><c:out value="${instalation.twoWay2.downstream}"/></td>
+								<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.twoWay2.upstreamColor}" ><c:out value="${instalation.twoWay2.upstream}"/></td>
+							</c:when>
+							<c:otherwise>
+								<td/>
+								<td/>			
+							</c:otherwise>
+						</c:choose>
+						<c:choose>
+							<c:when test="${not empty instalation.modem}">
+								<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.modem.downstreamColor}" ><c:out value="${instalation.modem.downstream}"/></td>
+								<td  onclick="submitFormWithParam('edit',${instalation.installationId})" style="background-color: ${instalation.modem.upstreamColor}" ><c:out value="${instalation.modem.upstream}"/></td>
+							</c:when>
+							<c:otherwise>
+								<td/>
+								<td/>			
+							</c:otherwise>
+						</c:choose>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" ><c:out value="${instalation.comments}"/></td>
+						<td  onclick="submitFormWithParam('edit',${instalation.installationId})" ><c:out value="${instalation.user}"/></td>
+					</tr>
+				</c:forEach>
+			</table>
+			<br/>
+			<table>
+				<tr>
 					<td>
-						<c:choose>
-							<c:when test="${instalation.editable and instalation.closable}">
-								<input type="button" value="Zamknij" onclick="submitFormWithParam('close',${instalation.instalationId})"/>
-							</c:when>
-							<c:otherwise>
-								<input type="button" value="Zamknij" onclick="submitFormWithParam('close',${instalation.instalationId})" disabled="disabled"/>
-							</c:otherwise>
-						</c:choose>
+						<input type="button" value="Usuń" onclick="submitFormWithConfirmation('delete')"/>
+					</td><td>
+						<input type="button" value="Kopiuj" onclick="submitForm('copy')"/>
+					</td><td>
+						<input type="button" value="Zamknij" onclick="submitFormWithConfirmation('close')"/>
+					</td>
+					<td width="20px"/>
+					<td>
+						Strona: <custom:pageNav page="${instalationList}" pageChangeUrl="instalations.app?event=changePage&amp;newPageNo="/>
 					</td>
 				</tr>
-			</c:forEach>
-		</table>
+			</table>
+			
+		</c:if>
 	</c:if>
 	
 	<c:if test="${event=='EDIT'}">
-		<input type="hidden" name="instalationId" value="${selectedInstalation.instalationId}" />
+		<input type="hidden" name="installationId" value="${selectedInstalation.installationId}" />
 		
 		<br/>
 		<b><c:out value="INSTALACJE - EDYCJA"/></b>
 		<br/><br/>
 		
+		<div style="float:left; width: 40%;">
 		<table class="borderedTable" cellpadding="2" cellspacing="1" >
 			<tr>
+				<td class="label">Rodzaj instalacji</td>
+				<td class="field">
+					<custom:select name="installationType" values="${selectsMap.instalationType}" selectedValue="${selectedInstalation.installationType.idn}" 
+						onChange="changeInstallationType()"/>
+				</td>
+			</tr><tr>
 				<td class="label">Status</td>
 				<td class="field">
 					<custom:select name="status" values="${selectsMap.status}" selectedValue="${selectedInstalation.status.idn}" />
 				</td>
 			</tr><tr>
-				<td class="label">Rodzaj instalacji</td>
-				<td class="field">
-					<custom:select name="rodzajInstalacji" values="${selectsMap.instalationType}" selectedValue="${selectedInstalation.rodzajInstalacji.idn}" />
-				</td>
-			</tr><tr>
-				<td class="label">Data podpisania umowy(yyyy-MM-dd)</td>
-				<td class="field"><custom:date name="dataPodpisaniaUmowy" identifier="editDataPodpisaniaUmowy" value="${selectedInstalation.dataPodpisaniaUmowy}"/></td>
-			</tr><tr>
-				<td class="label">Nr telefonu</td>
-				<td class="field"><input type="text" name="nrTelefonu" value="${selectedInstalation.nrTelefonu}"/></td>
-			</tr><tr>
-				<td class="label">Imię</td>
-				<td class="field"><input type="text" name="imie" value="${selectedInstalation.imie}"/></td>
-			</tr><tr>
-				<td class="label">Nazwisko</td>
-				<td class="field"><input type="text" name="nazwisko" value="${selectedInstalation.nazwisko}"/></td>
-			</tr><tr>	
-				<td class="label">Adres</td>
-				<td class="field"><input type="text" name="adres" value="${selectedInstalation.adres}"/></td>
+				<td class="label">Data instalacji(yyyy-MM-dd)</td>
+				<td class="field"><custom:date name="installationDate" value="${selectedInstalation.installationDate}" identifier="editDataInstalacji"/></td>
 			</tr><tr>
 				<td class="label">Miejscowość</td>
 				<td class="field">
 					<custom:select name="city" values="${selectsMap.cityDictionary}" selectedValue="${selectedInstalation.city}" />
 				</td>
+			</tr><tr>	
+				<td class="label">Adres</td>
+				<td class="field"><input type="text" name="address" value="${selectedInstalation.address}"/></td>
 			</tr><tr>
-				<td class="label">Pakiet</td>
-				<td class="field"><input type="text" name="pakiet" value="${selectedInstalation.pakiet}"/></td>
+				<td class="label">Nr telefonu</td>
+				<td class="field"><input type="text" name="phone" value="${selectedInstalation.phone}"/></td>
 			</tr><tr>
-				<td class="label">Nr seryjny</td>
-				<td class="field"><input type="text" name="nrSeryjny" value="${selectedInstalation.nrSeryjny}"/></td>
+				<td class="label">DTV</td>
+				<td class="field"><input type="text" name="dtvCount" value="${selectedInstalation.dtvCount}"/></td>
 			</tr><tr>
-				<td class="label">Data instalacji(yyyy-MM-dd)</td>
-				<td class="field"><custom:date name="dataInstalacji" value="${selectedInstalation.dataInstalacji}" identifier="editDataInstalacji"/></td>
+				<td class="label">Multiroom ATV/DTV: przebudowy</td>
+				<td class="field"><input type="text" name="multiroomCount" value="${selectedInstalation.multiroomCount}"/></td>
 			</tr><tr>
-				<td class="label">Ilość gniazd</td>
-				<td class="field"><input type="text" name="iloscGniazd" value="${selectedInstalation.iloscGniazd}"/></td>
+				<td class="label">NET</td>
+				<td class="field"><input type="text" name="netCount" value="${selectedInstalation.netCount}"/></td>
 			</tr><tr>
-				<td class="label">Wykonane instalacje</td>
-				<td class="field"><input type="text" name="wykonaneInstalacje" value="${selectedInstalation.wykonaneInstalacje}"/></td>
+				<td class="label">TEL</td>
+				<td class="field"><input type="text" name="telCount" value="${selectedInstalation.telCount}"/></td>
+			</tr><tr>
+				<td class="label">ATV (bez usług DTV)</td>
+				<td class="field"><input type="text" name="atvCount" value="${selectedInstalation.atvCount}"/></td>
+			</tr><tr>
+				<td class="label">Gniazda TV</td>
+				<td class="field"><input type="text" name="tvSocketCount" value="${selectedInstalation.tvSocketCount}"/></td>
+			</tr><tr>
+				<td class="label">Gniazda NET</td>
+				<td class="field"><input type="text" name="netSocketCount" value="${selectedInstalation.netSocketCount}"/></td>
 			</tr><tr>
 				<td class="label">Ilość kabla</td>
-				<td class="field"><input type="text" name="iloscKabla" value="${selectedInstalation.iloscKabla}"/></td>
-			</tr><tr>
-				<td class="label">MAC Adres</td>
-				<td class="field"><input type="text" name="macAdres" value="${selectedInstalation.macAdres}"/></td>
-			</tr><tr>
-				<td class="label">Downstream</td>
-				<td class="field"><input type="text" name="downstream" value="${selectedInstalation.downstream}"/></td>
-			</tr><tr>
-				<td class="label">Upstream</td>
-				<td class="field"><input type="text" name="upstream" value="${selectedInstalation.upstream}"/></td>
+				<td class="field"><input type="text" name="cableQuantity" value="${selectedInstalation.cableQuantity}"/></td>
 			</tr><tr>
 				<td class="label">Uwagi</td>
-				<td class="field"><input type="text" name="uwagi" value="${selectedInstalation.uwagi}"/></td>
+				<td class="field"><input type="text" name="comments" value="${selectedInstalation.comments}"/></td>
 			</tr><tr>
 				<td class="label">Dodatkowe uwagi</td>
-				<td class="field"><input type="text" name="dodatkoweUwagi" value="${selectedInstalation.dodatkoweUwagi}"/></td>
-			</tr><tr>
-				<td><input type="button" value="Anuluj" onclick="submitForm('back')"/></td>
-				<td align="right">
-					<c:choose>
-					<c:when test="${selectedInstalation.editable}">
-						<input type="button" value="Zapisz" onclick="submitForm('save')" />
-					</c:when>
-					<c:otherwise><input type="button" value="Zapisz" onclick="submitForm('save')" disabled="disabled"/></c:otherwise>
-					</c:choose>
-				</td>
+				<td class="field"><input type="text" name="additionalComments" value="${selectedInstalation.additionalComments}"/></td>
 			</tr>
-
 		</table>
+		</div>
+
+		<div style="float:left; width: 60%;">
+			<table>
+				<tr>
+					<td>
+						<custom:installationDevice device="${selectedInstalation.twoWay1}" prefix="twoWay1"/>
+					</td>
+					<td width="20px;"/>
+					<td>
+						<custom:installationDevice device="${selectedInstalation.twoWay2}" prefix="twoWay2"/>
+					</td>
+				</tr>
+				<tr><td height="20px;"/></tr>
+				<tr>
+					<td>
+						<custom:installationDevice device="${selectedInstalation.oneWay}" prefix="oneWay"/>
+					</td>
+					<td width="20px;"/>
+					<td>
+						<custom:installationDevice device="${selectedInstalation.modem}" prefix="modem"/>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div style="clear:both" align="center">
+			<br/>
+			<table>
+				<tr>
+					<td>
+						<input type="button" value="Anuluj" onclick="submitForm('back')"/>
+					</td>
+					<td width="20px"/>
+					<td>
+						<c:choose>
+							<c:when test="${selectedInstalation.editable}">
+								<input type="button" value="Zapisz" onclick="submitForm('save')" />
+							</c:when>
+							<c:otherwise><input type="button" value="Zapisz" onclick="submitForm('save')" disabled="disabled"/></c:otherwise>
+						</c:choose>
+					</td>
+				
+				</tr>
+			</table>
+		</div>
+
+		<jsp:text>
+	 	<![CDATA[
+	 		<script type="text/javascript" defer='defer'>
+	 			changeInstallationType();
+	 		</script>
+	 	]]>
+	 	</jsp:text>
+	 	
 	</c:if>
 	</form>
 	
-	<form method="post" action="instalations.app?event=import_file"  enctype="multipart/form-data" accept-charset="UTF-8">
-	<HR/>	
-	<br/>
-	<b><c:out value="INSTALACJE - IMPORT"/></b>
-	<br/><br/>
-	<table class="borderedTable" cellpadding="2" cellspacing="1" >
-		
-		<tr>
-			<td>Wskaż plik</td>
-            <td><INPUT NAME="F1" TYPE="file"/></td>
-            <td colspan="2">
-				<input type="button" value="Importuj" onclick="submit();" />
-			</td>
-		</tr>
-		<br/>
-		
-		<c:if test="${not empty importErrors}"> 
-			<tr>
-				<td colspan="2"><B>Błędy importu</B></td>
-			</tr>
-			<c:forEach items="${importErrors}" var="error" varStatus="rowStatus">
-				<tr>
-					<td colspan="2" style="color: red;"><c:out value="${error}"/></td>
-				</tr>
-			</c:forEach>
-		</c:if>
-			
-	</table>
-	</form>
-
 </jsp:root>

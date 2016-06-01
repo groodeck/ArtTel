@@ -8,9 +8,16 @@
 	<jsp:directive.attribute name="sortUrl" type="String" required="true"/>
 	 
 	<th>
-		<a href="${sortUrl}${column.columnKey}">
-			<c:out value="${column.columnDescription}" />
-		</a>
+		<c:choose>
+			<c:when test="${not empty column.columnName}">
+				<a href="${sortUrl}${column.columnKey}">
+					<c:out value="${column.columnDescription}" />
+				</a>
+			</c:when>
+			<c:otherwise>
+				<c:out value="${column.columnDescription}" />
+			</c:otherwise>
+		</c:choose>
 		<c:if test="${column.sortOrder != null}">
 			${column.sortOrder.symbol}
 		</c:if>

@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.arttel.util.Translator;
 
-public class InstalationFilterVO {
+public class InstallationFilterVO {
 	
 
 	private static final String COMPONENT_NAME = "instalationFilter";

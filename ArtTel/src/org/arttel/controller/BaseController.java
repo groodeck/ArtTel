@@ -1,11 +1,18 @@
 package org.arttel.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.arttel.controller.vo.BasePageVO;
 import org.arttel.ui.PageInfo;
 import org.arttel.ui.TableHeader;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 
 public abstract class BaseController {
 
@@ -59,6 +66,23 @@ public abstract class BaseController {
 			storeTableHeader(request, tableHeader);
 		}
 		return tableHeader;
+	}
+
+	protected List<String> getSelectedBoxIndexes(final HttpServletRequest request) {
+		final Map<String, String[]> parameterMap = request.getParameterMap();
+		final List<String> checkedBoxesIndex = FluentIterable.from(parameterMap.keySet())
+				.filter(new Predicate<String>(){
+					@Override
+					public boolean apply(final String input) {
+						return input.contains("resultRecordSelected_");
+					}})
+					.transform(new Function<String, String>(){
+						@Override
+						public String apply(final String input) {
+							return input.replaceAll("resultRecordSelected_", "");
+						}})
+						.toList();
+		return checkedBoxesIndex;
 	}
 
 	protected abstract String getTableHeaderAttrName();

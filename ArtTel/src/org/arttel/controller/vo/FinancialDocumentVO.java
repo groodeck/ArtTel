@@ -29,6 +29,8 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 	private boolean editable;
 	private InvoiceStatus status;
 	private String sellerBankAccountId;
+	private SellerVO seller;
+	private ClientVO client;
 
 	public abstract void addNewProduct();
 
@@ -36,6 +38,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 
 	public String getAdditionalComments() {
 		return additionalComments;
+	}
+
+	public ClientVO getClient() {
+		return client;
 	}
 
 	public String getClientDesc() {
@@ -77,6 +83,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 	}
 
 	public abstract Product getProduct(final int index);
+
+	public SellerVO getSeller() {
+		return seller;
+	}
 
 	public String getSellerBankAccountId() {
 		return sellerBankAccountId;
@@ -121,6 +131,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 		this.additionalComments = additionalComments;
 	}
 
+	public void setClient(final ClientVO client) {
+		this.client = client;
+	}
+
 	public void setClientDesc(final String clientDesc) {
 		this.clientDesc = clientDesc;
 	}
@@ -160,6 +174,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 
 	public void setPaymentType(final PaymentType paymentType) {
 		this.paymentType = paymentType;
+	}
+
+	public void setSeller(final SellerVO seller) {
+		this.seller = seller;
 	}
 
 	public void setSellerBankAccountId(final String sellerBankAccountId) {

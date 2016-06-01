@@ -52,6 +52,7 @@ public class XlsReportGenerator extends BaseXlsGenerator {
 				printReportDetails(dataSheet.getReportDetailsList(), targetSheet);
 			}
 		}
+		wb.getCreationHelper().createFormulaEvaluator().evaluateAll();
 		final String reportRelatedDir = writeOutputFile(outputFileName, sessionId, wb);
 		return  reportRelatedDir + "/" + outputFileName;
 	}

@@ -3,10 +3,6 @@
 
 	<jsp:directive.tag language="java" pageEncoding="ISO-8859-2"/>
 	
-	<style type="text/css" >
-    	 @IMPORT url("data/css/arttel.css");
-	</style> 
-	
 	<jsp:directive.attribute name="userBalanceList" type="java.util.List" required="true"/>
 	<jsp:directive.attribute name="isIndividual" type="Boolean" required="false"/>
 

@@ -6,12 +6,6 @@
 		
 	<jsp:directive.attribute name="page" type="org.arttel.ui.ResultPage" required="true"/>
 	<jsp:directive.attribute name="pageChangeUrl" type="String" required="true"/>
-	<jsp:text>
-		<![CDATA[ 
-			<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-			<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
-		]]>
-	</jsp:text>
 	
 	<c:if test="${page.pageNo gt 0}">
 		<a href="${pageChangeUrl}${(page.pageNo - 1)}">Poprzednia</a>
@@ -20,9 +14,9 @@
 	<c:if test="${page.pageNo lt page.pageCount - 1}">
 		<a href="${pageChangeUrl}${(page.pageNo + 1)}">Nastepna</a>
 	</c:if>
-	
-	<jsp:text>
 		<![CDATA[ 
+			<script src="data/js/jquery.min.js"></script>
+			<script src="data/js/jquery-ui.min.js"></script>
 			<script type="text/javascript">
 				$(document).on('keypress', 'input', function(e) {
 					if(e.keyCode == 13) {
@@ -36,6 +30,5 @@
 
 			</script>
 		]]>
-	</jsp:text>
 	
 </jsp:root>

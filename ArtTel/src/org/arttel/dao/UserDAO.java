@@ -12,11 +12,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.arttel.controller.vo.SimpleComboElement;
-import org.arttel.entity.Order;
+import org.arttel.entity.User;
 import org.arttel.exception.DaoException;
 import org.arttel.view.ComboElement;
 import org.arttel.view.EmptyComboElement;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,19 +25,19 @@ public class UserDAO extends BaseDao {
 
 	@PersistenceContext
 	private EntityManager em;
-	
-	public boolean checkUserPassword(String user, String hashedPassword)
+
+	public boolean checkUserPassword(final String user, final String hashedPassword)
 			throws DaoException {
 
 		if(user == null || hashedPassword==null){
 			return false;
 		}
-		
-		List<String> entityResults = em.createQuery(
+
+		final List<String> entityResults = em.createQuery(
 				"select u.userPassword from User u where u.userName = '" + user + "'")
 				.getResultList();
-		
-		for(String password : entityResults){
+
+		for(final String password : entityResults){
 			if(hashedPassword.equals(password)) {
 				return true;
 			}
@@ -46,40 +45,14 @@ public class UserDAO extends BaseDao {
 		return false;
 	}
 
-	public Map<String,Boolean> getUserPrivileges(String user) throws DaoException {
-		
-		final Map<String,Boolean> userPrivileges = new HashMap<String,Boolean>();
-		if( user == null ){
-			return userPrivileges;
-		}
-		
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			stmt = getConnection().createStatement();
-			rs = stmt
-					.executeQuery("select up.privilegeIdn " 
-								+	"from UserPrivileges up "
-								+	"join user us on up.userId=us.userId " 
-								+	"where us.userName = '"
-								+ 		user
-								+	"'");
-			while (rs.next()) {
-				final String userPrivilege = rs.getString(1);
-				userPrivileges.put(userPrivilege, Boolean.TRUE);
-			}
-		} catch (SQLException e) {
-			throw new DaoException("UserDao SQLException", e);
-		} finally {
-			disconnect(stmt, rs);
-		}
-		
-		return userPrivileges;
+	public User findUserByName(final String userName) {
+		final String userByName = String.format("from User u where u.userName='%s'", userName);
+		return (User)em.createQuery(userByName).getSingleResult();
 	}
 
-	public List<? extends ComboElement> getUserDictionary(boolean withEmptyOption) throws DaoException {
-		
-		List<ComboElement> userList = new ArrayList<ComboElement>();
+	public List<? extends ComboElement> getUserDictionary(final boolean withEmptyOption) throws DaoException {
+
+		final List<ComboElement> userList = new ArrayList<ComboElement>();
 		if(withEmptyOption){
 			userList.add(new EmptyComboElement());
 		}
@@ -91,17 +64,17 @@ public class UserDAO extends BaseDao {
 			while(rs.next()){
 				userList.add(new SimpleComboElement(rs.getString(1),rs.getString(2)));
 			}
-		} catch (SQLException e) {
+		} catch (final SQLException e) {
 			throw new DaoException("UserDAO SQLException", e);
 		} finally {
 			disconnect(stmt, rs);
 		}
 		return userList;
 	}
-	
+
 	public List<String> getUserList() throws DaoException {
-		
-		List<String> userList = new ArrayList<String>();
+
+		final List<String> userList = new ArrayList<String>();
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -110,12 +83,43 @@ public class UserDAO extends BaseDao {
 			while(rs.next()){
 				userList.add(rs.getString(1));
 			}
-		} catch (SQLException e) {
+		} catch (final SQLException e) {
 			throw new DaoException("UserDAO SQLException", e);
 		} finally {
 			disconnect(stmt, rs);
 		}
 		return userList;
+	}
+
+	public Map<String,Boolean> getUserPrivileges(final String user) throws DaoException {
+
+		final Map<String,Boolean> userPrivileges = new HashMap<String,Boolean>();
+		if( user == null ){
+			return userPrivileges;
+		}
+
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = getConnection().createStatement();
+			rs = stmt
+					.executeQuery("select up.privilegeIdn "
+							+	"from UserPrivileges up "
+							+	"join user us on up.userId=us.userId "
+							+	"where us.userName = '"
+							+ 		user
+							+	"'");
+			while (rs.next()) {
+				final String userPrivilege = rs.getString(1);
+				userPrivileges.put(userPrivilege, Boolean.TRUE);
+			}
+		} catch (final SQLException e) {
+			throw new DaoException("UserDao SQLException", e);
+		} finally {
+			disconnect(stmt, rs);
+		}
+
+		return userPrivileges;
 	}
 
 }

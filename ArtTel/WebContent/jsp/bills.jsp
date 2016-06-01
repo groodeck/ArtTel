@@ -18,8 +18,8 @@
 				<?xml version="1.0" encoding="UTF8" ?> 
 			 	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
 	
-				<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-				<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+				<script src="data/js/jquery.min.js"></script>
+				<script src="data/js/jquery-ui.min.js"></script> 
 			 ]]>
 		</jsp:text>
 		
@@ -75,7 +75,7 @@
 				<tr class="row${rowStatus.index%2}">
 				
 					<td>
-						<custom:checkbox name="invoiceSelect_${rowStatus.index}" value="" />				
+						<custom:checkbox name="resultRecordSelected_${rowStatus.index}" value="" />				
 					</td>
 					<td  onclick="submitFormWithParam('edit',${bill.documentId})" ><c:out value="${bill.number}"/></td>
 					<td  onclick="submitFormWithParam('edit',${bill.documentId})" ><c:out value="${bill.clientDesc}"/></td>

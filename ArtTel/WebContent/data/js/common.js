@@ -14,6 +14,14 @@ function submitForm(event){
 	document.forms[0].submit();
 }
 
+function submitFormWithConfirmation(event){
+	document.getElementById('event').value = event;
+	var confirmed = confirm("Czy jesteś pewien?");
+	if (confirmed){
+		document.forms[0].submit();
+	}
+}
+
 function submitFormWithParam(event,eventParam){
 	document.getElementById('event').value = event;
 	document.getElementById('eventParam').value = eventParam;

@@ -3,10 +3,6 @@
 
 	<jsp:directive.tag language="java" pageEncoding="ISO-8859-2"/>
 	
-	<style type="text/css" >
-    	 @IMPORT url("data/css/arttel.css");
-	</style> 
-	
 	<jsp:directive.attribute name="name" type="String" required="true"/>
 	<jsp:directive.attribute name="value" type="Boolean" required="true"/>
 	<jsp:directive.attribute name="onChange" type="String" required="false"/>

@@ -3,8 +3,7 @@
 
 	<jsp:directive.tag language="java" pageEncoding="ISO-8859-2"/>
 	<style type="text/css"  >
-    	 @IMPORT url("http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css");
-    	 @IMPORT url("data/css/arttel.css");
+    	 @IMPORT url("data/css/jquery-ui.css");
 	</style> 
 	
 	<jsp:directive.attribute name="identifier" type="String" required="true"/>
@@ -19,8 +18,8 @@
 		</c:when>
 		<c:otherwise>
 		<![CDATA[
-			<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
-			<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> 
+			<script src="data/js/jquery.min.js"></script>
+			<script src="data/js/jquery-ui.min.js"></script> 
 			<script>
 				$(document).ready(function() {
 				   	$("#datepicker${identifier}").datepicker({ 

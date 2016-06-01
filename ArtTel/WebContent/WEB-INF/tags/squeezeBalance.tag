@@ -3,10 +3,6 @@
 
 	<jsp:directive.tag language="java" pageEncoding="ISO-8859-2"/>
 	
-	<style type="text/css" >
-    	 @IMPORT url("data/css/arttel.css");
-	</style> 
-	
 	<jsp:directive.attribute name="squeezeBalance" type="org.arttel.controller.vo.SqueezeBalanceVO" required="true"/>
 
 	<table class="borderedTable" cellpadding="2" cellspacing="1" >

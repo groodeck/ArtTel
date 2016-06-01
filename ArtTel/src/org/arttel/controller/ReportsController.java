@@ -10,12 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.arttel.controller.vo.ReportParamsVO;
 import org.arttel.dao.CityDAO;
-import org.arttel.dictionary.ReportType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
 import org.arttel.exception.UserNotLoggedException;
 import org.arttel.generator.FileGenerator;
 import org.arttel.generator.report.ReportsGenerator;
+import org.arttel.service.ReportService;
 import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +31,9 @@ public class ReportsController extends BaseController {
 
 	@Autowired
 	private ReportsGenerator reportsGenerator;
+
+	@Autowired
+	private ReportService reportService;
 
 	@Autowired
 	private CityDAO cityDao;
@@ -78,10 +81,10 @@ public class ReportsController extends BaseController {
 		request.setAttribute(REPORT_PARAMS, reportVO);
 	}
 
-	private Map<String,List<? extends ComboElement>> prepareSelectsMap() {
+	private Map<String,List<? extends ComboElement>> prepareSelectsMap(final String userName) {
 
 		final Map<String,List<? extends ComboElement>> selectsMap = new HashMap<String,List<? extends ComboElement>>();
-		selectsMap.put( "reportType", ReportType.getComboElementList());
+		selectsMap.put( "reportType", reportService.getReportDictionary(userName));
 		try {
 			selectsMap.put( "cityDictionary", cityDao.getCityDictionary(true, DictionaryPurpose.forReport));
 		} catch (final DaoException e) {
@@ -113,7 +116,7 @@ public class ReportsController extends BaseController {
 			break;
 		default:
 		}
-		request.setAttribute("selectsMap", prepareSelectsMap());
+		request.setAttribute("selectsMap", prepareSelectsMap(userContext.getUserName()));
 		return "reports";
 	}
 

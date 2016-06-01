@@ -33,12 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
-public abstract class FinancialDocumentController<VO extends FinancialDocumentVO<Product>, Product extends FinancialDocumentProductVO> 
-	extends BaseController  {
+public abstract class FinancialDocumentController<VO extends FinancialDocumentVO<Product>, Product extends FinancialDocumentProductVO>
+extends BaseController  {
 
 	protected enum Event {
 		MAIN, SAVE, EDIT, ADD_PRODUCT_ROW, DEL_PRODUCT_ROW, NEW, DELETE_SELECTED, SEARCH, BACK, CHANGE_PRODUCT, PAID_ENTERED, PRINT, CHANGE_PAYMENT_TYPE,
@@ -120,8 +119,7 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		if (createDate == null) {
 			paymentDate = null;
 		} else {
-			final DateTime paymentDay = new DateTime(createDate).plusDays(cash
-					.getPaymentPeriod());
+			final DateTime paymentDay = new DateTime(createDate).plusDays(cash.getPaymentPeriod());
 			paymentDate = new Date(paymentDay.getMillis());
 		}
 		return paymentDate;
@@ -134,23 +132,6 @@ public abstract class FinancialDocumentController<VO extends FinancialDocumentVO
 		final String productId = request.getParameter(changedParamName);
 		final ProductVO productDefinition = productDao.getProductById(productId);
 		return productDefinition;
-	}
-
-	protected List<String> getSelectedBoxIndexes(final HttpServletRequest request) {
-		final Map<String, String[]> parameterMap = request.getParameterMap();
-		final List<String> checkedBoxesIndex = FluentIterable.from(parameterMap.keySet())
-				.filter(new Predicate<String>(){
-					@Override
-					public boolean apply(final String input) {
-						return input.contains("invoiceSelect_");
-					}})
-					.transform(new Function<String, String>(){
-						@Override
-						public String apply(final String input) {
-							return input.replaceAll("invoiceSelect_", "");
-						}})
-						.toList();
-		return checkedBoxesIndex;
 	}
 
 	protected abstract String getSelectedDocumentAttrName();

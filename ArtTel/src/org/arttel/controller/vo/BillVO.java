@@ -33,8 +33,6 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 	private String bankAccountName;
 	private String bankAccountNumber;
 	private Date realizationDate;
-	private SellerVO seller;
-	private ClientVO client;
 
 	@Override
 	public void addNewProduct() {
@@ -66,10 +64,6 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 		return bankAccountNumber;
 	}
 
-	public ClientVO getClient() {
-		return client;
-	}
-
 	@Override
 	public List<BillProductVO> getDocumentProducts() {
 		return billProducts;
@@ -82,10 +76,6 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 
 	public Date getRealizationDate() {
 		return realizationDate;
-	}
-
-	public SellerVO getSeller() {
-		return seller;
 	}
 
 	@Override
@@ -121,19 +111,11 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 		this.bankAccountNumber = bankAccountNumber;
 	}
 
-	public void setClient(final ClientVO client) {
-		this.client = client;
-	}
-
 	public void setDocumentProducts(final List<BillProductVO> billProducts) {
 		this.billProducts = billProducts;
 	}
 
 	public void setRealizationDate(final Date realizationDate) {
 		this.realizationDate = realizationDate;
-	}
-
-	public void setSeller(final SellerVO seller) {
-		this.seller = seller;
 	}
 }

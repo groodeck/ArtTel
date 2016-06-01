@@ -8,7 +8,7 @@ import org.arttel.controller.ClientController;
 import org.arttel.controller.CorrectionController;
 import org.arttel.controller.DealingController;
 import org.arttel.controller.HomePageController;
-import org.arttel.controller.InstalationsController;
+import org.arttel.controller.InstallationsController;
 import org.arttel.controller.InvoicesController;
 import org.arttel.controller.OrdersController;
 import org.arttel.controller.ProductController;
@@ -21,7 +21,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 public enum ControlMapper {
 	
 	HOME("home.app","home.jsp", HomePageController.class),
-	INSTALATION("instalations.app","instalations.jsp", InstalationsController.class),
+	INSTALATION("instalations.app","instalations.jsp", InstallationsController.class),
 	ORDER("orders.app","orders.jsp", OrdersController.class),
 	AGREEMENTS("agreements.app","agreement.jsp", AgreementsController.class),
 	DEALING("dealing.app","dealing.jsp", DealingController.class),

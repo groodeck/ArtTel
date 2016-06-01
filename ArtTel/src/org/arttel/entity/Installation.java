@@ -2,270 +2,254 @@ package org.arttel.entity;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "Installation")
-public class Installation {
+@Table(name = "Instalation")
+public class Installation implements UserSet {
 
 	@Id
 	@GeneratedValue
 	@Column(name = "InstalationId")
 	private Integer instalationId;
-	
+
 	@Column(name = "Status")
 	private String status;
-	
-	@Column(name = "NrTelefonu")
+
+	@Column(name = "Phone")
 	private String phone;
-	
-	@Column(name = "Imie")
-	private String name;
-	
-	@Column(name = "Nazwisko")
-	private String surname;
-	
-	@Column(name = "Adres")
+
+	@Column(name = "Address")
 	private String address;
-	
-	@Column(name = "Miejscowosc")
+
+	@Column(name = "City")
 	private String city;
-	
-	@Column(name = "NrSeryjny")
-	private String serialNumber;
-	
-	@Column(name = "DataInstalacji")
+
+	@Column(name = "InstallationDate")
 	private Date installationDate;
-	
-	@Column(name = "RodzajInstalacji")
+
+	@Column(name = "InstallationType")
 	private String installationType;
-	
-	@Column(name = "DataPodpisaniaUmowy")
-	private Date agreementSignDate;
-	
-	@Column(name = "Pakiet")
-	private String servicePackage;
-	
-	@Column(name = "UserId")
-	private String userId;
-	
-	@Column(name = "WykonaneInstalacje")
-	private Integer installationsCount;
-	
-	@Column(name = "IloscKabla")
-	private String cableQuantity;
-	
-	@Column(name = "Uwagi")
+
+	@Column(name = "User")
+	private String user;
+
+	@Column(name = "TvSocketCount")
+	private Integer tvSocketCount;
+
+	@Column(name = "NetSocketCount")
+	private Integer netSocketCount;
+
+	@Column(name = "CableQuantity")
+	private BigDecimal cableQuantity;
+
+	@Column(name = "Comments")
 	private String comments;
-	
-	@Column(name = "DodatkoweUwagi")
+
+	@Column(name = "AdditionalComments")
 	private String additionalComments;
-	
-	@Column(name = "MacAdres")
-	private String macAddress;
-	
-	@Column(name = "Downstream")
-	private BigDecimal downstream;
-	
-	@Column(name = "Upstream")
-	private BigDecimal upstream;
-	
-	@Column(name = "Iloscgniazd")
-	private Integer socketQuantity;
-	
+
 	@Column(name = "SocketOrderSequence")
 	private Integer socketOrderSequence;
-	
+
 	@Column(name = "InstalationClearingSequence")
 	private Integer instalationClearingSequence;
 
-	public Integer getInstalationId() {
-		return instalationId;
-	}
+	@Column(name = "DtvCount")
+	private Integer dtvCount;
 
-	public void setInstalationId(Integer instalationId) {
-		this.instalationId = instalationId;
-	}
+	@Column(name = "AtvCount")
+	private Integer atvCount;
 
-	public String getStatus() {
-		return status;
-	}
+	@Column(name = "MultiroomCount")
+	private Integer multiroomCount;
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+	@Column(name = "NetCount")
+	private Integer netCount;
 
-	public String getPhone() {
-		return phone;
-	}
+	@Column(name = "TelCount")
+	private Integer telCount;
 
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
+	@OneToMany(cascade={CascadeType.ALL}, orphanRemoval=true, fetch=FetchType.LAZY)
+	@JoinColumn(name="instalationId")
+	private List<InstallationDevice> devices;
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getSurname() {
-		return surname;
-	}
-
-	public void setSurname(String surname) {
-		this.surname = surname;
+	public String getAdditionalComments() {
+		return additionalComments;
 	}
 
 	public String getAddress() {
 		return address;
 	}
 
-	public void setAddress(String address) {
-		this.address = address;
+	public Integer getAtvCount() {
+		return atvCount;
+	}
+
+	public BigDecimal getCableQuantity() {
+		return cableQuantity;
 	}
 
 	public String getCity() {
 		return city;
 	}
 
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getSerialNumber() {
-		return serialNumber;
-	}
-
-	public void setSerialNumber(String serialNumber) {
-		this.serialNumber = serialNumber;
-	}
-
-	public Date getInstallationDate() {
-		return installationDate;
-	}
-
-	public void setInstallationDate(Date installationDate) {
-		this.installationDate = installationDate;
-	}
-
-	public String getInstallationType() {
-		return installationType;
-	}
-
-	public void setInstallationType(String installationType) {
-		this.installationType = installationType;
-	}
-
-	public Date getAgreementSignDate() {
-		return agreementSignDate;
-	}
-
-	public void setAgreementSignDate(Date agreementSignDate) {
-		this.agreementSignDate = agreementSignDate;
-	}
-
-	public String getServicePackage() {
-		return servicePackage;
-	}
-
-	public void setServicePackage(String servicePackage) {
-		this.servicePackage = servicePackage;
-	}
-
-	public String getUserId() {
-		return userId;
-	}
-
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
-
-	public Integer getInstallationsCount() {
-		return installationsCount;
-	}
-
-	public void setInstallationsCount(Integer installationsCount) {
-		this.installationsCount = installationsCount;
-	}
-
-	public String getCableQuantity() {
-		return cableQuantity;
-	}
-
-	public void setCableQuantity(String cableQuantity) {
-		this.cableQuantity = cableQuantity;
-	}
-
 	public String getComments() {
 		return comments;
 	}
 
-	public void setComments(String comments) {
-		this.comments = comments;
+	public List<InstallationDevice> getDevices() {
+		return devices;
 	}
 
-	public String getAdditionalComments() {
-		return additionalComments;
-	}
-
-	public void setAdditionalComments(String additionalComments) {
-		this.additionalComments = additionalComments;
-	}
-
-	public String getMacAddress() {
-		return macAddress;
-	}
-
-	public void setMacAddress(String macAddress) {
-		this.macAddress = macAddress;
-	}
-
-	public BigDecimal getDownstream() {
-		return downstream;
-	}
-
-	public void setDownstream(BigDecimal downstream) {
-		this.downstream = downstream;
-	}
-
-	public BigDecimal getUpstream() {
-		return upstream;
-	}
-
-	public void setUpstream(BigDecimal upstream) {
-		this.upstream = upstream;
-	}
-
-	public Integer getSocketQuantity() {
-		return socketQuantity;
-	}
-
-	public void setSocketQuantity(Integer socketQuantity) {
-		this.socketQuantity = socketQuantity;
-	}
-
-	public Integer getSocketOrderSequence() {
-		return socketOrderSequence;
-	}
-
-	public void setSocketOrderSequence(Integer socketOrderSequence) {
-		this.socketOrderSequence = socketOrderSequence;
+	public Integer getDtvCount() {
+		return dtvCount;
 	}
 
 	public Integer getInstalationClearingSequence() {
 		return instalationClearingSequence;
 	}
 
-	public void setInstalationClearingSequence(Integer instalationClearingSequence) {
+	public Integer getInstalationId() {
+		return instalationId;
+	}
+
+	public Date getInstallationDate() {
+		return installationDate;
+	}
+
+	public String getInstallationType() {
+		return installationType;
+	}
+
+	public Integer getMultiroomCount() {
+		return multiroomCount;
+	}
+
+	public Integer getNetCount() {
+		return netCount;
+	}
+
+	public Integer getNetSocketCount() {
+		return netSocketCount;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public Integer getSocketOrderSequence() {
+		return socketOrderSequence;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public Integer getTelCount() {
+		return telCount;
+	}
+
+	public Integer getTvSocketCount() {
+		return tvSocketCount;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setAdditionalComments(final String additionalComments) {
+		this.additionalComments = additionalComments;
+	}
+
+	public void setAddress(final String address) {
+		this.address = address;
+	}
+
+	public void setAtvCount(final Integer atvCount) {
+		this.atvCount = atvCount;
+	}
+
+	public void setCableQuantity(final BigDecimal cableQuantity) {
+		this.cableQuantity = cableQuantity;
+	}
+
+	public void setCity(final String city) {
+		this.city = city;
+	}
+
+	public void setComments(final String comments) {
+		this.comments = comments;
+	}
+
+	public void setDevices(final List<InstallationDevice> devices) {
+		this.devices = devices;
+	}
+
+	public void setDtvCount(final Integer dtvCount) {
+		this.dtvCount = dtvCount;
+	}
+
+	public void setInstalationClearingSequence(final Integer instalationClearingSequence) {
 		this.instalationClearingSequence = instalationClearingSequence;
 	}
-	
+
+	public void setInstalationId(final Integer instalationId) {
+		this.instalationId = instalationId;
+	}
+
+	public void setInstallationDate(final Date installationDate) {
+		this.installationDate = installationDate;
+	}
+
+	public void setInstallationType(final String installationType) {
+		this.installationType = installationType;
+	}
+
+	public void setMultiroomCount(final Integer multiroomCount) {
+		this.multiroomCount = multiroomCount;
+	}
+
+	public void setNetCount(final Integer netCount) {
+		this.netCount = netCount;
+	}
+
+	public void setNetSocketCount(final Integer netSocketCount) {
+		this.netSocketCount = netSocketCount;
+	}
+
+	public void setPhone(final String phone) {
+		this.phone = phone;
+	}
+
+	public void setSocketOrderSequence(final Integer socketOrderSequence) {
+		this.socketOrderSequence = socketOrderSequence;
+	}
+
+	public void setStatus(final String status) {
+		this.status = status;
+	}
+
+	public void setTelCount(final Integer telCount) {
+		this.telCount = telCount;
+	}
+
+	public void setTvSocketCount(final Integer tvSocketCount) {
+		this.tvSocketCount = tvSocketCount;
+	}
+
+	@Override
+	public void setUser(final String user) {
+		this.user = user;
+	}
 }
