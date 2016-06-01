@@ -146,7 +146,7 @@ public class InstallationReportService {
 
 		//TODO: dodaæ dynamiczny zapis metadanych instalacji, komorek niestandardowych do ReportDataVO.reportDetailsList
 
-		int xlsRowNumber = 1, sheetRowsDelimiter = 39;
+		int xlsRowNumber = 1, sheetRowsDelimiter = 24;
 		DataSheet dataSheet = new DataSheet();
 		dataSheet.setDataRowsOffset(DATA_ROWS_OFFSET);
 		dataSheet.addDetailsCell(DATA_ROWS_OFFSET - 3, 1, getCityInfo(cityIdn));
