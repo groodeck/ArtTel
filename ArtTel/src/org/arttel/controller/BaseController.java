@@ -48,7 +48,7 @@ public abstract class BaseController<VO extends BasePageVO>  {
 				formVO = (BasePageVO)clazz.newInstance();
 				request.getSession().setAttribute( FORM, formVO );
 			}
-		} catch (final ReflectiveOperationException e) {
+		} catch (final Exception e) {
 			log.error("InstantiationException", e);
 		}
 		return formVO;
