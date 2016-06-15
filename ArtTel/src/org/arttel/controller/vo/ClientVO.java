@@ -12,12 +12,12 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 
 	private ClientFilterVO clientFilter = new ClientFilterVO(null, null);
 	private String selectedClient;
-	
+
 	private String clientId;
 	private String clientDesc;
 
 	private String nip;
-	
+
 	private String city;
 	private String street;
 	private String house;
@@ -69,6 +69,11 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 	}
 
 	@Override
+	public Integer getId() {
+		return Translator.parseInteger(getClientId());
+	}
+
+	@Override
 	public String getIdn() {
 		return clientId;
 	}
@@ -89,6 +94,12 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 
 	public String getStreet() {
 		return street;
+	}
+
+	@Override
+	protected String getUser() {
+		// not used yet
+		return null;
 	}
 
 	public String getZip() {
@@ -132,6 +143,10 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 		this.clientId = clientId;
 	}
 
+	@Override
+	protected void setEditable(final boolean editable) {
+		// do nothing
+	}
 	public void setHouse(final String house) {
 		this.house = house;
 	}
@@ -143,6 +158,7 @@ public class ClientVO extends FormsDictionaryVO implements ComboElement, Invoice
 	public void setSelectedClient(final String selectedClient) {
 		this.selectedClient = selectedClient;
 	}
+
 	public void setStreet(final String street) {
 		this.street = street;
 	}

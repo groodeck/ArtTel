@@ -27,7 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class OrdersController extends BaseController {
+public class OrdersController extends BaseController<OrderVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK, IMPORT_FILE, CLOSE
@@ -58,6 +58,11 @@ public class OrdersController extends BaseController {
 		orderDao.closeOrder(orderId);
 	}
 
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return ORDER_LIST;
+	}
+
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = defaultValue;
@@ -83,9 +88,11 @@ public class OrdersController extends BaseController {
 		final OrderFilterVO orderFilterVO = (OrderFilterVO) request.getSession().getAttribute(ORDER_FILTER);
 		final List<OrderVO> orderList = orderDao.getOrderList(orderFilterVO);
 		applyPermissions(orderList, userContext.getUserName());
-		request.setAttribute(ORDER_LIST, orderList);
+		request.setAttribute(getResultRecordsListAttrName(), orderList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
+
+
 
 	private void performActionClose(final UserContext userContext, final HttpServletRequest request) {
 
@@ -95,8 +102,6 @@ public class OrdersController extends BaseController {
 		}
 		performActionBackToSearchresults(userContext, request);
 	}
-
-
 
 	private void performActionCopy(final UserContext userContext,
 			final HttpServletRequest request) {
@@ -153,7 +158,7 @@ public class OrdersController extends BaseController {
 		if(importResults.isDataOK()){
 			final List<OrderVO> orderList = importResults.getDataList();
 			applyPermissions(orderList, userContext.getUserName());
-			request.setAttribute(ORDER_LIST, orderList);
+			request.setAttribute(getResultRecordsListAttrName(), orderList);
 		} else {
 			final List<String> errorList = importResults.getErrorList();
 			request.setAttribute(IMPORT_ERRORS, errorList);
@@ -189,7 +194,7 @@ public class OrdersController extends BaseController {
 		request.getSession().setAttribute(ORDER_FILTER, orderFilterVO);
 		final List<OrderVO> orderList = orderDao.getOrderList(orderFilterVO);
 		applyPermissions(orderList, userContext.getUserName());
-		request.setAttribute(ORDER_LIST, orderList);
+		request.setAttribute(getResultRecordsListAttrName(), orderList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 

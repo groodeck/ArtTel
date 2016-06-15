@@ -64,7 +64,7 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	}
 
 	@Override
-	protected void deleteInvoice(final List<String> billIds) {
+	protected void deleteInvoice(final List<Integer> billIds) {
 		billService.deleteBill(billIds);
 	}
 
@@ -111,7 +111,7 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	}
 
 	@Override
-	protected String getDocumentListAttrName() {
+	protected String getResultRecordsListAttrName() {
 		return BILL_LIST;
 	}
 

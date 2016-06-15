@@ -49,7 +49,8 @@ public final class InstallationEntityToModel implements Function<Installation, I
 		model.setCableQuantity(entity.getCableQuantity());
 		model.setTwoWay1(convertDevice(DeviceType.TWO_WAY_1, entity.getDevices()));
 		model.setTwoWay2(convertDevice(DeviceType.TWO_WAY_2, entity.getDevices()));
-		model.setOneWay(convertDevice(DeviceType.ONE_WAY, entity.getDevices()));
+		model.setOneWay1(convertDevice(DeviceType.ONE_WAY_1, entity.getDevices()));
+		model.setOneWay2(convertDevice(DeviceType.ONE_WAY_2, entity.getDevices()));
 		model.setModem(convertDevice(DeviceType.MODEM, entity.getDevices()));
 		model.setUser(entity.getUser());
 		return model;

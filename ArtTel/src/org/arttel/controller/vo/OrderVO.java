@@ -10,13 +10,13 @@ import org.arttel.dictionary.Status;
 import org.arttel.util.Translator;
 
 public class OrderVO extends BasePageVO {
-	
+
 	private OrderFilterVO orderFilter = new OrderFilterVO();
-	
+
 	private String orderId;
 	private Status status;
 	private OrderType orderType;
-	private Date issueDate;	
+	private Date issueDate;
 	private String phone;
 	private String name;
 	private String surname;
@@ -24,124 +24,98 @@ public class OrderVO extends BasePageVO {
 	private String city;
 	private String bundle; //pakiet
 	private String serialNumber;
-	private Date realizationDate ;	 
+	private Date realizationDate ;
 	private String solution;
 	private String comments;
 	private String additionalComments;
 	private String problemDescription;
 	private String user;
 	private boolean editable;
-	
-	public String getOrderId() {
-		return orderId;
-	}
 
-	public void setOrderId(String orderId) {
-		this.orderId = orderId;
-	}
-
-	public Status getStatus() {
-		return status;
-	}
-
-	public void setStatus(Status status) {
-		this.status = status;
-	}
-
-	public OrderType getOrderType() {
-		return orderType;
-	}
-
-	public void setOrderType(OrderType orderType) {
-		this.orderType = orderType;
-	}
-
-	public Date getIssueDate() {
-		return issueDate;
-	}
-
-	public void setIssueDate(Date issueDate) {
-		this.issueDate = issueDate;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getSurname() {
-		return surname;
-	}
-
-	public void setSurname(String surname) {
-		this.surname = surname;
+	public String getAdditionalComments() {
+		return additionalComments;
 	}
 
 	public String getAddress() {
 		return address;
 	}
 
-	public void setAddress(String address) {
-		this.address = address;
+	public String getBundle() {
+		return bundle;
 	}
 
 	public String getCity() {
 		return city;
 	}
 
-	public void setCity(String city) {
-		this.city = city;
+	public String getComments() {
+		return comments;
 	}
 
-	public String getBundle() {
-		return bundle;
+	@Override
+	public Integer getId() {
+		return Translator.parseInteger(getOrderId());
 	}
 
-	public void setBundle(String bundle) {
-		this.bundle = bundle;
+	public Date getIssueDate() {
+		return issueDate;
 	}
 
-	public String getSerialNumber() {
-		return serialNumber;
+	public String getName() {
+		return name;
 	}
 
-	public void setSerialNumber(String serialNumber) {
-		this.serialNumber = serialNumber;
+	public OrderFilterVO getOrderFilter() {
+		return orderFilter;
+	}
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public OrderType getOrderType() {
+		return orderType;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public String getProblemDescription() {
+		return problemDescription;
 	}
 
 	public Date getRealizationDate() {
 		return realizationDate;
 	}
 
-	public void setRealizationDate(Date realizationDate) {
-		this.realizationDate = realizationDate;
+	public String getSerialNumber() {
+		return serialNumber;
 	}
 
 	public String getSolution() {
 		return solution;
 	}
 
-	public void setSolution(String solution) {
-		this.solution = solution;
+	public Status getStatus() {
+		return status;
 	}
 
-	public String getComments() {
-		return comments;
+	public String getSurname() {
+		return surname;
 	}
 
-	public void setComments(String comments) {
-		this.comments = comments;
+	@Override
+	public String getUser() {
+		return user;
 	}
 
-	public String getAdditionalComments() {
-		return additionalComments;
+	public boolean isClosable(){
+		return getStatus() != Status.DONE;
 	}
 
-	public void setAdditionalComments(String additionalComments) {
-		this.additionalComments = additionalComments;
+	public boolean isEditable() {
+		return editable;
 	}
 
 	public void populate( final HttpServletRequest request ) {
@@ -172,49 +146,81 @@ public class OrderVO extends BasePageVO {
 		user = request.getParameter("user");
 	}
 
-	public String getUser() {
-		return user;
+	public void setAdditionalComments(final String additionalComments) {
+		this.additionalComments = additionalComments;
 	}
 
-	public void setUser(String user) {
-		this.user = user;
+	public void setAddress(final String address) {
+		this.address = address;
 	}
 
-	public OrderFilterVO getOrderFilter() {
-		return orderFilter;
+	public void setBundle(final String bundle) {
+		this.bundle = bundle;
 	}
 
-	public void setOrderFilter(OrderFilterVO orderFilter) {
-		this.orderFilter = orderFilter;
+	public void setCity(final String city) {
+		this.city = city;
 	}
 
-	
-	public boolean isEditable() {
-		return editable;
+	public void setComments(final String comments) {
+		this.comments = comments;
 	}
 
 	@Override
-	public void setEditable(boolean editable) {
+	public void setEditable(final boolean editable) {
 		this.editable = editable;
 	}
 
-	public String getPhone() {
-		return phone;
+	public void setIssueDate(final Date issueDate) {
+		this.issueDate = issueDate;
 	}
 
-	public void setPhone(String phone) {
+	public void setName(final String name) {
+		this.name = name;
+	}
+
+	public void setOrderFilter(final OrderFilterVO orderFilter) {
+		this.orderFilter = orderFilter;
+	}
+
+	public void setOrderId(final String orderId) {
+		this.orderId = orderId;
+	}
+
+	public void setOrderType(final OrderType orderType) {
+		this.orderType = orderType;
+	}
+
+
+	public void setPhone(final String phone) {
 		this.phone = phone;
 	}
 
-	public String getProblemDescription() {
-		return problemDescription;
-	}
-
-	public void setProblemDescription(String problemDescription) {
+	public void setProblemDescription(final String problemDescription) {
 		this.problemDescription = problemDescription;
 	}
-	
-	public boolean isClosable(){
-		return getStatus() != Status.DONE;
+
+	public void setRealizationDate(final Date realizationDate) {
+		this.realizationDate = realizationDate;
+	}
+
+	public void setSerialNumber(final String serialNumber) {
+		this.serialNumber = serialNumber;
+	}
+
+	public void setSolution(final String solution) {
+		this.solution = solution;
+	}
+
+	public void setStatus(final Status status) {
+		this.status = status;
+	}
+
+	public void setSurname(final String surname) {
+		this.surname = surname;
+	}
+
+	public void setUser(final String user) {
+		this.user = user;
 	}
 }

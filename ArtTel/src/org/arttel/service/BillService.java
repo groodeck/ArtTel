@@ -32,8 +32,8 @@ public class BillService {
 	@Autowired
 	private CorrectionDAO correctionDao;
 
-	public void deleteBill(final List<String> billIds) {
-		for(final String billId : billIds){
+	public void deleteBill(final List<Integer> billIds) {
+		for(final Integer billId : billIds){
 			//			correctionDao.removeCorrectionForInvoice(billId);
 			billDao.deleteBill(billId);
 		}

@@ -12,7 +12,6 @@ import org.arttel.controller.vo.SimpleComboElement;
 import org.arttel.controller.vo.filter.InstallationFilterVO;
 import org.arttel.dao.CityDAO;
 import org.arttel.dao.InstalationDAO;
-import org.arttel.dictionary.DeviceType;
 import org.arttel.dictionary.InstallationType;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
@@ -38,6 +37,16 @@ public class InstallationReportService {
 
 	private static final int DATA_ROWS_OFFSET = 4;
 
+	private int countNotEmpty(final InstallationDeviceModel...devices) {
+		int count = 0;
+		for(final InstallationDeviceModel device : devices){
+			if(device != null && StringUtils.isNotBlank(device.getSerialNumber())){
+				count++;
+			}
+		}
+		return count;
+	}
+
 	private List<DataCell> extractDataRow(final String worksheetName, final InstallationVO installation, final int xlsRowNumber){
 		final List<DataCell> row = new ArrayList<DataCell>();
 		row.add(new DataCell(xlsRowNumber, CellType.INT));
@@ -62,7 +71,6 @@ public class InstallationReportService {
 		}
 		final InstallationDeviceModel twoWay1 = installation.getTwoWay1();
 		if(twoWay1 != null && StringUtils.isNotBlank(twoWay1.getMacAddress())){
-			final int twoWaySequence = resolveTwoWayDeviceSequence(twoWay1);
 			row.add(new DataCell(1, CellType.INT));
 		} else {
 			row.add(DataCell.EMPTY);
@@ -70,9 +78,9 @@ public class InstallationReportService {
 		row.add(new DataCell(twoWay1.getMacAddress(), CellType.TEXT));
 		row.add(new DataCell(Translator.getDouble(twoWay1.getUpstream()), CellType.DOUBLE));
 		row.add(new DataCell(Translator.getDouble(twoWay1.getDownstream()), CellType.DOUBLE));
-		final InstallationDeviceModel oneWay = installation.getOneWay();
-		if(oneWay != null && StringUtils.isNotBlank(oneWay.getSerialNumber())){
-			row.add(new DataCell(1,CellType.INT));
+		final int oneWayQuantity = countNotEmpty(installation.getOneWay1(), installation.getOneWay2());
+		if(oneWayQuantity > 0){
+			row.add(new DataCell(oneWayQuantity,CellType.INT));
 		} else {
 			row.add(DataCell.EMPTY);
 		}
@@ -171,16 +179,6 @@ public class InstallationReportService {
 
 		return result;
 
-	}
-
-	private int resolveTwoWayDeviceSequence(final InstallationDeviceModel twoWay1) {
-		final int seq;
-		if(twoWay1.getDeviceType() == DeviceType.TWO_WAY_1){
-			seq = 1;
-		} else {
-			seq = 2;
-		}
-		return seq;
 	}
 
 	private int sum(final Integer... numbers) {

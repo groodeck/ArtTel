@@ -6,7 +6,8 @@ public enum DeviceType implements ComboElement {
 
 	TWO_WAY_1("TWO_WAY_1", "Dekoder 2 way #1"),
 	TWO_WAY_2("TWO_WAY_2", "Dekoder 2 way #2"),
-	ONE_WAY("ONE_WAY", "Dekoder 1 way / modu³ ci+"),
+	ONE_WAY_1("ONE_WAY_1", "Dekoder 1 way #1/ modu³ ci+"),
+	ONE_WAY_2("ONE_WAY_2", "Dekoder 1 way #2"),
 	MODEM("MODEM", "Modem NET / Terminal TEL");
 
 	public static DeviceType getValueByIdn(final String param){

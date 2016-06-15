@@ -74,9 +74,13 @@ public class InstallationModelToEntity implements Function<InstallationVO, Insta
 		if(twoWay2 != null){
 			deviceList.add(convertDevice(twoWay2, model.getInstallationId(), model.getInstallationType()));
 		}
-		final InstallationDeviceModel oneWay = model.getOneWay();
-		if(oneWay != null){
-			deviceList.add(convertDevice(oneWay, model.getInstallationId(), model.getInstallationType()));
+		final InstallationDeviceModel oneWay1 = model.getOneWay1();
+		if(oneWay1 != null){
+			deviceList.add(convertDevice(oneWay1, model.getInstallationId(), model.getInstallationType()));
+		}
+		final InstallationDeviceModel oneWay2 = model.getOneWay2();
+		if(oneWay2 != null){
+			deviceList.add(convertDevice(oneWay2, model.getInstallationId(), model.getInstallationType()));
 		}
 		final InstallationDeviceModel modem = model.getModem();
 		if(modem != null) {

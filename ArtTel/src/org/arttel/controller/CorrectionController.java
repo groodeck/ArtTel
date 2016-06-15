@@ -48,7 +48,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 @Controller
-public class CorrectionController extends BaseController {
+public class CorrectionController extends BaseController<CorrectionVO> {
 
 	public enum Event {
 		MAIN, CORRECT, SAVE, EDIT, ADD_PRODUCT_ROW, DEL_PRODUCT_ROW,CHANGE_PRODUCT, BACK, DELETE, PRINT, CHANGE_PAYMENT_TYPE;
@@ -80,8 +80,6 @@ public class CorrectionController extends BaseController {
 
 	@Autowired
 	private SellerDAO sellerDao;
-
-	private String targetPage = jspContextPrefix + "correction.jsp";
 
 	private final Logger log = Logger.getLogger(CorrectionController.class);
 
@@ -121,6 +119,11 @@ public class CorrectionController extends BaseController {
 
 	private Date getCurrentDate() {
 		return new Date(new java.util.Date().getTime());
+	}
+
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return "";
 	}
 
 	protected Event getEvent(final HttpServletRequest request,
@@ -182,11 +185,6 @@ public class CorrectionController extends BaseController {
 		return "correctionTableHeader";
 	}
 
-	private boolean hasChanged(final InvoiceVO invoiceVO) {
-		// TODO zaimplementowac metodê equals i uzyc
-		return false;
-	}
-
 	private void performActionAddProductRow(final UserContext userContext,
 			final InvoiceVO invoiceVO, final HttpServletRequest request) {
 
@@ -213,7 +211,6 @@ public class CorrectionController extends BaseController {
 		} catch (final IOException e) {
 			log.error("IOException", e);
 		}
-
 	}
 
 	private void performActionChangePaymentType(final UserContext userContext,
@@ -327,9 +324,6 @@ public class CorrectionController extends BaseController {
 			final HttpServletResponse response) {
 		try {
 			populateForm(invoiceVO, request);
-			if(hasChanged(invoiceVO)){
-				//TODO:
-			}
 			correctionDao.save(invoiceVO, userContext.getUserName());
 			performActionBackToInvoice(userContext, request, response);
 		} catch (final DaoException e) {
@@ -485,9 +479,4 @@ public class CorrectionController extends BaseController {
 			correction.setGrossSumAmountDiff(grossSumDiff.toPlainString());
 		}
 	}
-
-	public void setTargetPage(final String targetPage) {
-		this.targetPage = targetPage;
-	}
-
 }

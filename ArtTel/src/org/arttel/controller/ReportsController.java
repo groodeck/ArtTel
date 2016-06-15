@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.arttel.controller.support.UserContextProvider;
 import org.arttel.controller.vo.ReportParamsVO;
 import org.arttel.dao.CityDAO;
 import org.arttel.dictionary.context.DictionaryPurpose;
@@ -16,18 +17,18 @@ import org.arttel.exception.UserNotLoggedException;
 import org.arttel.generator.FileGenerator;
 import org.arttel.generator.report.ReportsGenerator;
 import org.arttel.service.ReportService;
-import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class ReportsController extends BaseController {
-
+public class ReportsController {
 	private enum Event {
 		MAIN, GENERATE
 	}
+
+	private final Logger log = Logger.getLogger(ReportsController.class);
 
 	@Autowired
 	private ReportsGenerator reportsGenerator;
@@ -41,8 +42,9 @@ public class ReportsController extends BaseController {
 	@Autowired
 	private FileResponseHandler fileResponse;
 
-	private final Logger log = Logger.getLogger(ReportsController.class);
-	
+	@Autowired
+	private UserContextProvider userContextProvider;
+
 	private static final String REPORT_PARAMS = "reportParams";
 
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
@@ -55,15 +57,13 @@ public class ReportsController extends BaseController {
 		return event;
 	}
 
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected String getTableHeaderAttrName() {
-		return "reportsTableHeader";
+	private ReportParamsVO getForm(final HttpServletRequest request) {
+		final Object formVO = request.getSession().getAttribute( BaseController.FORM );
+		if(formVO == null || !(formVO instanceof ReportParamsVO)){
+			return new ReportParamsVO();
+		} else {
+			return (ReportParamsVO)formVO;
+		}
 	}
 
 	private void performActionGenerate(final HttpServletRequest request, final HttpServletResponse response,
@@ -97,12 +97,12 @@ public class ReportsController extends BaseController {
 	public String process(final HttpServletRequest request,
 			final HttpServletResponse response) throws UserNotLoggedException {
 
-		final UserContext userContext = getUserContext(request);
+		final UserContext userContext = userContextProvider.getUserContext(request);
 		if(!userContext.isUserLogged()){
 			throw new UserNotLoggedException();
 		}
 
-		final ReportParamsVO reportsVO = (ReportParamsVO) getForm(ReportParamsVO.class, request);
+		final ReportParamsVO reportsVO = getForm(request);
 		reportsVO.populate(request);
 
 		final Event event = getEvent(request, Event.MAIN);

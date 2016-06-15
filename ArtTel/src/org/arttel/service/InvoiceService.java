@@ -31,10 +31,10 @@ public class InvoiceService {
 	@Autowired
 	private CorrectionDAO correctionDao;
 
-	public void deleteInvoice(final List<String> invoiceIds) {
-		for(final String invoiceId : invoiceIds){
-			correctionDao.removeCorrectionForInvoice(invoiceId);
-			invoiceDao.deleteInvoice(invoiceId);
+	public void deleteInvoice(final List<Integer> invoiceIds) {
+		for(final Integer invoiceId : invoiceIds){
+			correctionDao.removeCorrectionForInvoice(invoiceId.toString());
+			invoiceDao.deleteInvoice(invoiceId.toString());
 		}
 	}
 

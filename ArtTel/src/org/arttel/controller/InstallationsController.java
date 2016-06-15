@@ -27,13 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 @Controller
-public class InstallationsController extends BaseController {
+public class InstallationsController extends BaseController<InstallationVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK, RESET_SOCKET_ORDER, CLOSE, CHANGE_SELECTED_CITY, CLEAR_INSTALATIONS, SORT, CHANGEPAGE
@@ -107,27 +105,9 @@ public class InstallationsController extends BaseController {
 		return InstallationVO.resultTableHeader;
 	}
 
-	//TODO wyniesc wszystkie metody typu getSelected... do BaseController<VO> - sparametryzowaæ BaseController
-	protected List<InstallationVO> getSelectedRecords(final HttpServletRequest request) {
-		final List<String> selectedIndexes = getSelectedBoxIndexes(request);
-		final ResultPage<InstallationVO> resultsPage = (ResultPage)request.getSession().getAttribute(INSTALATION_LIST);
-		final List<InstallationVO> resultRecordsList = resultsPage.getRecords();
-		return FluentIterable.from(selectedIndexes)
-				.transform(new Function<String, InstallationVO>() {
-					@Override
-					public InstallationVO apply(final String input) {
-						return resultRecordsList.get(Integer.parseInt(input));
-					}}).toList();
-	}
-
-	protected List<Integer> getSelectedRecordsIds(final HttpServletRequest request) {
-		final List<InstallationVO> selectedInvoices = getSelectedRecords(request);
-		return FluentIterable.from(selectedInvoices)
-				.transform(new Function<InstallationVO,Integer>(){
-					@Override
-					public Integer apply(final InstallationVO document) {
-						return document.getInstallationId();
-					}}).toList();
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return INSTALATION_LIST;
 	}
 
 	@Override
@@ -169,14 +149,17 @@ public class InstallationsController extends BaseController {
 			instalationDetails.setInstallationId(null);
 			instalationDetails.getTwoWay1().setInstallationDeviceId(null);
 			instalationDetails.getTwoWay2().setInstallationDeviceId(null);
-			instalationDetails.getOneWay().setInstallationDeviceId(null);
+			instalationDetails.getOneWay1().setInstallationDeviceId(null);
+			instalationDetails.getOneWay2().setInstallationDeviceId(null);
 			instalationDetails.getModem().setInstallationDeviceId(null);
 			instalationDetails.setUser(null);
 			instalationDetails.applyPermissions(userContext.getUserName());
 			request.setAttribute(SELECTED_INSTALATION, instalationDetails);
 			request.setAttribute(EVENT, Event.EDIT);
+		} else if (selectedRecords.size() > 1){
+			request.setAttribute("uiMessage", "Zaznacz dok³adnie jedn¹ instalacjê");
+			searchInstallationsByFilter(userContext, request);
 		} else {
-			//TODO: more than one is selected - display error
 			searchInstallationsByFilter(userContext, request);
 		}
 	}
@@ -321,7 +304,7 @@ public class InstallationsController extends BaseController {
 		final PageInfo pageInfo = getCurrentPageInfo(request);
 		final InstallationFilterVO instalationFilterVO = getInstallationFilter(request);
 		final ResultPage<InstallationVO> instalationList = instalationService.getInstallationList(instalationFilterVO, pageInfo, userContext.getUserName());
-		request.getSession().setAttribute(INSTALATION_LIST, instalationList);
+		request.getSession().setAttribute(getResultRecordsListAttrName(), instalationList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 }

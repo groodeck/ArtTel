@@ -6,42 +6,84 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.arttel.controller.support.UserContextProvider;
 import org.arttel.controller.vo.HomePageVO;
 import org.arttel.dao.UserDAO;
 import org.arttel.exception.DaoException;
-import org.arttel.ui.TableHeader;
 import org.arttel.util.AppSecurity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class HomePageController extends BaseController {
+public class HomePageController {
 
-	private final Logger log = Logger.getLogger(HomePageController.class);
-	
-	@Autowired
-	private UserDAO userDao;
-	
-	private enum Event { 
+	private enum Event {
 		LOGIN, LOGOUT, MAIN
 	}
-	
-	@RequestMapping("/home.app")
-	public String process(HttpServletRequest request,
-			HttpServletResponse response) {
-		
-		UserContext userContext = getUserContext(request);
 
-		//HomePageVO homePageVO = (HomePageVO) getForm(HomePageVO.class, request);
-		HomePageVO homePageVO = new HomePageVO();
+	private final Logger log = Logger.getLogger(HomePageController.class);
+
+	@Autowired
+	private UserDAO userDao;
+
+	@Autowired
+	private UserContextProvider userContextProvider;
+
+	private boolean checkUserPassword( final String user, final String password ) throws DaoException {
+		// TODO Auto-generated method stub
+		final String hashedPassword = AppSecurity.hashPassword( password );
+		return userDao.checkUserPassword( user, hashedPassword );
+	}
+
+	private Event getEvent( final HttpServletRequest request, final Event defaultValue) {
+
+		Event event = defaultValue;
+		final String eventStr = request.getParameter("event");
+		if( eventStr != null ){
+			event = Event.valueOf( eventStr.toUpperCase() );
+		}
+		return event;
+	}
+
+	private Map<String,Boolean> getUserPrivileges( final String user ) throws DaoException {
+		return userDao.getUserPrivileges( user );
+	}
+
+	private void performActionLogin( final UserContext userContext, final HomePageVO homePageVO){
+
+		try {
+			final boolean passwordValid = checkUserPassword( homePageVO.getUser(), homePageVO.getPassword() );
+			if(passwordValid){
+				userContext.setUserLogged(true);
+				userContext.setUserName(homePageVO.getUser());
+				userContext.setUserPrivileges(getUserPrivileges(homePageVO.getUser()));
+			}
+		} catch (final DaoException e) {
+			log.error("DaoException", e);
+		}
+	}
+
+	private void performActionLogout(final UserContext userContext,
+			final HomePageVO homePageVO) {
+
+		userContext.setUserLogged(false);
+		userContext.setUserName(null);
+	}
+
+	@RequestMapping("/home.app")
+	public String process(final HttpServletRequest request,
+			final HttpServletResponse response) {
+
+		final UserContext userContext = userContextProvider.getUserContext(request);
+
+		final HomePageVO homePageVO = new HomePageVO();
 		homePageVO.populate(request);
-		
+
 		final Event event = getEvent(request, Event.MAIN);
-		
+
 		switch(event){
 		case MAIN:
-			performActionMain(userContext, homePageVO);
 			break;
 		case LOGIN:
 			performActionLogin(userContext, homePageVO);
@@ -52,66 +94,6 @@ public class HomePageController extends BaseController {
 		default:
 		}
 		return "home";
-	}
-
-	private void performActionMain( final UserContext userContext, final HomePageVO homePageVO) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private Event getEvent( final HttpServletRequest request, final Event defaultValue) {
-		
-		Event event = defaultValue;
-		String eventStr = request.getParameter("event");
-		if( eventStr != null ){
-			event = Event.valueOf( eventStr.toUpperCase() );
-		}
-		return event;
-	}
-
-	private void performActionLogin( final UserContext userContext, final HomePageVO homePageVO){
-		
-		try {
-			boolean passwordValid = checkUserPassword( homePageVO.getUser(), homePageVO.getPassword() );
-			if(passwordValid){
-				userContext.setUserLogged(true);
-				userContext.setUserName(homePageVO.getUser());
-				userContext.setUserPrivileges(getUserPrivileges(homePageVO.getUser()));
-			}
-		} catch (DaoException e) {
-			log.error("DaoException", e);
-		}
-	}
-
-	private Map<String,Boolean> getUserPrivileges( final String user ) throws DaoException {
-		return userDao.getUserPrivileges( user );
-	}
-
-	private boolean checkUserPassword( final String user, final String password ) throws DaoException {
-		// TODO Auto-generated method stub
-		final String hashedPassword = AppSecurity.hashPassword( password );
-		return userDao.checkUserPassword( user, hashedPassword );
-	}
-
-	
-
-	private void performActionLogout(UserContext userContext,
-			HomePageVO homePageVO) {
-		
-		userContext.setUserLogged(false);
-		userContext.setUserName(null);
-	}
-
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected String getTableHeaderAttrName() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

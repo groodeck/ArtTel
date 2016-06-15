@@ -13,7 +13,7 @@ public class ProductVO extends BasePageVO implements ComboElement{
 
 	private final ProductFilterVO productFilter = new ProductFilterVO();
 	private String selectedProduct;
-	
+
 	private String productId ;
 	private String productDescription;
 	private String netPrice;
@@ -29,6 +29,10 @@ public class ProductVO extends BasePageVO implements ComboElement{
 	@Override
 	public String getDesc() {
 		return getProductDescription();
+	}
+	@Override
+	public Integer getId() {
+		return Translator.parseInteger(getProductId());
 	}
 	@Override
 	public String getIdn() {
@@ -65,6 +69,7 @@ public class ProductVO extends BasePageVO implements ComboElement{
 	public VatRate getVatRate() {
 		return vatRate;
 	}
+
 	public void populate(final HttpServletRequest request) {
 		productId = request.getParameter("productId");
 		productDescription = request.getParameter("productDescription");

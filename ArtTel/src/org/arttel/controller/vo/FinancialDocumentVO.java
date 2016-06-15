@@ -70,6 +70,11 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 
 	public abstract List<Product> getDocumentProducts();
 
+	@Override
+	public Integer getId() {
+		return Translator.parseInteger(getDocumentId());
+	}
+
 	public String getNumber() {
 		return number;
 	}

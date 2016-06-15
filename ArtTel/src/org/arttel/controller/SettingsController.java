@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.arttel.business.IncomeBalanceCalculator;
+import org.arttel.controller.support.UserContextProvider;
 import org.arttel.controller.vo.CityVO;
 import org.arttel.controller.vo.CompanyCostVO;
 import org.arttel.controller.vo.FundsEntryVO;
@@ -21,7 +22,6 @@ import org.arttel.dao.CompanyCostDAO;
 import org.arttel.dao.FundsEntryDAO;
 import org.arttel.dao.UserDAO;
 import org.arttel.exception.DaoException;
-import org.arttel.ui.TableHeader;
 import org.arttel.util.IdnTranslator;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class SettingsController extends BaseController {
+public class SettingsController {
 
 	private enum Event {
 		MAIN, ADDFUNDS, FUNDSDETAILS, ADDCITY, CITIESDETAILS, ADDCOMPANYCOST, COMPANYCOSTSDETAILS
@@ -51,11 +51,12 @@ public class SettingsController extends BaseController {
 	private CompanyCostDAO companyCostDao;
 	private final Logger log = Logger.getLogger(SettingsController.class);
 
+	@Autowired
+	private UserContextProvider userContextProvider;
+
 	private static final String SELECTS_MAP = "selectsMap";
 
 	private static final String SETTINGS = "settings";
-	private static final String DEALING_LIST = "dealingList";
-	private static final String DEALING_FILTER = "dealingFilter";
 
 	private void createNewCity(final CityVO cityVO) {
 		final IdnTranslator idnTranslator = new IdnTranslator();
@@ -90,15 +91,13 @@ public class SettingsController extends BaseController {
 		return event;
 	}
 
-	@Override
-	protected TableHeader getModelDefaultHeader() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected String getTableHeaderAttrName() {
-		return "settingsTableHeader";
+	private SettingsVO getForm(final HttpServletRequest request) {
+		final SettingsVO form = (SettingsVO) request.getAttribute(BaseController.FORM);
+		if(form == null){
+			return new SettingsVO();
+		}else {
+			return form;
+		}
 	}
 
 	private List<UserBalanceVO> getUserBalanceList() {
@@ -167,7 +166,7 @@ public class SettingsController extends BaseController {
 		settingsVO.setUserBalanceList(userBalanceList);
 
 		request.setAttribute(SETTINGS, settingsVO);
-		request.setAttribute(EVENT, Event.MAIN);
+		request.setAttribute(BaseController.EVENT, Event.MAIN);
 	}
 
 	private Map<String,List<? extends ComboElement>> prepareSelectsMap() {
@@ -185,9 +184,9 @@ public class SettingsController extends BaseController {
 	public String process(final HttpServletRequest request,
 			final HttpServletResponse response) {
 
-		final UserContext userContext = getUserContext(request);
+		final UserContext userContext = userContextProvider.getUserContext(request);
 
-		final SettingsVO settingsVO = (SettingsVO) getForm(SettingsVO.class, request);
+		final SettingsVO settingsVO = getForm(request);
 		settingsVO.populate(request);
 
 		final Event event = getEvent(request, Event.MAIN);

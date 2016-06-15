@@ -14,10 +14,10 @@
 		<tr>
 			<td class="label" colspan="2">${device.deviceType.desc}</td>
 		</tr><tr>
-			<td class="label">Nr seryjny</td>
+			<td class="label" width='100px' >Nr seryjny</td>
 			<td class="field"><input type="text" name="${prefix}.serialNumber" value="${device.serialNumber}"/></td>
 		</tr>
-		<c:if test="${device.deviceType != 'ONE_WAY'}">
+		<c:if test="${device.deviceType != 'ONE_WAY_1' and device.deviceType != 'ONE_WAY_2'}">
 			<tr>
 				<td class="label">MAC Adres</td>
 				<td class="field"><input type="text" name="${prefix}.macAddress" value="${device.macAddress}"/></td>

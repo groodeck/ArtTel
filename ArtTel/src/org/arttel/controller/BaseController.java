@@ -6,18 +6,20 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.arttel.controller.support.UserContextProvider;
 import org.arttel.controller.vo.BasePageVO;
 import org.arttel.ui.PageInfo;
+import org.arttel.ui.ResultPage;
 import org.arttel.ui.TableHeader;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
-public abstract class BaseController {
+public abstract class BaseController<VO extends BasePageVO>  {
 
 	private final Logger log = Logger.getLogger(BaseController.class);
-	public static final String USER_CONTEXT = "userContext";
 	public static final String FORM = "form";
 	protected static final String RESULT_FILE_LINK = "reportLink";
 	protected static final String EVENT = "event";
@@ -27,6 +29,9 @@ public abstract class BaseController {
 	protected static final String IMPORT_FILE_NAME = "importData.xlsx";
 	protected static final String DATA_UPLOAD_DIR = "DATA_UPLOAD_DIR";
 	protected static final String BASE_DIR = "BASE_DIR";
+
+	@Autowired
+	private UserContextProvider userContextProvider;
 
 	protected String jspContextPrefix = "jsp/";
 
@@ -43,10 +48,8 @@ public abstract class BaseController {
 				formVO = (BasePageVO)clazz.newInstance();
 				request.getSession().setAttribute( FORM, formVO );
 			}
-		} catch (final InstantiationException e) {
+		} catch (final ReflectiveOperationException e) {
 			log.error("InstantiationException", e);
-		} catch (final IllegalAccessException e) {
-			log.error("IllegalAccessException", e);
 		}
 		return formVO;
 	}
@@ -68,6 +71,8 @@ public abstract class BaseController {
 		return tableHeader;
 	}
 
+	protected abstract String getResultRecordsListAttrName();
+
 	protected List<String> getSelectedBoxIndexes(final HttpServletRequest request) {
 		final Map<String, String[]> parameterMap = request.getParameterMap();
 		final List<String> checkedBoxesIndex = FluentIterable.from(parameterMap.keySet())
@@ -85,15 +90,33 @@ public abstract class BaseController {
 		return checkedBoxesIndex;
 	}
 
+	@SuppressWarnings("unchecked")
+	protected List<VO> getSelectedRecords(final HttpServletRequest request) {
+		final List<String> selectedIndexes = getSelectedBoxIndexes(request);
+		final ResultPage<VO> resultsPage = (ResultPage<VO>)request.getSession().getAttribute(getResultRecordsListAttrName());
+		final List<VO> resultRecordsList = resultsPage.getRecords();
+		return FluentIterable.from(selectedIndexes)
+				.transform(new Function<String, VO>() {
+					@Override
+					public VO apply(final String input) {
+						return resultRecordsList.get(Integer.parseInt(input));
+					}}).toList();
+	}
+
+	protected List<Integer> getSelectedRecordsIds(final HttpServletRequest request) {
+		final List<VO> selectedInvoices = getSelectedRecords(request);
+		return FluentIterable.from(selectedInvoices)
+				.transform(new Function<VO,Integer>(){
+					@Override
+					public Integer apply(final VO document) {
+						return document.getId();
+					}}).toList();
+	}
+
 	protected abstract String getTableHeaderAttrName();
 
-	protected UserContext getUserContext( final HttpServletRequest request ) {
-		UserContext userContext = (UserContext)request.getSession().getAttribute("userContext");
-		if( userContext == null ){
-			userContext = new UserContext();
-			request.getSession().setAttribute( USER_CONTEXT, userContext );
-		}
-		return userContext;
+	protected UserContext getUserContext(final HttpServletRequest request) {
+		return userContextProvider.getUserContext(request);
 	}
 
 	private void storeTableHeader(final HttpServletRequest request,

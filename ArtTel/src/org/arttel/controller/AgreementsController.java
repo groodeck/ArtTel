@@ -27,7 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class AgreementsController extends BaseController {
+public class AgreementsController extends BaseController<AgreementVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK
@@ -56,6 +56,11 @@ public class AgreementsController extends BaseController {
 		}
 	}
 
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return AGREEMENT_LIST;
+	}
+
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = defaultValue;
@@ -82,7 +87,7 @@ public class AgreementsController extends BaseController {
 		try{
 			final List<AgreementVO> agreementList = agreementDao.getAgreementList(agreementFilterVO);
 			applyPermissions(agreementList, userContext.getUserName());
-			request.setAttribute(AGREEMENT_LIST, agreementList);
+			request.setAttribute(getResultRecordsListAttrName(), agreementList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}
@@ -139,10 +144,10 @@ public class AgreementsController extends BaseController {
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
+
 	private void performActionMain( final UserContext userContext, final HttpServletRequest request) {
 		request.setAttribute(EVENT, Event.MAIN);
 	}
-
 
 	private void performActionNew( final UserContext userContext,
 			final HttpServletRequest request ) {
@@ -169,7 +174,7 @@ public class AgreementsController extends BaseController {
 		try{
 			final List<AgreementVO> agreementList = agreementDao.getAgreementList(agreementFilterVO);
 			applyPermissions(agreementList, userContext.getUserName());
-			request.setAttribute(AGREEMENT_LIST, agreementList);
+			request.setAttribute(getResultRecordsListAttrName(), agreementList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}

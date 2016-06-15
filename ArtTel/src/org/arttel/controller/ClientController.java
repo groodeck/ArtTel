@@ -19,7 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class ClientController extends BaseController {
+public class ClientController extends BaseController<ClientVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, SEARCH, BACK
@@ -45,6 +45,11 @@ public class ClientController extends BaseController {
 			request.setAttribute(CLIENT_FILTER, clientFilterVO);
 		}
 		return clientFilterVO;
+	}
+
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return CLIENT_LIST;
 	}
 
 	protected Event getEvent(final HttpServletRequest request,
@@ -74,7 +79,7 @@ public class ClientController extends BaseController {
 		final ClientFilterVO clientFilterVO = getClientFilterFromRequest(request, userContext.getUserName());
 		clientFilterVO.setUser(userContext.getUserName());
 		final List<ClientVO> clientList = clientDao.getClientList(clientFilterVO);
-		request.setAttribute(CLIENT_LIST, clientList);
+		request.setAttribute(getResultRecordsListAttrName(), clientList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
@@ -128,7 +133,7 @@ public class ClientController extends BaseController {
 		request.getSession().setAttribute(CLIENT_FILTER, clientFilterVO);
 		final List<ClientVO> clientList = clientDao
 				.getClientList(clientFilterVO);
-		request.setAttribute(CLIENT_LIST, clientList);
+		request.setAttribute(getResultRecordsListAttrName(), clientList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 

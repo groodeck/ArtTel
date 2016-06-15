@@ -31,8 +31,8 @@ public class BillDAO extends SortableDataPageFetch {
 					+ "and u.userName = :userName "
 					+ "ORDER BY b.documentId ";
 
-	public void deleteBill(final String billId) {
-		final Bill entity = getBillById(billId);
+	public void deleteBill(final Integer billId) {
+		final Bill entity = getBillById(billId.toString());
 		em.remove(entity);
 	}
 

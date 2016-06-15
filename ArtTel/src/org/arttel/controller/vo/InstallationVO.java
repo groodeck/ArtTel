@@ -59,7 +59,8 @@ public class InstallationVO extends BasePageVO {
 
 	private InstallationDeviceModel twoWay1 = new InstallationDeviceModel(DeviceType.TWO_WAY_1);
 	private InstallationDeviceModel twoWay2 = new InstallationDeviceModel(DeviceType.TWO_WAY_2);
-	private InstallationDeviceModel oneWay = new InstallationDeviceModel(DeviceType.ONE_WAY);
+	private InstallationDeviceModel oneWay1 = new InstallationDeviceModel(DeviceType.ONE_WAY_1);
+	private InstallationDeviceModel oneWay2 = new InstallationDeviceModel(DeviceType.ONE_WAY_2);
 	private InstallationDeviceModel modem = new InstallationDeviceModel(DeviceType.MODEM);
 
 	public String getAdditionalComments() {
@@ -88,6 +89,11 @@ public class InstallationVO extends BasePageVO {
 
 	public Integer getDtvCount() {
 		return dtvCount;
+	}
+
+	@Override
+	public Integer getId() {
+		return getInstallationId();
 	}
 
 	public LocalDate getInstallationDate() {
@@ -122,8 +128,12 @@ public class InstallationVO extends BasePageVO {
 		return netSocketCount;
 	}
 
-	public InstallationDeviceModel getOneWay() {
-		return oneWay;
+	public InstallationDeviceModel getOneWay1() {
+		return oneWay1;
+	}
+
+	public InstallationDeviceModel getOneWay2() {
+		return oneWay2;
 	}
 
 	public String getPhone() {
@@ -193,7 +203,8 @@ public class InstallationVO extends BasePageVO {
 
 		twoWay1.populate(request, "twoWay1");
 		twoWay2.populate(request, "twoWay2");
-		oneWay.populate(request, "oneWay");
+		oneWay1.populate(request, "oneWay1");
+		oneWay2.populate(request, "oneWay2");
 		modem.populate(request, "modem");
 	}
 
@@ -262,8 +273,12 @@ public class InstallationVO extends BasePageVO {
 		this.netSocketCount = netSocketCount;
 	}
 
-	public void setOneWay(final InstallationDeviceModel oneWay) {
-		this.oneWay = oneWay;
+	public void setOneWay1(final InstallationDeviceModel oneWay) {
+		oneWay1 = oneWay;
+	}
+
+	public void setOneWay2(final InstallationDeviceModel oneWay) {
+		oneWay2 = oneWay;
 	}
 
 	public void setPhone(final String phone) {

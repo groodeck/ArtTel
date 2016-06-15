@@ -36,7 +36,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class DealingController extends BaseController {
+public class DealingController extends BaseController<DealingVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK, RELOADBALANCE
@@ -111,6 +111,11 @@ public class DealingController extends BaseController {
 		return resultList;
 	}
 
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return DEALING_LIST;
+	}
+
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = defaultValue;
@@ -158,7 +163,7 @@ public class DealingController extends BaseController {
 		try{
 			final List<DealingVO> dealingList = dealingDao.getDealingList(dealingFilterVO);
 			applyPermissions(dealingList, userContext.getUserName());
-			request.setAttribute(DEALING_LIST, dealingList);
+			request.setAttribute(getResultRecordsListAttrName(), dealingList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}
@@ -184,6 +189,7 @@ public class DealingController extends BaseController {
 
 	}
 
+
 	private void performActionDelete( final UserContext userContext,
 			final HttpServletRequest request ) {
 
@@ -197,7 +203,6 @@ public class DealingController extends BaseController {
 		}
 		performActionBackToSearchresults(userContext, request);
 	}
-
 
 	private void performActionEdit( final UserContext userContext,
 			final HttpServletRequest request ) {
@@ -245,7 +250,7 @@ public class DealingController extends BaseController {
 		try{
 			final List<DealingVO> dealingList = dealingDao.getDealingList(dealingFilterVO);
 			applyPermissions(dealingList, userContext.getUserName());
-			request.setAttribute(DEALING_LIST, dealingList);
+			request.setAttribute(getResultRecordsListAttrName(), dealingList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}

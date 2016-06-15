@@ -55,6 +55,8 @@
 	
 	<custom:menu userContext="${userContext}" />
 	
+	<custom:message uiMessage="${uiMessage}"/>
+	
 	<c:if test="${event=='MAIN' || event=='SEARCH'}">
 	
 		<br/>
@@ -345,12 +347,20 @@
 				<tr><td height="20px;"/></tr>
 				<tr>
 					<td>
-						<custom:installationDevice device="${selectedInstalation.oneWay}" prefix="oneWay"/>
+						<custom:installationDevice device="${selectedInstalation.oneWay1}" prefix="oneWay1"/>
 					</td>
 					<td width="20px;"/>
 					<td>
+						<custom:installationDevice device="${selectedInstalation.oneWay2}" prefix="oneWay2"/>
+					</td>
+				</tr>
+				<tr><td height="20px;"/></tr>
+				<tr>
+					<td>
 						<custom:installationDevice device="${selectedInstalation.modem}" prefix="modem"/>
 					</td>
+					<td width="20px;"/>
+					<td />
 				</tr>
 			</table>
 		</div>

@@ -69,13 +69,8 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
-	protected void deleteInvoice(final List<String> invoiceIds) {
+	protected void deleteInvoice(final List<Integer> invoiceIds) {
 		invoiceService.deleteInvoice(invoiceIds);
-	}
-
-	@Override
-	protected Optional<String> printDocument(final List<InvoiceVO> invoices, final String sessionId) throws Exception {
-		return invoiceGenerator.generateInvoices(invoices, sessionId);
 	}
 
 	private CorrectionVO getCorrection(final InvoiceVO invoice) {
@@ -116,11 +111,6 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
-	protected String getDocumentListAttrName() {
-		return INVOICE_LIST;
-	}
-
-	@Override
 	protected InvoiceVO getFinancialDocument(final String invoiceId) {
 		return invoiceService.getInvoice(invoiceId);
 	}
@@ -142,6 +132,11 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
+	protected String getResultRecordsListAttrName() {
+		return INVOICE_LIST;
+	}
+
+	@Override
 	protected String getSelectedDocumentAttrName() {
 		return SELECTED_INVOICE;
 	}
@@ -154,6 +149,11 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	@Override
 	protected String getTargetPage() {
 		return "invoices";
+	}
+
+	@Override
+	protected Optional<String> printDocument(final List<InvoiceVO> invoices, final String sessionId) throws Exception {
+		return invoiceGenerator.generateInvoices(invoices, sessionId);
 	}
 
 	@Override

@@ -27,7 +27,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class SqueezesController extends BaseController {
+public class SqueezesController extends BaseController<SqueezeVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, COPY, SEARCH, BACK
@@ -60,6 +60,11 @@ public class SqueezesController extends BaseController {
 		}
 	}
 
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return SQUEEZES_LIST;
+	}
+
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = defaultValue;
@@ -90,7 +95,7 @@ public class SqueezesController extends BaseController {
 		try{
 			final List<SqueezeVO> squeezeList = squeezeDao.getSqueezeList(squeezeFilterVO);
 			applyPermissions(squeezeList, userContext.getUserName());
-			request.setAttribute(SQUEEZES_LIST, squeezeList);
+			request.setAttribute(getResultRecordsListAttrName(), squeezeList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}
@@ -148,7 +153,6 @@ public class SqueezesController extends BaseController {
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
-
 	private void performActionMain( final UserContext userContext, final HttpServletRequest request) {
 		request.setAttribute(SQUEEZE_BALANCE, getSqueezeBalance());
 		request.setAttribute(EVENT, Event.MAIN);
@@ -180,7 +184,7 @@ public class SqueezesController extends BaseController {
 		try{
 			final List<SqueezeVO> squeezeList = squeezeDao.getSqueezeList(squeezeFilterVO);
 			applyPermissions(squeezeList, userContext.getUserName());
-			request.setAttribute(SQUEEZES_LIST, squeezeList);
+			request.setAttribute(getResultRecordsListAttrName(), squeezeList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
 		}

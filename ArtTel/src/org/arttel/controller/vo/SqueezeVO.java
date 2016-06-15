@@ -61,6 +61,11 @@ public class SqueezeVO extends BasePageVO{
 		return dealingId;
 	}
 
+	@Override
+	public Integer getId() {
+		return Translator.parseInteger(getSqueezeId());
+	}
+
 	public int getMeters() {
 		return meters;
 	}

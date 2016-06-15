@@ -21,7 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class ProductController extends BaseController {
+public class ProductController extends BaseController<ProductVO> {
 
 	private enum Event {
 		MAIN, SAVE, EDIT, NEW, DELETE, SEARCH, BACK
@@ -30,13 +30,16 @@ public class ProductController extends BaseController {
 	@Autowired
 	private ProductDAO productDao;
 
-	private String targetPage = jspContextPrefix + "products.jsp";
-
 	private final Logger log = Logger.getLogger(ProductController.class);
 
 	private static final String SELECTED_PRODUCT = "selectedProduct";
 	private static final String PRODUCT_LIST = "productList";
 	private static final String PRODUCT_FILTER = "productFilter";
+
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return PRODUCT_LIST;
+	}
 
 	protected Event getEvent(final HttpServletRequest request,
 			final Event defaultValue) {
@@ -76,7 +79,7 @@ public class ProductController extends BaseController {
 		final ProductFilterVO productFilterVO = getProductFilterFromRequest(request);
 		productFilterVO.setUser(userContext.getUserName());
 		final List<ProductVO> productList = productDao.getProductList(productFilterVO);
-		request.setAttribute(PRODUCT_LIST, productList);
+		request.setAttribute(getResultRecordsListAttrName(), productList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
@@ -135,7 +138,7 @@ public class ProductController extends BaseController {
 		productFilterVO.setUser(userContext.getUserName());
 		request.getSession().setAttribute(PRODUCT_FILTER, productFilterVO);
 		final List<ProductVO> productList = productDao.getProductList(productFilterVO);
-		request.setAttribute(PRODUCT_LIST, productList);
+		request.setAttribute(getResultRecordsListAttrName(), productList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
@@ -185,9 +188,4 @@ public class ProductController extends BaseController {
 		request.setAttribute("selectsMap", prepareSelectsMap(userContext.getUserName()));
 		return "products";
 	}
-
-	public void setTargetPage(final String targetPage) {
-		this.targetPage = targetPage;
-	}
-
 }

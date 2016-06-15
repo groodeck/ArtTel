@@ -26,83 +26,77 @@ public class CorrectionVO extends BasePageVO {
 	private String paidWords;
 	private Date paymentDate;
 	private PaymentType paymentType;
-	
+
 	private String invoiceNumber;
 	private boolean editable;
-	
+
+	public String getComments() {
+		return comments;
+	}
 	public String getCorrectionId() {
 		return correctionId;
-	}
-	public void setCorrectionId(String correctionId) {
-		this.correctionId = correctionId;
-	}
-	public String getInvoiceId() {
-		return invoiceId;
-	}
-	public void setInvoiceId(String invoiceId) {
-		this.invoiceId = invoiceId;
 	}
 	public String getCorrectionNumber() {
 		return correctionNumber;
 	}
-	public void setCorrectionNumber(String correctionNumber) {
-		this.correctionNumber = correctionNumber;
-	}
 	public Date getCreateDate() {
 		return createDate;
-	}
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
-	public String getNetAmount() {
-		return netAmount;
-	}
-	public void setNetAmount(String netAmount) {
-		this.netAmount = netAmount;
-	}
-	public String getVatAmount() {
-		return vatAmount;
-	}
-	public void setVatAmount(String vatAmount) {
-		this.vatAmount = vatAmount;
-	}
-	public String getUser() {
-		return user;
-	}
-	public void setUser(String user) {
-		this.user = user;
-	}
-	public String getComments() {
-		return comments;
-	}
-	public void setComments(String comments) {
-		this.comments = comments;
-	}
-	public String getPaid() {
-		return paid;
-	}
-	public void setPaid(String paid) {
-		this.paid = paid;
-	}
-	public String getPaidWords() {
-		return paidWords;
-	}
-	public void setPaidWords(String paidWords) {
-		this.paidWords = paidWords;
 	}
 	public String getGrossAmount() {
 		final BigDecimal net = Translator.getDecimal(netAmount);
 		final BigDecimal vat = Translator.getDecimal(vatAmount);
 		return net.add(vat).setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
 	}
-	
+	public String getGrossAmountDiff() {
+		return grossAmountDiff;
+	}
+	@Override
+	public Integer getId() {
+		return Translator.parseInteger(getCorrectionId());
+	}
+	public String getInvoiceId() {
+		return invoiceId;
+	}
+	public String getInvoiceNumber() {
+		return invoiceNumber;
+	}
+	public String getNetAmount() {
+		return netAmount;
+	}
+	public String getNetAmountDiff() {
+		return netAmountDiff;
+	}
+	public String getPaid() {
+		return paid;
+	}
+	public String getPaidWords() {
+		return paidWords;
+	}
+	public Date getPaymentDate() {
+		return paymentDate;
+	}
 	public String getPaymentLeft() {
-		final BigDecimal gross = Translator.getDecimal(getGrossAmountDiff()); 
+		final BigDecimal gross = Translator.getDecimal(getGrossAmountDiff());
 		final BigDecimal paid = Translator.getDecimal(getPaid());
 		return gross.subtract(paid).toPlainString();
 	}
-	
-	public void populate(HttpServletRequest request) {
+	public PaymentType getPaymentType() {
+		return paymentType;
+	}
+	@Override
+	public String getUser() {
+		return user;
+	}
+	public String getVatAmount() {
+		return vatAmount;
+	}
+	public String getVatAmountDiff() {
+		return vatAmountDiff;
+	}
+	public boolean isEditable() {
+		return editable;
+	}
+	public void populate(final HttpServletRequest request) {
 		correctionNumber = request.getParameter("correctionNumber");
 		createDate = Translator.parseDate(request.getParameter("correctionCreateDate"), null);
 		comments = request.getParameter("comments");
@@ -112,49 +106,60 @@ public class CorrectionVO extends BasePageVO {
 			paymentType = PaymentType.getValueByIdn(paymentTypeIdn);
 		}
 	}
-	public String getNetAmountDiff() {
-		return netAmountDiff;
-	}
-	public void setNetAmountDiff(String netAmountDiff) {
-		this.netAmountDiff = netAmountDiff;
-	}
-	public String getVatAmountDiff() {
-		return vatAmountDiff;
-	}
-	public void setVatAmountDiff(String vatAmountDiff) {
-		this.vatAmountDiff = vatAmountDiff;
-	}
-	public String getGrossAmountDiff() {
-		return grossAmountDiff;
-	}
-	public void setGrossAmountDiff(String grossAmountDiff) {
-		this.grossAmountDiff = grossAmountDiff;
-	}
-	public PaymentType getPaymentType() {
-		return paymentType;
-	}
-	public void setPaymentType(PaymentType paymentType) {
-		this.paymentType = paymentType;
-	}
-	public String getInvoiceNumber() {
-		return invoiceNumber;
-	}
-	public void setInvoiceNumber(String invoiceNumber) {
-		this.invoiceNumber = invoiceNumber;
-	}
-	@Override
-	protected void setEditable(boolean editable) {
-		this.editable = editable;
+
+	public void setComments(final String comments) {
+		this.comments = comments;
 	}
 
-	public boolean isEditable() {
-		return editable;
+	public void setCorrectionId(final String correctionId) {
+		this.correctionId = correctionId;
 	}
-	public Date getPaymentDate() {
-		return paymentDate;
+	public void setCorrectionNumber(final String correctionNumber) {
+		this.correctionNumber = correctionNumber;
 	}
-	public void setPaymentDate(Date paymentDate) {
+	public void setCreateDate(final Date createDate) {
+		this.createDate = createDate;
+	}
+	@Override
+	protected void setEditable(final boolean editable) {
+		this.editable = editable;
+	}
+	public void setGrossAmountDiff(final String grossAmountDiff) {
+		this.grossAmountDiff = grossAmountDiff;
+	}
+	public void setInvoiceId(final String invoiceId) {
+		this.invoiceId = invoiceId;
+	}
+	public void setInvoiceNumber(final String invoiceNumber) {
+		this.invoiceNumber = invoiceNumber;
+	}
+	public void setNetAmount(final String netAmount) {
+		this.netAmount = netAmount;
+	}
+	public void setNetAmountDiff(final String netAmountDiff) {
+		this.netAmountDiff = netAmountDiff;
+	}
+	public void setPaid(final String paid) {
+		this.paid = paid;
+	}
+	public void setPaidWords(final String paidWords) {
+		this.paidWords = paidWords;
+	}
+	public void setPaymentDate(final Date paymentDate) {
 		this.paymentDate = paymentDate;
 	}
-	
+
+	public void setPaymentType(final PaymentType paymentType) {
+		this.paymentType = paymentType;
+	}
+	public void setUser(final String user) {
+		this.user = user;
+	}
+	public void setVatAmount(final String vatAmount) {
+		this.vatAmount = vatAmount;
+	}
+	public void setVatAmountDiff(final String vatAmountDiff) {
+		this.vatAmountDiff = vatAmountDiff;
+	}
+
 }

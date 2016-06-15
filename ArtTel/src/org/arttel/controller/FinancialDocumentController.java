@@ -31,13 +31,11 @@ import org.arttel.view.ComboElement;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
 public abstract class FinancialDocumentController<VO extends FinancialDocumentVO<Product>, Product extends FinancialDocumentProductVO>
-extends BaseController  {
+extends BaseController<VO>  {
 
 	protected enum Event {
 		MAIN, SAVE, EDIT, ADD_PRODUCT_ROW, DEL_PRODUCT_ROW, NEW, DELETE_SELECTED, SEARCH, BACK, CHANGE_PRODUCT, PAID_ENTERED, PRINT, CHANGE_PAYMENT_TYPE,
@@ -78,7 +76,7 @@ extends BaseController  {
 
 	protected abstract VO createNewDocument();
 
-	protected abstract void deleteInvoice(final List<String> documentIds);
+	protected abstract void deleteInvoice(final List<Integer> documentIds);
 
 	protected abstract List<CorrectionVO> getCorrections(List<VO> records);
 
@@ -90,10 +88,7 @@ extends BaseController  {
 
 	protected abstract String getDocumentFilterAttrName();
 
-	protected abstract String getDocumentListAttrName();
-
-	protected Event getEvent(final HttpServletRequest request,
-			final Event defaultValue) {
+	protected Event getEvent(final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = (Event) request.getAttribute(EVENT);
 		if(event == null){
@@ -134,29 +129,10 @@ extends BaseController  {
 		return productDefinition;
 	}
 
+	@Override
+	protected abstract String getResultRecordsListAttrName();
+
 	protected abstract String getSelectedDocumentAttrName();
-
-	protected List<String> getSelectedDocumentIds(final HttpServletRequest request) {
-		final List<VO> selectedInvoices = getSelectedDocuments(request);
-		return FluentIterable.from(selectedInvoices)
-				.transform(new Function<VO,String>(){
-					@Override
-					public String apply(final VO document) {
-						return document.getDocumentId();
-					}}).toList();
-	}
-
-	protected List<VO> getSelectedDocuments(final HttpServletRequest request) {
-		final List<String> selectedIndexes = getSelectedBoxIndexes(request);
-		final ResultPage<VO> resultsPage = (ResultPage)request.getSession().getAttribute(getDocumentListAttrName());
-		final List<VO> documentList = resultsPage.getRecords();
-		return FluentIterable.from(selectedIndexes)
-				.transform(new Function<String, VO>() {
-					@Override
-					public VO apply(final String input) {
-						return documentList.get(Integer.parseInt(input));
-					}}).toList();
-	}
 
 	protected abstract String getTargetPage();
 
@@ -233,7 +209,7 @@ extends BaseController  {
 
 	private void performActionDeleteDocuments(final UserContext userContext,
 			final HttpServletRequest request) {
-		final List<String> documentIds = getSelectedDocumentIds(request);
+		final List<Integer> documentIds = getSelectedRecordsIds(request);
 		deleteInvoice(documentIds);
 		searchDocumentsByFilter(userContext, request);
 	}
@@ -302,7 +278,7 @@ extends BaseController  {
 
 	private void performActionPrintSelected(final UserContext userContext, final HttpServletRequest request, final HttpServletResponse response) {
 		try {
-			final List<VO> selectedDocuments = getSelectedDocuments(request);
+			final List<VO> selectedDocuments = getSelectedRecords(request);
 			final String sessionId = request.getSession().getId();
 			final Optional<String> filePath = printDocument(selectedDocuments, sessionId);
 			searchDocumentsByFilter(userContext, request);
@@ -366,6 +342,7 @@ extends BaseController  {
 
 		final UserContext userContext = getUserContext(request);
 
+		@SuppressWarnings("unchecked")
 		final VO documentVO = (VO) getForm(getDocumentClass(), request);
 		documentVO.populate(request);
 
@@ -448,7 +425,7 @@ extends BaseController  {
 			final ResultPage<VO> documentList = getFinancialDocumentList(userContext, documentFilterVO, pageInfo);
 			final List<CorrectionVO> correctionList = getCorrections(documentList.getRecords());
 			applyPermissions(documentList.getRecords(), correctionList, userContext.getUserName());
-			request.getSession().setAttribute(getDocumentListAttrName(), documentList);
+			request.getSession().setAttribute(getResultRecordsListAttrName(), documentList);
 			request.getSession().setAttribute(CORRECTION_LIST, correctionList);
 		} catch (final DaoException e) {
 			log.error("DaoException", e);
