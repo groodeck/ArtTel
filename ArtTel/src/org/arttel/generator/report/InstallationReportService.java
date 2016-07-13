@@ -128,8 +128,8 @@ public class InstallationReportService {
 		final String dateFromStr = dateFrom != null ? dateFrom.toString() : null;
 		final String dateToStr = dateTo != null ? dateTo.toString() : null;
 		final StringBuilder sb = new StringBuilder("w okresie");
-		sb.append(" od ").append(Translator.complement(dateFromStr, '.', 48));
-		sb.append(" do ").append(Translator.complement(dateToStr, '.', 48));
+		sb.append(" od ").append(Translator.complement(dateFromStr, '.', 30));
+		sb.append(" do ").append(Translator.complement(dateToStr, '.', 30));
 		return new DataCell( sb.toString(), CellType.TEXT);
 	}
 
@@ -170,8 +170,8 @@ public class InstallationReportService {
 				result.addDataSheet(dataSheet);
 				dataSheet = new DataSheet();
 				dataSheet.setDataRowsOffset(DATA_ROWS_OFFSET);
-				dataSheet.addDetailsCell(DATA_ROWS_OFFSET - 4, 2, getCityInfo(cityIdn));
-				dataSheet.addDetailsCell(DATA_ROWS_OFFSET - 4, 3, getDateInfo(dateFrom, dateTo));
+				dataSheet.addDetailsCell(DATA_ROWS_OFFSET - 3, 1, getCityInfo(cityIdn));
+				dataSheet.addDetailsCell(DATA_ROWS_OFFSET - 3, 13, getDateInfo(dateFrom, dateTo));
 			}
 		}
 

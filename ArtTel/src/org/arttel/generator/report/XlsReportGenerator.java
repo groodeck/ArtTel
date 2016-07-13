@@ -21,6 +21,7 @@ public class XlsReportGenerator extends BaseXlsGenerator {
 		for(int i = 1; i < sheetElementsCount; i++){
 			final Sheet newSheet = wb.cloneSheet(sourceSheetIndex);
 			wb.setSheetOrder(newSheet.getSheetName(), sourceSheetIndex+i);
+			newSheet.getPrintSetup().setLandscape(sourceSheet.getPrintSetup().getLandscape());
 		}
 		final String sourceSheetName = wb.getSheetName(sourceSheetIndex);
 		wb.setSheetName(sourceSheetIndex, sourceSheetName + FIRST_SHEET);
