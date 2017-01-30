@@ -64,7 +64,9 @@ public class InstallationReportService {
 		final int installationsSum = sum(dtv, multiroom, net, tel, atv);
 		if(installationsSum > 0 ){
 			row.add(new DataCell(installationsSum, CellType.INT));
-			row.add(new DataCell(1, CellType.INT));
+			if(isNotHardwareReplacement(installation)){
+				row.add(new DataCell(1, CellType.INT));
+			}
 		} else {
 			row.add(DataCell.EMPTY);
 			row.add(DataCell.EMPTY);
@@ -137,7 +139,9 @@ public class InstallationReportService {
 
 		final ReportDataVO result = new ReportDataVO();
 		final InstallationFilterVO instalationFilterVO = new InstallationFilterVO();
-		instalationFilterVO.setInstalationType(InstallationType.MONTAZ.getIdn());
+		instalationFilterVO.setInstalationType(Lists.newArrayList(
+				InstallationType.MONTAZ.getIdn(),
+				InstallationType.WYMIANA_SPRZETU.getIdn()));
 		final Date dateFrom = reportVO.getDataOd();
 		if(dateFrom != null){
 			instalationFilterVO.setDateFrom(dateFrom);
@@ -179,6 +183,10 @@ public class InstallationReportService {
 
 		return result;
 
+	}
+
+	private boolean isNotHardwareReplacement(final InstallationVO installation) {
+		return InstallationType.WYMIANA_SPRZETU != installation.getInstallationType();
 	}
 
 	private int sum(final Integer... numbers) {

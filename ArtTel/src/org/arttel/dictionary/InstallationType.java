@@ -22,6 +22,7 @@ public enum InstallationType implements ComboElement{
 	PO_KARNYM("po_karnym","Po karnym"),
 	PRZENIESIENIE_GN("przeniesienie_gn","Przeniesienie GN"),
 	ZWROT("zwrot", "Zwrot"),
+	WYMIANA_SPRZETU("wymiana_sprzetu", "Wymiana sprzêtu"),
 	INNA("inna","Inna");
 
 	public static List<ComboElement> getComboElementList(final boolean withEmptyOption){

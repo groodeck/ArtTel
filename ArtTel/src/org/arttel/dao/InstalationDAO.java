@@ -17,7 +17,12 @@ import org.arttel.dictionary.Status;
 import org.arttel.entity.Installation;
 import org.arttel.ui.PageInfo;
 import org.arttel.ui.ResultPage;
+import org.arttel.ui.SortOrder;
+import org.arttel.ui.SortableColumn;
+import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.base.Joiner;
 
 @Repository
 @org.springframework.transaction.annotation.Transactional
@@ -55,7 +60,9 @@ public class InstalationDAO extends SortableDataPageFetch {
 	@SuppressWarnings("unchecked")
 	public ResultPage<Installation> getInstalationList(final InstallationFilterVO instalationFilterVO) {
 
-		final String query = prepareQuery(instalationFilterVO, InstallationVO.resultTableHeader.getPageInfo());
+		final SortableColumn sortByAddress = InstallationVO.resultTableHeader.getColumns().get("address");
+		sortByAddress.setSortOrder(SortOrder.ASC);
+		final String query = prepareQuery(instalationFilterVO, new PageInfo(sortByAddress));
 		final List<Installation> resultList = em.createQuery(query).getResultList();
 		return new ResultPage<Installation>(resultList, 0, 0);
 	}
@@ -82,6 +89,14 @@ public class InstalationDAO extends SortableDataPageFetch {
 					.getSingleResult();
 		}
 		return result;
+	}
+
+	private String getInstallationTypeClause(final List<String> installationTypes) {
+		final List<String> results = Lists.newArrayList();
+		for(final String installationType : installationTypes){
+			results.add(String.format("'%s'", installationType));
+		}
+		return " and i.installationType in (" + Joiner.on(", ").join(results) + ")";
 	}
 
 	public int getSocketCount(final String city) {
@@ -142,7 +157,7 @@ public class InstalationDAO extends SortableDataPageFetch {
 			.append(filter.getStatus() != null ? " and i.status='"	+ filter.getStatus() + "'"	: "")
 			.append(filter.getDateFrom() != null ? " and i.installationDate >= '" + filter.getDateFrom() + "'" : "")
 			.append(filter.getDateTo() != null ? " and i.installationDate <= '" + filter.getDateTo() + "'" : "")
-			.append(filter.getInstalationType() != null ? " and i.installationType = '" + filter.getInstalationType() + "'" : "")
+			.append(filter.getInstalationType().isEmpty() ? "" : getInstallationTypeClause(filter.getInstalationType()))
 			.append(filter.getUser() != null ? " and i.user = '" + filter.getUser() + "'"	: "")
 			.append(isNotBlank(filter.getSerial()) ? " and dvcs.serialNumber like '%" + filter.getSerial() + "%'" : "")
 			.append(isNotBlank(filter.getMac()) ? " and dvcs.macAddress like '%" + filter.getMac() + "%'" : "");

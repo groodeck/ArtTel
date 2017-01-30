@@ -97,7 +97,7 @@
 				<td class="label">Rodzaj instalacji</td>
 				<td class="field">
 					<custom:select name="instalationFilter.instalationType" values="${selectsMap.instalationTypeWithEmpty}" 
-						selectedValue="${instalationFilter.instalationType}" />
+						selectedValue="${instalationFilter.firstInstalationType}" />
 				</td>
 				<td class="label">Monter</td>
 				<td class="field">
