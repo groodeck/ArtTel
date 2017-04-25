@@ -17,13 +17,13 @@ import org.arttel.controller.vo.filter.ClientFilterVO;
 import org.arttel.controller.vo.filter.InvoiceFilterVO;
 import org.arttel.dao.CityDAO;
 import org.arttel.dao.ClientDAO;
-import org.arttel.dao.ProductDAO;
 import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.dictionary.UnitType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
+import org.arttel.service.ProductService;
 import org.arttel.ui.PageInfo;
 import org.arttel.ui.ResultPage;
 import org.arttel.util.Translator;
@@ -43,7 +43,7 @@ extends BaseController<VO>  {
 	}
 
 	@Autowired
-	protected ProductDAO productDao;
+	protected ProductService productService;
 
 	@Autowired
 	private CityDAO cityDao;
@@ -125,7 +125,7 @@ extends BaseController<VO>  {
 		final String changedParamName = "product[" + selectedProduct
 				+ "].productDefinition.productId";
 		final String productId = request.getParameter(changedParamName);
-		final ProductVO productDefinition = productDao.getProductById(productId);
+		final ProductVO productDefinition = productService.getProductById(productId);
 		return productDefinition;
 	}
 
@@ -324,7 +324,7 @@ extends BaseController<VO>  {
 			selectsMap.put("clientDictionary", clientDao.getClientDictionary(false,clientFilter));
 			selectsMap.put("unitTypesDictionary",
 					UnitType.getComboElementList(false));
-			selectsMap.put("productDictionary", productDao.getProductDictionary(false, userName));
+			selectsMap.put("productDictionary", productService.getProductDictionary(false, userName));
 			selectsMap.put("paymentTypeDictionary",
 					PaymentType.getComboElementList(false));
 			selectsMap.put("sellerDictionary", sellerDao.getSellerDictionary(false, userName));

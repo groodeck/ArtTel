@@ -30,8 +30,6 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 
 	private List<BillProductVO> billProducts = new ArrayList<BillProductVO>();
 	private String amount;
-	private String bankAccountName;
-	private String bankAccountNumber;
 	private Date realizationDate;
 
 	@Override
@@ -54,14 +52,6 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 
 	public String getAmountWholePart(){
 		return Translator.getNumberParts(amount).getWholePart();
-	}
-
-	public String getBankAccountName() {
-		return bankAccountName;
-	}
-
-	public String getBankAccountNumber() {
-		return bankAccountNumber;
 	}
 
 	@Override
@@ -101,14 +91,6 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 
 	public void setAmount(final String amount) {
 		this.amount = amount;
-	}
-
-	public void setBankAccountName(final String bankAccountName) {
-		this.bankAccountName = bankAccountName;
-	}
-
-	public void setBankAccountNumber(final String bankAccountNumber) {
-		this.bankAccountNumber = bankAccountNumber;
 	}
 
 	public void setDocumentProducts(final List<BillProductVO> billProducts) {

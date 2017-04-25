@@ -6,12 +6,15 @@ import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.InvoceProductCorrectionVO;
 import org.arttel.controller.vo.InvoceProductVO;
 import org.arttel.controller.vo.InvoiceVO;
+import org.arttel.controller.vo.SellerVO;
+import org.arttel.converter.ClientConverter;
 import org.arttel.dao.InvoiceProductCorrectionDAO;
-import org.arttel.dao.ProductDAO;
+import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.entity.Invoice;
 import org.arttel.entity.InvoiceProducts;
+import org.arttel.service.ProductService;
 import org.arttel.util.Translator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,7 +27,13 @@ import com.google.common.collect.Lists;
 public final class InvoiceEntityToModel implements Function<Invoice, InvoiceVO> {
 
 	@Autowired
-	private ProductDAO productDao;
+	private ProductService productService;
+
+	@Autowired
+	private ClientConverter clientConverter;
+
+	@Autowired
+	private SellerDAO sellerDao;
 
 	@Autowired
 	private InvoiceProductCorrectionDAO invoiceProductCorrectionDao;
@@ -56,6 +65,8 @@ public final class InvoiceEntityToModel implements Function<Invoice, InvoiceVO> 
 		model.setSellerId(entity.getSellerId().toString());
 		model.setAdditionalComments(entity.getAdditionalComments());
 		model.setSellerBankAccountId(entity.getSellerBankAccountId());
+		model.setSeller(getSeller(entity.getSellerId()));
+		model.setClient(clientConverter.convert(entity.getClient()));
 		model.setInvoiceProducts(convertProductsToModel(entity.getDocumentProducts()));
 		return model;
 	}
@@ -69,7 +80,7 @@ public final class InvoiceEntityToModel implements Function<Invoice, InvoiceVO> 
 				final String invoiceProductId = entity.getDocumentProductId().toString();
 				model.setInvoiceProductId(invoiceProductId);
 				final Integer productId = entity.getProductId();
-				model.setProductDefinition(productDao.getProductById(productId.toString()));
+				model.setProductDefinition(productService.getProductById(productId.toString()));
 				model.setQuantity(Translator.toString(entity.getQuantity()));
 				model.setNetSumAmount(Translator.toString(entity.getNetSumAmount()));
 				model.setVatAmount(Translator.toString(entity.getVatAmount()));
@@ -82,5 +93,9 @@ public final class InvoiceEntityToModel implements Function<Invoice, InvoiceVO> 
 				return invoiceProductCorrectionDao.getInvoiceProductCorrection(invoiceProductId);
 			}
 		}));
+	}
+
+	private SellerVO getSeller(final Integer sellerId) {
+		return sellerDao.getSellerById(sellerId.toString());
 	}
 };

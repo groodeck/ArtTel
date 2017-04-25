@@ -18,6 +18,7 @@ import org.arttel.dao.InvoiceDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.invoice.InvoiceGenerator;
+import org.arttel.generator.invoice.InvoiceGeneratorOld;
 import org.arttel.service.InvoiceService;
 import org.arttel.ui.PageInfo;
 import org.arttel.ui.ResultPage;
@@ -41,6 +42,10 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 
 	@Autowired
 	private InvoiceDAO invoiceDao;
+
+	//TODO remove after pdfPrinter on for invoice
+	@Autowired
+	private InvoiceGeneratorOld invoiceGeneratorOld;
 
 	@Autowired
 	private InvoiceGenerator invoiceGenerator;
@@ -153,7 +158,10 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 
 	@Override
 	protected Optional<String> printDocument(final List<InvoiceVO> invoices, final String sessionId) throws Exception {
-		return invoiceGenerator.generateInvoices(invoices, sessionId);
+		final Optional<String> generateInvoices = invoiceGeneratorOld.generateInvoices(invoices, sessionId);
+		//TODO in progress
+		//		final Optional<String> generateInvoices = invoiceGenerator.printDocuments(invoices, sessionId);
+		return generateInvoices;
 	}
 
 	@Override
@@ -182,7 +190,7 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 			final BigDecimal netSinglePrice = new BigDecimal(productDefinition.getNetPrice());
 			final BigDecimal quantity = new BigDecimal(invoiceProduct.getQuantity());
 			final BigDecimal netAmount = netSinglePrice.multiply(quantity);
-			final BigDecimal vatRate = new BigDecimal(productDefinition.getVatRate().getIdn());
+			final BigDecimal vatRate = new BigDecimal(productDefinition.getVatRate().getValue());
 			final BigDecimal vatAmount = netAmount.multiply(vatRate).setScale(2, BigDecimal.ROUND_HALF_UP);
 			final BigDecimal grossSumAmount = netAmount.add(vatAmount);
 			invoiceProduct.setNetSumAmount(netAmount.toPlainString());

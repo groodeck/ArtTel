@@ -2,7 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <html>
 	<body>	
-		<table cellspacing='0' style='font-size: 11px; font-family: arial;' width='100%'>
+		<table cellspacing='0' style='font-size: 12px; font-family: arial;' width='100%'>
 			<tr style='text-align:center; vertical-align: middle; font-size: 15px; font-weight: bold;'>
 				<td rowspan='3' width='230px'></td>
 				<td height='40px'>FAKTURA VAT</td>
@@ -57,22 +57,31 @@
 				<td colspan='2' height='22'/>
 			</tr>
 		</table>
-		<table>
+		<table cellspacing='0'>
 			<tr style='text-align:center;'>
-				<td rowspan='2' height='22' style='border: 1px solid;'>
-					Nazwa us³ugi
+				<td rowspan='3' height='22' style='border: 1px solid;'>
+					Lp.
 				</td>
-				<td rowspan='2' width='70' style='border-top-width: 1px; border-top-style: solid; border-bottom-width: 1px; border-bottom-style: solid;'>
+				<td rowspan='3' height='22' style='border: 1px solid;'>
+					Nazwa towaru lub us³ugi
+				</td>
+				<td rowspan='3' height='22' style='border: 1px solid;'>
+					PKWiU
+				</td>
+				<td rowspan='3' height='22' style='border: 1px solid;'>
+					J.m.
+				</td>
+				<td rowspan='3' width='70' style='border-top-width: 1px; border-top-style: solid; border-bottom-width: 1px; border-bottom-style: solid;'>
 					Iloœæ
 				</td>
 				<td rowspan='2' colspan="2" style='border: 1px solid;'>
-					Okres
+					Cena jednostkowa bez podatku
 				</td>
 				<td rowspan='2' colspan="2" style='border-top-width: 1px; border-top-style: solid; border-bottom-width: 1px; border-bottom-style: solid;'>
 					Wartoœæ netto
 				</td>
 				<td colspan='3' width='90' style='border: 1px solid;'>
-					VAT
+					Podatek
 				</td>
 				<td rowspan='2' colspan='2' width='90' style='border-top-width: 1px; border-top-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
 					Wartoœæ brutto
@@ -86,17 +95,51 @@
 					kwota
 				</td>
 			</tr>
+			<tr style='text-align:center;'>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-left-width: 1px; border-left-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					z³
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					gr
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-left-width: 1px; border-left-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					z³
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					gr
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;' />
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-left-width: 1px; border-left-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					z³
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					gr
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-left-width: 1px; border-left-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					z³
+				</td>
+				<td style='border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					gr
+				</td>
+			</tr>
 			
 			<#list documentProducts as productRecord>
 			<tr>
 				<td height='22'  style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					
+				</td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
 					${productRecord.productDefinition.productDescription}
+				</td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;' />
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;' >
+					${productRecord.productDefinition.unitType.desc}
 				</td>
 				<td style='border-bottom-width: 1px; border-bottom-style: solid;'>
 					${productRecord.quantity}
 				</td>
-				<td colspan="2" width='160' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
-					
+				<td colspan="2" style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					${productRecord.productDefinition.netPrice?number?string["0.00"]}
 				</td>
 				<td colspan="2" style='text-align:right; border-bottom-width: 1px; border-bottom-style: solid;'>
 					${productRecord.netSumAmount?number?string["0.00"]}
@@ -114,7 +157,7 @@
 			</#list>
 			
 			<tr>
-				<td colspan='2' height='22'/>
+				<td colspan='5' height='22'/>
 				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
 					RAZEM
 				</td>
@@ -131,71 +174,82 @@
 					${grossAmount?number?string["0.00"]}
 				</td>
 			</tr>
-			<!-- <tr>
-				<td colspan='5'/>
-				<td colspan='2' rowspan='5'>W TYM</td>
-				<td colspan='2'/>
-				<td>zw</td>
-				<td colspan='2'/>
-				<td colspan='2'/>
+			 <tr>
+				<td rowspan='2' colspan='5' height='22'/>
+				<td rowspan='5' colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;' >
+					W TYM
+				</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					${invoiceDetailValueMap[VAT_ZW].netAmount?number?string["0.00"]}
+				</td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
+					zw
+				</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
 			</tr>
 			<tr>
-				<td colspan='5'/>
-				<td colspan='2'/>
-				<td>23</td>
-				<td colspan='2'/>
-				<td colspan='2'/>
-			</tr> -->
-			<tr>
-				<td colspan='2' height='22'/>
-				<td colspan='9' rowspan="2">S³ownie: ${paidWords}</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>23</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
 			</tr>
 			<tr>
-				<td colspan='2' height='22'/>
+				<td colspan='5' height='22' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>S³ownie:</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>8</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;' > </td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+			</tr>
+			<tr>
+				<td rowspan='2' colspan='5' height='22' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>${paidWords}</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>5</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+			</tr>
+			<tr>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>0</td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+				<td colspan='2' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'> </td>
+			</tr>
+			<tr>
+				<td colspan='14' height='10'/>
+			</tr>
+			<tr>
+				<td colspan='2' height='40' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>Razem do zap³aty:</td>
+				<td colspan='3' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>${grossAmount?number?string["0.00"]}</td>
+			</tr>
+			<tr>
+				<td colspan='14' height='10'/>
+			</tr>
+			<tr>
+				<td colspan='14' height='40' style='border-left-width: 1px; border-left-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>Uwagi: ${comments}</td>
+			</tr>
+			<tr>
+				<td colspan='14' height='40'/>
 			</tr>
 			<tr>
 				<td colspan='11' height='22'/>
 			</tr>
-			
+		</table>
+		
+		<table>
 			<tr>
-				<td colspan='11' height='50'/>
-			</tr>
-			
-			<tr style='font-size: 12px; font-style: italic; font-weight: bold;'>
-				<td rowspan='2' height='50' style='border: 1px solid;'>
-					Razem do zap³aty:
-				</td>
-				<td rowspan='2' height='50' style='border-top-width: 1px; border-top-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
-					${grossAmount?number?string["0.00"]}
-				</td>
-				<td colspan='9' rowspan='2'></td>
-			</tr>
-			<tr/>
-			
-			<tr>
-				<td colspan='11' height='22'/>
+				<td height='60' width='10'/>
+				<td width='200' style='border-width: 1px; border-style: solid;'/>
+				<td/>
+				<td width='200' style='border-width: 1px; border-style: solid;'/>
+				<td width='10'/>
 			</tr>
 			<tr>
-				<td colspan='11' height='22'/>
+				<td width='10'/>
+				<td width='100' style='text-align: center'>Podpis imienny osoby upowa¿nionej do odbioru faktur VAT</td>	
+				<td/>
+				<td width='100' style='text-align: center'>Podpis imienny osoby upowa¿nionej do wystawienia faktury VAT</td>
+				<td width='10'/>
 			</tr>
-			<tr>
-				<td colspan='11' height='22'/>
-			</tr>
-			
-			<tr style='font-size: 12px; font-style: italic; font-weight: bold;'>
-				<td rowspan='2' height='50' style='border: 1px solid;'>
-					Saldo na dzieñ<br/>wystawienia faktury:
-				</td>
-				<td rowspan='2' height='50' style='border-top-width: 1px; border-top-style: solid; border-bottom-width: 1px; border-bottom-style: solid; border-right-width: 1px; border-right-style: solid;'>
-					0,00
-				</td>
-				<td colspan='9' rowspan='2'></td>
-			</tr>
-			<tr/>
-			<tr>
-				<td colspan='11' height='22'>Je¿eli wartoœæ salda konta jest wy¿sza ni¿ kwota do zap³aty, pilnie skontaktuj siê z operatorem !</td>
-			</tr>
-			
 		</table>
 		
 	</body>

@@ -222,7 +222,7 @@
 				<td class="label">Ilość</td>
 				<td class="label">Cena netto</td>
 				<td class="label">Wartość netto</td>
-				<td class="label">Stawka VAT</td>
+				<td class="label">Stawka VAT [%]</td>
 				<td class="label">Kwota VAT</td>
 				<td class="label">Wartość brutto</td>
 			</tr>
@@ -232,11 +232,10 @@
 					<custom:select name="product[${rowStatus.index}].productDefinition.productId" values="${selectsMap.productDictionary}" 
 						selectedValue="${product.productDefinition.productId}" style="width: 400" 
 						onChange="submitFormWithParam('change_product',${rowStatus.index})"/>
-					
 				</td>
 				<td class="field">
-					<input type="text" name="product[${rowStatus.index}].productDefinition.unitType" value="${product.productDefinition.unitType.idn}"
-						style="width: 30" disabled="disabled"/>
+					<c:out value="${product.productDefinition.unitType.idn}"/>
+					<input type="hidden" name="product[${rowStatus.index}].productDefinition.unitType" value="${product.productDefinition.unitType.idn}"/>
 				</td>
 				<td class="field">
 					<input type="text" name="product[${rowStatus.index}].quantity" value="${product.quantity}" style="width: 40"
@@ -251,8 +250,8 @@
 						style="width: 80" disabled="disabled"/>
 				</td>
 				<td class="field">
-					<input type="text" name="product[${rowStatus.index}].productDefinition.vatRate" value="${product.productDefinition.vatRate.desc}"
-						style="width: 40" disabled="disabled"/><c:out value=" %"/>
+					<c:out value="${product.productDefinition.vatRate.desc}" />
+					<input type="hidden" name="product[${rowStatus.index}].productDefinition.vatRate" value="${product.productDefinition.vatRate.desc}" />
 				</td>
 				<td class="field">
 					<input type="text" name="product[${rowStatus.index}].vatAmount" value="${product.vatAmount}"

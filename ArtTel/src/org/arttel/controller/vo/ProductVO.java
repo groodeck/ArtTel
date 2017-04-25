@@ -21,6 +21,7 @@ public class ProductVO extends BasePageVO implements ComboElement{
 	private UnitType unitType;
 	private String comments;
 	private String user;
+	private String productClassification;
 
 	public String getComments() {
 		return comments;
@@ -47,6 +48,9 @@ public class ProductVO extends BasePageVO implements ComboElement{
 	public String getPriceWholePart(){
 		return Translator.getNumberParts(netPrice).getWholePart();
 	}
+	public String getProductClassification() {
+		return productClassification;
+	}
 	public String getProductDescription() {
 		return productDescription;
 	}
@@ -66,6 +70,7 @@ public class ProductVO extends BasePageVO implements ComboElement{
 	public String getUser() {
 		return user;
 	}
+
 	public VatRate getVatRate() {
 		return vatRate;
 	}
@@ -86,6 +91,7 @@ public class ProductVO extends BasePageVO implements ComboElement{
 			unitType = UnitType.getValueByIdn(unitTypeStr);
 		}
 		comments = request.getParameter("comments");
+		productClassification = request.getParameter("productClassification");
 	}
 
 	public void setComments(final String comments) {
@@ -98,6 +104,10 @@ public class ProductVO extends BasePageVO implements ComboElement{
 
 	public void setNetPrice(final String netPrice) {
 		this.netPrice = netPrice;
+	}
+
+	public void setProductClassification(final String productClassification) {
+		this.productClassification = productClassification;
 	}
 
 	public void setProductDescription(final String productDescription) {

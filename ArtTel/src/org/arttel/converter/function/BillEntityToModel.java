@@ -8,13 +8,13 @@ import org.arttel.controller.vo.BillVO;
 import org.arttel.controller.vo.InvoceProductCorrectionVO;
 import org.arttel.controller.vo.SellerVO;
 import org.arttel.converter.ClientConverter;
-import org.arttel.dao.ProductDAO;
 import org.arttel.dao.SellerBankAccountDao;
 import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.entity.Bill;
 import org.arttel.entity.BillProducts;
+import org.arttel.service.ProductService;
 import org.arttel.util.Translator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 public final class BillEntityToModel implements Function<Bill, BillVO> {
 
 	@Autowired
-	private ProductDAO productDao;
+	private ProductService productService;
 
 	@Autowired
 	private SellerDAO sellerDao;
@@ -78,7 +78,7 @@ public final class BillEntityToModel implements Function<Bill, BillVO> {
 				final String invoiceProductId = entity.getDocumentProductId().toString();
 				model.setInvoiceProductId(invoiceProductId);
 				final Integer productId = entity.getProductId();
-				model.setProductDefinition(productDao.getProductById(productId.toString()));
+				model.setProductDefinition(productService.getProductById(productId.toString()));
 				model.setQuantity(Translator.toString(entity.getQuantity()));
 				model.setSumAmount(Translator.toString(entity.getSumAmount()));
 				model.setTaxReleaseBasis(entity.getTaxReleaseBasis());

@@ -9,6 +9,7 @@ import org.arttel.controller.vo.InvoceProductCorrectionVO;
 import org.arttel.controller.vo.InvoceProductVO;
 import org.arttel.controller.vo.ProductVO;
 import org.arttel.exception.DaoException;
+import org.arttel.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ import com.google.common.collect.Lists;
 public class InvoiceProductCorrectionDAO extends BaseDao {
 
 	@Autowired
-	private ProductDAO productDao;
+	private ProductService productService;
 
 	private static final String DELETE_PRODUCT_CORRECTION_QUERY =
 			"DELETE FROM InvoceProductCorrection WHERE invoiceId = %s";
@@ -39,9 +40,9 @@ public class InvoiceProductCorrectionDAO extends BaseDao {
 			throws SQLException {
 		final InvoceProductCorrectionVO result = new InvoceProductCorrectionVO();
 		result.setInvoceProductCorrectionId(rs.getString(1));
-		result.setInvoceProductId(rs.getString(2));
+		result.setInvoiceProductId(rs.getString(2));
 		final String productId = rs.getString(3);
-		final ProductVO productDefinition = productDao.getProductById(productId);
+		final ProductVO productDefinition = productService.getProductById(productId);
 		result.setProductDefinition(productDefinition);
 		result.setQuantity(rs.getString(4));
 		result.setQuantityDiff(rs.getString(5));
@@ -117,7 +118,7 @@ public class InvoiceProductCorrectionDAO extends BaseDao {
 			stmt.executeUpdate("insert into invoceProductCorrection(invoceProductId, productId, invoiceId, quantity, quantityDiff, "
 					+ "netSumAmount, netSumAmountDiff, vatAmount, vatAmountDiff, grossSumAmount, grossSumAmountDiff) "
 					+ "values ("
-					+ productCorrection.getInvoceProductId()
+					+ productCorrection.getInvoiceProductId()
 					+ ", "
 					+ productCorrection.getProductDefinition().getProductId()
 					+ ", "

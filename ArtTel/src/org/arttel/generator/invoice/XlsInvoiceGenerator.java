@@ -14,13 +14,15 @@ import org.arttel.generator.DataSheet;
 public class XlsInvoiceGenerator extends BaseXlsGenerator {
 
 	public static String generate(final String templateFileName, final String outputFileName,
-			final DataSheet dataSheet, final String sessionId) throws IOException, InvalidFormatException {
+			final DataSheet dataSheet, final String sessionId, final int vatDetailsListSize)
+					throws IOException, InvalidFormatException {
 
 		final Workbook wb = getWorkbook(templateFileName);
 
 		final Sheet targetSheet = wb.getSheetAt(0);
 		final int rowsToInsert = dataSheet.getRows().size()-1;
 		shiftRowsIfRequired(targetSheet, dataSheet.getDataRowsOffset(), rowsToInsert);
+		shiftRowsIfRequired(targetSheet, dataSheet.getDataRowsOffset() + rowsToInsert + 2, vatDetailsListSize);
 		fillSingleSheet(targetSheet, dataSheet);
 		printReportDetails(dataSheet.getReportDetailsList(), targetSheet);
 

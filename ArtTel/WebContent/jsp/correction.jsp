@@ -95,7 +95,7 @@
 				<td class="label">Ilość</td>
 				<td class="label">Cena netto</td>
 				<td class="label">Wartość netto</td>
-				<td class="label">Stawka VAT</td>
+				<td class="label" width="100px;">Stawka VAT [%]</td>
 				<td class="label">Kwota VAT</td>
 				<td class="label">Wartość brutto</td>
 			</tr>
@@ -108,10 +108,10 @@
 					
 				</td>
 				<td class="field">
-					<input type="text" name="product[${rowStatus.index}].productDefinition.unitType" 
-						value="${product.productDefinition.unitType.idn}" style="width: 30" disabled="disabled"/>
+					<c:out value="${product.productDefinition.unitType.idn}"/>
+					<input type="hidden" name="product[${rowStatus.index}].productDefinition.unitType" value="${product.productDefinition.unitType.idn}"/>
 				</td>
-				<td class="field">
+				<td class="field" width="100px;">
 					Przed korektą
 				</td>
 				<td class="field" style="width: 50">
@@ -127,8 +127,8 @@
 						style="width: 80" disabled="disabled"/>
 				</td>
 				<td class="field" style="width: 80">
-					<input type="text" name="product[${rowStatus.index}].productDefinition.vatRate" value="${product.productDefinition.vatRate.desc}"
-						style="width: 40" disabled="disabled"/><c:out value=" %"/>
+					<c:out value="${product.productDefinition.vatRate.desc}"/>
+					<input type="hidden" name="product[${rowStatus.index}].productDefinition.vatRate" value="${product.productDefinition.vatRate.desc}"/>
 				</td>
 				<td class="field">
 					<input type="text" name="product[${rowStatus.index}].vatAmount" value="${product.vatAmount}"
@@ -154,9 +154,9 @@
 						value="${product.correction.productDefinition.unitType.idn}" style="width: 30" disabled="disabled"/>
 				</td>
 				<td colspan="8">
-					<table>
+					<table class="borderedTable" style="border:none;">
 						<tr>
-							<td class="field">Po korekcie</td>
+							<td class="field" width="97px;">Po korekcie</td>
 							<td class="field" style="width: 50">
 								<input type="text" name="product[${rowStatus.index}].correction.quantity" value="${product.correction.quantity}" 
 									style="width: 40" onChange="submitFormWithParam('change_product',${rowStatus.index})"/></td>
@@ -168,9 +168,10 @@
 								<input type="text" name="product[${rowStatus.index}].correction.netSumAmount" value="${product.correction.netSumAmount}"
 									style="width: 80" disabled="disabled"/>
 							</td>
-							<td class="field" style="width: 80">
-								<input type="text" name="product[${rowStatus.index}].correction.productDefinition.vatRate" 
-									value="${product.correction.productDefinition.vatRate.desc}" style="width: 40" disabled="disabled"/><c:out value=" %"/>
+							<td class="field" style="width: 100px">
+								<c:out value="${product.correction.productDefinition.vatRate.desc}"/>
+								<input type="hidden" name="product[${rowStatus.index}].correction.productDefinition.vatRate" 
+									value="${product.correction.productDefinition.vatRate.desc}"/>
 							</td>
 							<td class="field">
 								<input type="text" name="product[${rowStatus.index}].correction.vatAmount" value="${product.correction.vatAmount}"
@@ -194,9 +195,10 @@
 								<input type="text" name="product[${rowStatus.index}].correction.netSumAmountDiff" value="${product.correction.netSumAmountDiff}"
 									style="width: 80" disabled="disabled"/>
 							</td>
-							<td class="field">
-								<input type="text" name="product[${rowStatus.index}].correction.productDefinition.vatRate" 
-									value="${product.correction.productDefinition.vatRate.desc}" style="width: 40" disabled="disabled"/><c:out value=" %"/>
+							<td class="field" style="width: 100px">
+								<c:out value="${product.correction.productDefinition.vatRate.desc}"/>
+								<input type="hidden" name="product[${rowStatus.index}].correction.productDefinition.vatRate" 
+									value="${product.correction.productDefinition.vatRate.desc}"/>
 							</td>
 							<td class="field">
 								<input type="text" name="product[${rowStatus.index}].correction.vatAmountDiff" value="${product.correction.vatAmountDiff}"

@@ -3,7 +3,6 @@ package org.arttel.controller.vo;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,20 +57,23 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 		return correction;
 	}
 
-	public Map<VatRate, InvoiceValuesVO> getCorrectionDetailValueMap(){
+	public Map<String, InvoiceValuesVO> getCorrectionDetailValueMap(){
 
-		final Map<VatRate, InvoiceValuesVO> result = initializeInvoiceValuesMap();
+		final Map<String, InvoiceValuesVO> result = new HashMap<String, InvoiceValuesVO>();
 		for(final InvoceProductVO product : invoiceProducts){
 			final InvoceProductCorrectionVO productCorrection = product.getCorrection();
 			if(productCorrection != null
 					&& productCorrection.getProductDefinition() != null){
 				final VatRate vatRate = productCorrection.getProductDefinition().getVatRate();
-				final InvoiceValuesVO rateValues = result.get(vatRate);
+				InvoiceValuesVO rateValues = result.get(vatRate.name());
+				if(rateValues == null){
+					rateValues = new InvoiceValuesVO(vatRate);
+				}
 				final BigDecimal productNetValue = Translator.getDecimal(productCorrection.getNetSumAmountDiff());
 				final BigDecimal productVatValue = Translator.getDecimal(productCorrection.getVatAmountDiff());
 
 				rateValues.addValue(productNetValue,  productVatValue, vatRate);
-				result.put(vatRate, rateValues);
+				result.put(vatRate.name(), rateValues);
 			}
 		}
 		return result;
@@ -88,37 +90,42 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 		return net.add(vat).setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
 	}
 
-	public Map<VatRate, InvoiceValuesVO> getInvoiceDetailValueMap(){
+	public Map<String, InvoiceValuesVO> getInvoiceDetailValueMap(){
 
-		final Map<VatRate, InvoiceValuesVO> result = initializeInvoiceValuesMap();
+		final Map<String, InvoiceValuesVO> result = new HashMap<String, InvoiceValuesVO>();
 		for(final InvoceProductVO product : invoiceProducts){
 			if(product.getProductDefinition() != null){
 				final VatRate vatRate = product.getProductDefinition().getVatRate();
-				final InvoiceValuesVO rateValues = result.get(vatRate);
+				InvoiceValuesVO rateValues = result.get(vatRate.name());
+				if(rateValues == null){
+					rateValues = new InvoiceValuesVO(vatRate);
+				}
 				final BigDecimal productNetValue = Translator.getDecimal(product.getNetSumAmount());
 				final BigDecimal productVatValue = Translator.getDecimal(product.getVatAmount());
 
 				rateValues.addValue(productNetValue,  productVatValue, vatRate);
-				result.put(vatRate, rateValues);
+				result.put(vatRate.name(), rateValues);
 			}
 		}
 		return result;
 	}
 
-	public Collection<InvoiceValuesVO> getInvoiceDetailValues(){
+	public List<InvoiceValuesVO> getInvoiceDetailValues(){
 
-		final Map<VatRate, InvoiceValuesVO> values;
+		final Map<String, InvoiceValuesVO> values;
 		if(hasCorrection()){
 			values = getCorrectionDetailValueMap();
 		} else {
 			values = getInvoiceDetailValueMap();
 		}
-		return Lists.newArrayList(
-				values.get(VatRate.VAT_ZW),
-				values.get(VatRate.VAT_0),
-				values.get(VatRate.VAT_5),
-				values.get(VatRate.VAT_8),
-				values.get(VatRate.VAT_23)) ;
+		final List<InvoiceValuesVO> results = Lists.newArrayList();
+		for(final VatRate vatRate : VatRate.values()){
+			final InvoiceValuesVO rateValues = values.get(vatRate.name());
+			if(rateValues != null){
+				results.add(rateValues);
+			}
+		}
+		return results;
 	}
 
 	public String getNetAmount() {
@@ -155,14 +162,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	@Override
 	public boolean hasCorrection(){
 		return getCorrection() != null;
-	}
-
-	private HashMap<VatRate, InvoiceValuesVO> initializeInvoiceValuesMap() {
-		final HashMap<VatRate, InvoiceValuesVO> valuesMap = new HashMap<VatRate, InvoiceValuesVO>();
-		for(final VatRate rate : VatRate.values()){
-			valuesMap.put(rate, new InvoiceValuesVO(rate));
-		}
-		return valuesMap;
 	}
 
 	@Override

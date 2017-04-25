@@ -25,7 +25,6 @@ import org.arttel.dao.ClientDAO;
 import org.arttel.dao.CorrectionDAO;
 import org.arttel.dao.InvoiceDAO;
 import org.arttel.dao.InvoiceProductCorrectionDAO;
-import org.arttel.dao.ProductDAO;
 import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
@@ -34,6 +33,7 @@ import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.correction.CorrectionGenerator;
 import org.arttel.service.InvoiceService;
+import org.arttel.service.ProductService;
 import org.arttel.ui.TableHeader;
 import org.arttel.util.CorrectionNumberGenerator;
 import org.arttel.util.DecimalWriter;
@@ -64,7 +64,7 @@ public class CorrectionController extends BaseController<CorrectionVO> {
 	private InvoiceDAO invoiceDao;
 
 	@Autowired
-	private ProductDAO productDao;
+	private ProductService productService;
 
 	@Autowired
 	private CorrectionGenerator correctionGenerator;
@@ -121,11 +121,6 @@ public class CorrectionController extends BaseController<CorrectionVO> {
 		return new Date(new java.util.Date().getTime());
 	}
 
-	@Override
-	protected String getResultRecordsListAttrName() {
-		return "";
-	}
-
 	protected Event getEvent(final HttpServletRequest request,
 			final Event defaultValue) {
 
@@ -176,8 +171,13 @@ public class CorrectionController extends BaseController<CorrectionVO> {
 				"product[" + selectedProduct+ "].correction.productDefinition.productId";
 		final String productId = request.getParameter(changedParamName);
 		final ProductVO productDefinition =
-				productDao.getProductById(productId);
+				productService.getProductById(productId);
 		return productDefinition;
+	}
+
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return "";
 	}
 
 	@Override
@@ -376,7 +376,7 @@ public class CorrectionController extends BaseController<CorrectionVO> {
 			selectsMap.put("clientDictionary", clientDao.getClientDictionary(false, clientFilter));
 			selectsMap.put("unitTypesDictionary",
 					UnitType.getComboElementList(false));
-			selectsMap.put("productDictionary", productDao.getProductDictionary(true, userName));
+			selectsMap.put("productDictionary", productService.getProductDictionary(true, userName));
 			selectsMap.put("paymentTypeDictionary",
 					PaymentType.getComboElementList(false));
 			selectsMap.put("sellerDictionary", sellerDao.getSellerDictionary(false, userName));
@@ -462,7 +462,7 @@ public class CorrectionController extends BaseController<CorrectionVO> {
 			final BigDecimal netSinglePrice = new BigDecimal(productDefinition.getNetPrice());
 			final BigDecimal quantity = new BigDecimal(correction.getQuantity());
 			final BigDecimal netSumAmount = netSinglePrice.multiply(quantity);
-			final BigDecimal vatRate = new BigDecimal(productDefinition.getVatRate().getIdn());
+			final BigDecimal vatRate = new BigDecimal(productDefinition.getVatRate().getValue());
 			final BigDecimal vatSumAmount = netSumAmount.multiply(vatRate).setScale(2, BigDecimal.ROUND_HALF_UP);
 			final BigDecimal grossSumAmount = netSumAmount.add(vatSumAmount);
 			correction.setNetSumAmount(netSumAmount.toPlainString());

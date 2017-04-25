@@ -50,6 +50,7 @@
 					<td>Cena netto</td>
 					<td>VAT</td>
 					<td>Jednostka</td>
+					<td>PKWiU</td>
 				</tr>
 				
 				<c:forEach items="${productList}" var="product" varStatus="rowStatus">
@@ -59,6 +60,7 @@
 						<td  onclick="submitFormWithParam('edit',${product.productId})" ><c:out value="${product.netPrice}"/></td>
 						<td  onclick="submitFormWithParam('edit',${product.productId})" ><c:out value="${product.vatRate.desc}"/></td>
 						<td  onclick="submitFormWithParam('edit',${product.productId})" ><c:out value="${product.unitType.desc}"/></td>
+						<td  onclick="submitFormWithParam('edit',${product.productId})" ><c:out value="${product.productClassification}"/></td>
 						<td><input type="button" value="  -  " onclick="submitFormWithParamAndConfirmation('delete',${product.productId})"/></td>
 					</tr>
 				</c:forEach>
@@ -97,6 +99,12 @@
 				<td class="label">Jednostka miary</td>
 				<td class="field">
 					<custom:select name="unitType" values="${selectsMap.unitTypesDictionary}" selectedValue="${selectedProduct.unitType.idn}" />
+				</td>
+			</tr>
+			<tr>
+				<td class="label">PKWiU</td>
+				<td class="field">
+					<input name="productClassification" value="${selectedProduct.productClassification}"/>
 				</td>
 			</tr>
 			<tr>

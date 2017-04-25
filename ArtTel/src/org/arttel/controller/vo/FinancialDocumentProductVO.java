@@ -19,7 +19,6 @@ public abstract class FinancialDocumentProductVO {
 	public String getQuantity() {
 		return quantity;
 	}
-
 	public void populate(final HttpServletRequest request, final String prefix) {
 		quantity = Translator.parseIntegerStr(request.getParameter(prefix + "quantity"));
 	}

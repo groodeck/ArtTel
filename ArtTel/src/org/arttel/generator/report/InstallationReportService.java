@@ -66,6 +66,8 @@ public class InstallationReportService {
 			row.add(new DataCell(installationsSum, CellType.INT));
 			if(isNotHardwareReplacement(installation)){
 				row.add(new DataCell(1, CellType.INT));
+			} else {
+				row.add(DataCell.EMPTY);
 			}
 		} else {
 			row.add(DataCell.EMPTY);

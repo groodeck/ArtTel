@@ -70,8 +70,8 @@ public class InstallationFilterVO {
 		dateFrom = Translator.parseDate(request.getParameter( COMPONENT_NAME + ".dateFrom" ), null);
 		dateTo = Translator.parseDate( request.getParameter( COMPONENT_NAME + ".dateTo" ), null);
 		phrase = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".phrase"));
+		installationTypes.clear();
 		final String installationTypeStr = Translator.emptyAsNull(request.getParameter(COMPONENT_NAME + ".instalationType"));
-		installationTypes = Lists.newArrayList(installationTypeStr);
 		if(installationTypeStr != null){
 			installationTypes.add(installationTypeStr);
 		}

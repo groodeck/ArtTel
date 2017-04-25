@@ -4,11 +4,11 @@ import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.arttel.controller.vo.ClientVO;
 import org.arttel.controller.vo.CorrectionVO;
+import org.arttel.controller.vo.FinancialDocumentVO;
 import org.arttel.controller.vo.InvoceProductCorrectionVO;
 import org.arttel.controller.vo.InvoceProductVO;
 import org.arttel.controller.vo.InvoiceParticipant;
@@ -20,17 +20,20 @@ import org.arttel.dao.ClientDAO;
 import org.arttel.dao.SellerBankAccountDao;
 import org.arttel.dao.SellerDAO;
 import org.arttel.dictionary.PaymentType;
-import org.arttel.dictionary.VatRate;
 import org.arttel.entity.SellerBankAccount;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
 import org.arttel.generator.DataSheet;
+import org.arttel.generator.FinancialDocumentGenerator;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Optional;
+
 @Component
-public class CorrectionGenerator {
+public class CorrectionGenerator extends FinancialDocumentGenerator {
 
 	@Autowired
 	private ClientDAO clientDao;
@@ -44,6 +47,14 @@ public class CorrectionGenerator {
 	private static final int PRODUCT_ROW_OFFSET = 15;
 	private static final String OUTPUT_FILE_NAME = "Korekta.xlsx";
 	private static final String TEMPLATE_XLS_NAME = "CorrectionTemplate.xlsx";
+
+	private List<InvoceProductCorrectionVO> extractProductCorrections(final InvoiceVO invoiceVO) {
+		final List<InvoceProductCorrectionVO> results = Lists.newArrayList();
+		for(final InvoceProductVO product: invoiceVO.getDocumentProducts()){
+			results.add(product.getCorrection());
+		}
+		return results;
+	}
 
 	private String formatParticipantDescription(final InvoiceParticipant participant) {
 		final StringBuilder sb = new StringBuilder(participant.getName() + " \n ");
@@ -92,14 +103,18 @@ public class CorrectionGenerator {
 		dataSheet.addDetailsCell(17 + productCount, 8, new DataCell(getDouble(correction.getNetAmount()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(17 + productCount, 11, new DataCell(getDouble(correction.getVatAmount()), CellType.DOUBLE));
 		dataSheet.addDetailsCell(17 + productCount, 13, new DataCell(getDouble(correction.getGrossAmount()), CellType.DOUBLE));
+		dataSheet.addDetailsCell(18 + productCount, 6, new DataCell("W TYM", CellType.TEXT));
 
-		dataSheet.addDetailsCell(21 + productCount, 0, new DataCell(correction.getPaidWords(), CellType.WRAPABLE_TEXT));
-		dataSheet.addDetailsCell(24 + productCount, 3, new DataCell(correction.getGrossAmountDiff(), CellType.WRAPABLE_TEXT));
-		dataSheet.addDetailsCell(27 + productCount, 0, new DataCell("Uwagi: " + correction.getComments(), CellType.WRAPABLE_TEXT));
+		final List<InvoiceValuesVO> vatDetailsValues = invoiceVO.getInvoiceDetailValues();
+		generateVatDetailsValues(dataSheet, productCount, vatDetailsValues);
 
-		generateVatDetailsValues(dataSheet, productCount, invoiceVO.getCorrectionDetailValueMap());
+		final int vatDetailsToInsert = countVatDetailsToInsert(vatDetailsValues);
+		dataSheet.addDetailsCell(20 + productCount + vatDetailsToInsert, 0, new DataCell(correction.getPaidWords(), CellType.WRAPABLE_TEXT));
+		dataSheet.addDetailsCell(23 + productCount + vatDetailsToInsert, 3, new DataCell(correction.getGrossAmountDiff(), CellType.WRAPABLE_TEXT));
+		dataSheet.addDetailsCell(23 + productCount + vatDetailsToInsert, 7, new DataCell(getReversedTaxRecords(extractProductCorrections(invoiceVO)), CellType.WRAPABLE_TEXT));
+		dataSheet.addDetailsCell(26 + productCount + vatDetailsToInsert, 0, new DataCell("Uwagi: " + correction.getComments(), CellType.WRAPABLE_TEXT));
 
-		return XlsCorrectionGenerator.generate(TEMPLATE_XLS_NAME, OUTPUT_FILE_NAME, dataSheet, sessionId);
+		return XlsCorrectionGenerator.generate(TEMPLATE_XLS_NAME, OUTPUT_FILE_NAME, dataSheet, sessionId, vatDetailsToInsert);
 	}
 
 	private void generateProductRow(final InvoceProductVO product, final DataSheet dataSheet,
@@ -110,7 +125,7 @@ public class CorrectionGenerator {
 		final List<DataCell> row = new ArrayList<DataCell>();
 		row.add(new DataCell(productNumber+1, CellType.INT));
 		row.add(new DataCell(getProductDescriptionIfDefined(product), CellType.TEXT));
-		row.add(null);
+		row.add(new DataCell(getProductClassificationIfDefined(product), CellType.TEXT));
 		row.add(new DataCell("Przed korekt¹", CellType.TEXT));
 		row.add(new DataCell(getUnitTypeIfDefined(product), CellType.TEXT));
 		row.add(new DataCell(product.getQuantity(), CellType.TEXT));
@@ -128,7 +143,7 @@ public class CorrectionGenerator {
 		final List<DataCell> rowCorrected = new ArrayList<DataCell>();
 		rowCorrected.add(null);
 		rowCorrected.add(new DataCell(correction.getProductDefinition().getDesc(), CellType.TEXT));
-		rowCorrected.add(null);
+		rowCorrected.add(new DataCell(correction.getProductDefinition().getProductClassification(), CellType.TEXT));
 		rowCorrected.add(new DataCell("Po korekcie", CellType.TEXT));
 		rowCorrected.add(new DataCell(correction.getProductDefinition().getUnitType().getDesc(), CellType.TEXT));
 		rowCorrected.add(new DataCell(correction.getQuantity(), CellType.TEXT));
@@ -136,7 +151,7 @@ public class CorrectionGenerator {
 		rowCorrected.add(null);
 		rowCorrected.add(new DataCell(getDouble(correction.getNetSumAmount()), CellType.DOUBLE));
 		rowCorrected.add(null);
-		rowCorrected.add(new DataCell(correction.getProductDefinition().getVatRate().getDesc(), CellType.TEXT));
+		rowCorrected.add(new DataCell(getVatRatePrintValue(correction.getProductDefinition().getVatRate()), CellType.TEXT));
 		rowCorrected.add(new DataCell(getDouble(correction.getVatAmount()), CellType.DOUBLE));
 		rowCorrected.add(null);
 		rowCorrected.add(new DataCell(getDouble(correction.getGrossSumAmount()), CellType.DOUBLE));
@@ -154,7 +169,7 @@ public class CorrectionGenerator {
 		correctDiff.add(null);
 		correctDiff.add(new DataCell(getDouble(correction.getNetSumAmountDiff()), CellType.DOUBLE));
 		correctDiff.add(null);
-		correctDiff.add(new DataCell(correction.getProductDefinition().getVatRate().getDesc(), CellType.TEXT));
+		correctDiff.add(new DataCell(getVatRatePrintValue(correction.getProductDefinition().getVatRate()), CellType.TEXT));
 		correctDiff.add(new DataCell(getDouble(correction.getVatAmountDiff()), CellType.DOUBLE));
 		correctDiff.add(null);
 		correctDiff.add(new DataCell(getDouble(correction.getGrossSumAmountDiff()), CellType.DOUBLE));
@@ -162,34 +177,15 @@ public class CorrectionGenerator {
 		dataSheet.getRows().add(correctDiff);
 	}
 
-	private void generateVatDetailsValues(final DataSheet dataSheet, final int productCount,
-			final Map<VatRate, InvoiceValuesVO> invoiceDetailValueMap) {
-
+	private void generateVatDetailsValues(final DataSheet dataSheet, final int productCount, final List<InvoiceValuesVO> vatRateDetails) {
 		//Invoice detailed values (per VatRate)
-		final InvoiceValuesVO rateZW = invoiceDetailValueMap.get(VatRate.VAT_ZW);
-		dataSheet.addDetailsCell(18 + productCount, 8, new DataCell(rateZW.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(18 + productCount, 11, new DataCell(rateZW.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(18 + productCount, 13, new DataCell(getDouble(rateZW.getGrossAmount()), CellType.DOUBLE));
-
-		final InvoiceValuesVO rate23 = invoiceDetailValueMap.get(VatRate.VAT_23);
-		dataSheet.addDetailsCell(19 + productCount, 8, new DataCell(rate23.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(19 + productCount, 11, new DataCell(rate23.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(19 + productCount, 13, new DataCell(getDouble(rate23.getGrossAmount()), CellType.DOUBLE));
-
-		final InvoiceValuesVO rate8 = invoiceDetailValueMap.get(VatRate.VAT_8);
-		dataSheet.addDetailsCell(20 + productCount, 8, new DataCell(rate8.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(20 + productCount, 11, new DataCell(rate8.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(20 + productCount, 13, new DataCell(getDouble(rate8.getGrossAmount()), CellType.DOUBLE));
-
-		final InvoiceValuesVO rate5 = invoiceDetailValueMap.get(VatRate.VAT_5);
-		dataSheet.addDetailsCell(21 + productCount, 8, new DataCell(rate5.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(21 + productCount, 11, new DataCell(rate5.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(21 + productCount, 13, new DataCell(getDouble(rate5.getGrossAmount()), CellType.DOUBLE));
-
-		final InvoiceValuesVO rate0 = invoiceDetailValueMap.get(VatRate.VAT_0);
-		dataSheet.addDetailsCell(22 + productCount, 8, new DataCell(rate0.getNetAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(22 + productCount, 11, new DataCell(rate0.getVatAmount().doubleValue(), CellType.DOUBLE));
-		dataSheet.addDetailsCell(22 + productCount, 13, new DataCell(getDouble(rate0.getGrossAmount()), CellType.DOUBLE));
+		for(int i = 0 ; i< vatRateDetails.size(); i++){
+			final InvoiceValuesVO singleRateDetails = vatRateDetails.get(i);
+			dataSheet.addDetailsCell(18 + productCount + i, 8, new DataCell(singleRateDetails.getNetAmount().doubleValue(), CellType.DOUBLE));
+			dataSheet.addDetailsCell(18 + productCount + i, 10, new DataCell(getVatRatePrintValue(singleRateDetails.getVatRate()), CellType.TEXT));
+			dataSheet.addDetailsCell(18 + productCount + i, 11, new DataCell(singleRateDetails.getVatAmount().doubleValue(), CellType.DOUBLE));
+			dataSheet.addDetailsCell(18 + productCount + i, 13, new DataCell(getDouble(singleRateDetails.getGrossAmount()), CellType.DOUBLE));
+		}
 	}
 
 	private double getDouble(final String value) {
@@ -198,6 +194,12 @@ public class CorrectionGenerator {
 		}else{
 			return 0;
 		}
+	}
+
+	@Override
+	protected Optional getenratePdf(final String sessionId, final FinancialDocumentVO document) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	private String getNetPriceIfDefined(final InvoceProductVO product) {
@@ -218,6 +220,15 @@ public class CorrectionGenerator {
 			result = result.concat(". Termin p³atnoœci: " + correction.getPaymentDate());
 		}
 		return result;
+	}
+
+	private String getProductClassificationIfDefined(final InvoceProductVO product) {
+		final ProductVO productDef = product.getProductDefinition();
+		if(productDef == null){
+			return "";
+		} else {
+			return productDef.getProductClassification();
+		}
 	}
 
 	private String getProductDescriptionIfDefined(final InvoceProductVO product) {
@@ -244,12 +255,16 @@ public class CorrectionGenerator {
 
 	private String getVatRateIfDefined(final InvoceProductVO product) {
 		final ProductVO productDef = product.getProductDefinition();
-		final String vatRate;
 		if(productDef == null){
-			vatRate = "";
+			return "";
 		} else {
-			vatRate = productDef.getVatRate().getDesc();
+			return getVatRatePrintValue(productDef.getVatRate());
 		}
-		return vatRate;
+	}
+
+	@Override
+	protected void setPendingStatus(final String documentId) {
+		// TODO Auto-generated method stub
+
 	}
 }

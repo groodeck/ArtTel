@@ -10,10 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.arttel.controller.vo.ProductVO;
 import org.arttel.controller.vo.filter.ProductFilterVO;
-import org.arttel.dao.ProductDAO;
 import org.arttel.dictionary.UnitType;
 import org.arttel.dictionary.VatRate;
-import org.arttel.exception.DaoException;
+import org.arttel.service.ProductService;
 import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,18 +27,13 @@ public class ProductController extends BaseController<ProductVO> {
 	}
 
 	@Autowired
-	private ProductDAO productDao;
+	private ProductService productService;
 
 	private final Logger log = Logger.getLogger(ProductController.class);
 
 	private static final String SELECTED_PRODUCT = "selectedProduct";
 	private static final String PRODUCT_LIST = "productList";
 	private static final String PRODUCT_FILTER = "productFilter";
-
-	@Override
-	protected String getResultRecordsListAttrName() {
-		return PRODUCT_LIST;
-	}
 
 	protected Event getEvent(final HttpServletRequest request,
 			final Event defaultValue) {
@@ -70,6 +64,11 @@ public class ProductController extends BaseController<ProductVO> {
 	}
 
 	@Override
+	protected String getResultRecordsListAttrName() {
+		return PRODUCT_LIST;
+	}
+
+	@Override
 	protected String getTableHeaderAttrName() {
 		return "productTableHeader";
 	}
@@ -78,7 +77,7 @@ public class ProductController extends BaseController<ProductVO> {
 			final UserContext userContext, final HttpServletRequest request) {
 		final ProductFilterVO productFilterVO = getProductFilterFromRequest(request);
 		productFilterVO.setUser(userContext.getUserName());
-		final List<ProductVO> productList = productDao.getProductList(productFilterVO);
+		final List<ProductVO> productList = productService.getProductList(productFilterVO);
 		request.setAttribute(getResultRecordsListAttrName(), productList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
@@ -87,12 +86,8 @@ public class ProductController extends BaseController<ProductVO> {
 			final HttpServletRequest request) {
 
 		final String productId = request.getParameter(EVENT_PARAM);
-		try {
-			if (productId != null) {
-				productDao.deleteProductById(productId);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if (productId != null) {
+			productService.deleteProductById(productId);
 		}
 		performActionBackToSearchresults(userContext, request);
 	}
@@ -103,7 +98,7 @@ public class ProductController extends BaseController<ProductVO> {
 		final String productId = request.getParameter(EVENT_PARAM);
 
 		if (productId != null) {
-			final ProductVO productDetails = productDao.getProductById(productId);
+			final ProductVO productDetails = productService.getProductById(productId);
 			productDetails.applyPermissions(userContext.getUserName());
 			request.setAttribute(SELECTED_PRODUCT, productDetails);
 		}
@@ -127,7 +122,7 @@ public class ProductController extends BaseController<ProductVO> {
 	private void performActionSave(final UserContext userContext,
 			final ProductVO productVO, final HttpServletRequest request) {
 
-		productDao.save(productVO, userContext.getUserName());
+		productService.save(productVO, userContext.getUserName());
 		performActionBackToSearchresults(userContext, request);
 	}
 
@@ -137,7 +132,7 @@ public class ProductController extends BaseController<ProductVO> {
 		productFilterVO.populate(request);
 		productFilterVO.setUser(userContext.getUserName());
 		request.getSession().setAttribute(PRODUCT_FILTER, productFilterVO);
-		final List<ProductVO> productList = productDao.getProductList(productFilterVO);
+		final List<ProductVO> productList = productService.getProductList(productFilterVO);
 		request.setAttribute(getResultRecordsListAttrName(), productList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
@@ -146,7 +141,7 @@ public class ProductController extends BaseController<ProductVO> {
 		final Map<String, List<? extends ComboElement>> selectsMap = new HashMap<String, List<? extends ComboElement>>();
 		selectsMap.put("unitTypesDictionary", UnitType.getComboElementList(false));
 		selectsMap.put("vatRateDictionary", VatRate.getComboElementList(false));
-		selectsMap.put("productDictionary", productDao.getProductDictionary(false, user));
+		selectsMap.put("productDictionary", productService.getProductDictionary(false, user));
 		return selectsMap;
 	}
 
