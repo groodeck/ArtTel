@@ -24,7 +24,7 @@
 	<c:if test="${event=='MAIN' || event=='SEARCH'}">
 		
 		<br/>
-		<c:if test="${not empty squeezeBalance}"> 
+		<c:if test="${userContext.userPrivileges['squeezeSummary.form'] and not empty squeezeBalance}"> 
 			<custom:squeezeBalance squeezeBalance="${squeezeBalance}" />
 		</c:if>
 		
