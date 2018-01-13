@@ -16,10 +16,10 @@ import org.arttel.controller.vo.filter.ClientFilterVO;
 import org.arttel.controller.vo.filter.SqueezeFilterVO;
 import org.arttel.dao.CityDAO;
 import org.arttel.dao.ClientDAO;
-import org.arttel.dao.SqueezeDAO;
 import org.arttel.dictionary.SqueezeStatus;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
+import org.arttel.service.SqueezeService;
 import org.arttel.ui.TableHeader;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ public class SqueezesController extends BaseController<SqueezeVO> {
 	private CityDAO cityDao;
 
 	@Autowired
-	private SqueezeDAO squeezeDao;
+	private SqueezeService squeezeService;
 
 	@Autowired
 	private ClientDAO clientDao;
@@ -60,11 +60,6 @@ public class SqueezesController extends BaseController<SqueezeVO> {
 		}
 	}
 
-	@Override
-	protected String getResultRecordsListAttrName() {
-		return SQUEEZES_LIST;
-	}
-
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = defaultValue;
@@ -81,6 +76,11 @@ public class SqueezesController extends BaseController<SqueezeVO> {
 		return null;
 	}
 
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return SQUEEZES_LIST;
+	}
+
 	private SqueezeBalanceVO getSqueezeBalance() {
 		return squeezeBalanceCalculator.getSqueezeBalance();
 	}
@@ -92,46 +92,31 @@ public class SqueezesController extends BaseController<SqueezeVO> {
 
 	private void performActionBackToSearchresults( final UserContext userContext, final HttpServletRequest request) {
 		final SqueezeFilterVO squeezeFilterVO = (SqueezeFilterVO) request.getSession().getAttribute(SQUEEZE_FILTER);
-		try{
-			final List<SqueezeVO> squeezeList = squeezeDao.getSqueezeList(squeezeFilterVO);
-			applyPermissions(squeezeList, userContext.getUserName());
-			request.setAttribute(getResultRecordsListAttrName(), squeezeList);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
-		}
+		final List<SqueezeVO> squeezeList = squeezeService.getSqueezeList(squeezeFilterVO);
+		applyPermissions(squeezeList, userContext.getUserName());
+		request.setAttribute(getResultRecordsListAttrName(), squeezeList);
 		request.setAttribute(SQUEEZE_BALANCE, getSqueezeBalance());
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
-	private void performActionCopy(final UserContext userContext,
-			final HttpServletRequest request) {
+	private void performActionCopy(final UserContext userContext, final HttpServletRequest request) {
 
 		final String squeezeId = request.getParameter(EVENT_PARAM);
-		try{
-			if(squeezeId != null){
-				final SqueezeVO squeezeDetails = squeezeDao.getSqueezeById(squeezeId);
-				squeezeDetails.setSqueezeId(null);
-				squeezeDetails.setUser(null);
-				squeezeDetails.applyPermissions(userContext.getUserName());
-				request.setAttribute(SELECTED_SQUEEZE, squeezeDetails);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException",e);
+		if(squeezeId != null){
+			final SqueezeVO squeezeDetails = squeezeService.getSqueezeById(squeezeId);
+			squeezeDetails.setSqueezeId(null);
+			squeezeDetails.setUser(null);
+			squeezeDetails.applyPermissions(userContext.getUserName());
+			request.setAttribute(SELECTED_SQUEEZE, squeezeDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 
 	}
 
-	private void performActionDelete( final UserContext userContext,
-			final HttpServletRequest request ) {
-
+	private void performActionDelete( final UserContext userContext, final HttpServletRequest request ) {
 		final String squeezeId = request.getParameter(EVENT_PARAM);
-		try{
-			if(squeezeId != null){
-				squeezeDao.deleteSqueezeById(squeezeId);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException",e);
+		if(squeezeId != null){
+			squeezeService.deleteSqueezeById(squeezeId);
 		}
 		performActionBackToSearchresults(userContext, request);
 	}
@@ -140,15 +125,10 @@ public class SqueezesController extends BaseController<SqueezeVO> {
 			final HttpServletRequest request ) {
 
 		final String squeezeId = request.getParameter(EVENT_PARAM);
-
-		try {
-			if(squeezeId != null){
-				final SqueezeVO squeezeDetails = squeezeDao.getSqueezeById(squeezeId);
-				squeezeDetails.applyPermissions(userContext.getUserName());
-				request.setAttribute(SELECTED_SQUEEZE, squeezeDetails);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if(squeezeId != null){
+			final SqueezeVO squeezeDetails = squeezeService.getSqueezeById(squeezeId);
+			squeezeDetails.applyPermissions(userContext.getUserName());
+			request.setAttribute(SELECTED_SQUEEZE, squeezeDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 	}
@@ -170,24 +150,15 @@ public class SqueezesController extends BaseController<SqueezeVO> {
 
 	private void performActionSave( final UserContext userContext,
 			final SqueezeVO squeezeVO, final HttpServletRequest request ) {
-		try {
-			squeezeDao.save(squeezeVO, userContext.getUserName());
-			performActionBackToSearchresults(userContext, request);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
-		}
+		squeezeService.save(squeezeVO, userContext.getUserName());
+		performActionBackToSearchresults(userContext, request);
 	}
 
 	private void performActionSearch( final UserContext userContext, final SqueezeFilterVO squeezeFilterVO, final HttpServletRequest request) {
 		squeezeFilterVO.populate(request);
 		request.getSession().setAttribute(SQUEEZE_FILTER, squeezeFilterVO);
-		try{
-			final List<SqueezeVO> squeezeList = squeezeDao.getSqueezeList(squeezeFilterVO);
-			applyPermissions(squeezeList, userContext.getUserName());
-			request.setAttribute(getResultRecordsListAttrName(), squeezeList);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
-		}
+		final List<SqueezeVO> squeezeList = squeezeService.getSqueezeList(squeezeFilterVO);
+		request.setAttribute(getResultRecordsListAttrName(), squeezeList);
 		request.setAttribute(SQUEEZE_BALANCE, getSqueezeBalance());
 		request.setAttribute(EVENT, Event.SEARCH);
 	}

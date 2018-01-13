@@ -15,7 +15,6 @@ import org.arttel.controller.vo.ProductVO;
 import org.arttel.controller.vo.filter.InvoiceFilterVO;
 import org.arttel.dao.CorrectionDAO;
 import org.arttel.dao.InvoiceDAO;
-import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.invoice.InvoiceGenerator;
 import org.arttel.generator.invoice.InvoiceGeneratorOld;
@@ -205,8 +204,7 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 	}
 
 	@Override
-	protected void settleFinancialDocument(final String invoiceId) {
-		//TODO should be changed to service proxy, controller must not use DAO
-		invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.SETTLED);
+	protected void settleFinancialDocument(final String invoiceId, final UserContext userContext) {
+		invoiceService.settleInvoice(invoiceId, userContext.getUserName());
 	}
 }

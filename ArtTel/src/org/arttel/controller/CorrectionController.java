@@ -308,7 +308,7 @@ public class CorrectionController extends BaseController<CorrectionVO> {
 			final String correctionLink = correctionGenerator.generateCorrection(invoiceVO, sessionId);
 			if(StringUtils.isNotEmpty(correctionLink)){
 				final String invoiceId = invoiceVO.getDocumentId();
-				invoiceDao.setInvoiceStatus(invoiceId, InvoiceStatus.PENDING);
+				invoiceService.setInvoicePending(invoiceId);
 				invoiceVO.setStatus(InvoiceStatus.PENDING);
 			}
 			request.setAttribute(RESULT_FILE_LINK, correctionLink);

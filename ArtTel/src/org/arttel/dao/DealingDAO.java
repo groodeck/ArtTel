@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.DealingVO;
+import org.arttel.controller.vo.SqueezeVO;
 import org.arttel.controller.vo.filter.DealingFilterVO;
 import org.arttel.dictionary.DealingType;
 import org.arttel.exception.DaoException;
@@ -16,6 +17,7 @@ import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
 import org.arttel.generator.DataSheet;
 import org.arttel.generator.report.ReportDataVO;
+import org.arttel.util.Translator;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,11 +25,11 @@ public class DealingDAO extends BaseDao {
 
 	private static final String DEALING_QUERY = " " +
 			" select d.dealingId, d.dealingType, d.date, d.corporateCosts, d.privateCosts, d.fuel, d.fuelLiters, d.income, d.amount," +
-			" 	d.comments1, d.comments2, d.comments3, d.machine, d.city, d.userId, c.clientDesc " +
+			" 	d.comments1, d.comments2, d.comments3, d.machine, d.city, d.userId, c.clientDesc, d.documentId, i.documentNumber " +
 			" from `Dealing` d " +
 			" left join Client c on d.income = c.clientId " +
-			" left join Squeeze s on d.dealingId = s.dealingId " +
-			" where (s.dealingId is null or s.squeezeStatus = 'SETTLED') ";
+			" left join Invoice i on i.documentId=d.documentId " +
+			" where true ";
 
 	public String create( final DealingVO dealingVO, final String userName ) throws DaoException {
 
@@ -36,10 +38,10 @@ public class DealingDAO extends BaseDao {
 			stmt = getConnection().createStatement();
 			final int rowsInserted = stmt
 					.executeUpdate("insert into dealing(dealingType,date,corporateCosts,privateCosts,income,fuel," +
-							"fuelLiters,amount,comments1,comments2,comments3,machine,city,userId) " +
+							"fuelLiters,amount,comments1,comments2,comments3,machine,city,userId,documentId) " +
 							"values("
 							+ "'" + dealingVO.getDealingType().getIdn() + "', "
-							+ (dealingVO.getDate()!=null ? "'"+dealingVO.getDate()+"'" : "null") + ", "
+							+ (dealingVO.getDate()!=null ? "'"+Translator.toString(dealingVO.getDate())+"'" : "null") + ", "
 							+ "'" + dealingVO.getCorporateCosts() + "', "
 							+ "'" + dealingVO.getPrivateCosts() + "', "
 							+ "'" + dealingVO.getIncomeClientId() + "', "
@@ -51,7 +53,8 @@ public class DealingDAO extends BaseDao {
 							+ "'" + dealingVO.getComments3() + "', "
 							+ "'" + dealingVO.getMachine() + "', "
 							+ "'" + dealingVO.getCity() + "', "
-							+ "'" + userName + "')");
+							+ "'" + userName + "', "
+							+ dealingVO.getDocumentId() + ")");
 
 		} catch (final SQLException e) {
 			throw new DaoException("DealingDAO SQLException", e);
@@ -119,6 +122,8 @@ public class DealingDAO extends BaseDao {
 		singleDealing.setCity(rs.getString(14));
 		singleDealing.setUserName(rs.getString(15));
 		singleDealing.setIncomeClientName(rs.getString(16));
+		singleDealing.setDocumentId(rs.getInt(17));
+		singleDealing.setDocumentNumber(rs.getString(18));
 
 		return singleDealing;
 	}
@@ -167,6 +172,17 @@ public class DealingDAO extends BaseDao {
 			disconnect(stmt, rs);
 		}
 		return resultList;
+	}
+
+	private String getNextDealingId(final Statement stmt) throws SQLException {
+		final String result;
+		final ResultSet rs = stmt.executeQuery("select coalesce(max(dealingId) + 1, 1) as nextId from dealing");
+		if(rs.next()){
+			result = rs.getString("nextId");
+		} else{
+			result = null;
+		}
+		return result;
 	}
 
 	public ReportDataVO getReportData(final String worksheetName, final Date dateFrom, final Date dateTo, final String cityIdn) throws DaoException {
@@ -232,6 +248,26 @@ public class DealingDAO extends BaseDao {
 			disconnect(stmt, rs);
 		}
 		return resultList;
+	}
+
+	private String insertDealing(final SqueezeVO squeezeVO, final String userName,final Statement stmt) throws SQLException {
+		final String dealingId = getNextDealingId(stmt);
+		if(dealingId != null){
+			stmt.executeUpdate(" insert into dealing(dealingId,dealingType,income,amount,userId,date,comments1,city)"
+					+ "values("
+					+ dealingId + ", "
+					+ "'income', "
+					+ "'" + squeezeVO.getClientId() + "', "
+					+ squeezeVO.getAmount() + ", "
+					+ "'" + userName + "',"
+					+ (squeezeVO.getSqueezeDate()!=null ? "'"+squeezeVO.getSqueezeDate()+"'," : "null,")
+					+ "'" + squeezeVO.getComments() + "',"
+					+ "'" + squeezeVO.getCity() + "')");
+			squeezeVO.setDealingId(Translator.parseInteger(dealingId));
+			return dealingId;
+		} else {
+			return null;
+		}
 	}
 
 	private String prepareQuery(final DealingFilterVO dealingFilterVO) {

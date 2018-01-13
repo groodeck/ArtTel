@@ -6,25 +6,24 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.arttel.controller.vo.SqueezeVO;
 import org.arttel.controller.vo.filter.SqueezeFilterVO;
 import org.arttel.dictionary.SqueezeStatus;
 import org.arttel.exception.DaoException;
-import org.arttel.util.Translator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SqueezeDAO extends BaseDao {
 
-	@Autowired
-	private DealingDAO dealingDao;
+	@PersistenceContext
+	private EntityManager em;
 
 	private static final String SQUEEZE_QUERY =
-			" SELECT s.squeezeId ,s.quantity, s.meters, s.price, d.city, d.amount, d.userId, d.comments1, d.date, d.income, c.clientDesc, s.squeezeStatus, d.dealingId" +
-					" FROM `Squeeze` s JOIN dealing d " +
-					" ON s.dealingId = d.dealingId " +
-					" LEFT JOIN Client c ON d.income = c.clientId " +
+			" SELECT s.squeezeId ,s.quantity, s.meters, s.price, s.city, s.amount, s.userId, s.comments, s.date, s.clientId, c.clientDesc, s.squeezeStatus" +
+					" FROM `Squeeze` s LEFT JOIN Client c ON s.clientId = c.clientId " +
 					" LEFT JOIN City ct ON s.city = ct.cityIdn " +
 					" WHERE true ";
 
@@ -33,9 +32,7 @@ public class SqueezeDAO extends BaseDao {
 		Statement stmt = null;
 		try {
 			stmt = getConnection().createStatement();
-			final String dealingId = insertDealing(squeezeVO, userName, stmt);
-			insertSqueeze(squeezeVO, dealingId, userName, stmt);
-
+			insertSqueeze(squeezeVO, userName, stmt);
 		} catch (final SQLException e) {
 			throw new DaoException("SqueezeDAO SQLException", e);
 		} finally {
@@ -46,9 +43,7 @@ public class SqueezeDAO extends BaseDao {
 
 	public void deleteSqueezeById(final String squeezeId) throws DaoException {
 		if (squeezeId != null && !"".equals(squeezeId)) {
-			final String query = String.format(
-					"DELETE FROM s, d USING squeeze s JOIN dealing d" +
-							" ON (s.dealingId = d.dealingID) WHERE s.squeezeId = %s", squeezeId);
+			final String query = String.format("DELETE FROM squeeze WHERE squeezeId = %s", squeezeId);
 			try {
 				getConnection().createStatement().executeUpdate(query);
 			} catch (final SQLException e) {
@@ -72,25 +67,8 @@ public class SqueezeDAO extends BaseDao {
 		singleSqueeze.setSqueezeDate(rs.getDate(9));
 		singleSqueeze.setClientId(rs.getString(10));
 		singleSqueeze.setClientDesc(rs.getString(11));
-		singleSqueeze.setStatus(
-				SqueezeStatus.getValueByIdn(rs.getString(12)));
-		final String dealingIdStr = rs.getString(13);
-		if(dealingIdStr != null){
-			singleSqueeze.setDealingId(Translator.parseInt(dealingIdStr));
-		}
-
+		singleSqueeze.setStatus(SqueezeStatus.getValueByIdn(rs.getString(12)));
 		return singleSqueeze;
-	}
-
-	private String getNextDealingId(final Statement stmt) throws SQLException {
-		final String result;
-		final ResultSet rs = stmt.executeQuery("select coalesce(max(dealingId) + 1, 1) as nextId from dealing");
-		if(rs.next()){
-			result = rs.getString("nextId");
-		} else{
-			result = null;
-		}
-		return result;
 	}
 
 	public SqueezeVO getSqueezeById(final String squeezeId) throws DaoException {
@@ -154,44 +132,20 @@ public class SqueezeDAO extends BaseDao {
 		return resultList;
 	}
 
-	private void handleDealingOnSqueezeStatus(final SqueezeVO squeezeVO, final String userName, final Statement stmt)
-			throws DaoException, SQLException {
-		if(squeezeVO.getStatus() != SqueezeStatus.SETTLED && squeezeVO.getDealingId() != null){
-			dealingDao.removeBySqueezeId(squeezeVO.getSqueezeId());
-		}else if(squeezeVO.getDealingId() == null){
-			insertDealing(squeezeVO, userName, stmt);
-		}
-	}
-
-	private String insertDealing(final SqueezeVO squeezeVO, final String userName,final Statement stmt) throws SQLException {
-		final String dealingId = getNextDealingId(stmt);
-		if(dealingId != null){
-			stmt.executeUpdate(" insert into dealing(dealingId,dealingType,income,amount,userId,date,comments1,city)"
-					+ "values("
-					+ dealingId + ", "
-					+ "'income', "
-					+ "'" + squeezeVO.getClientId() + "', "
-					+ squeezeVO.getAmount() + ", "
-					+ "'" + userName + "',"
-					+ (squeezeVO.getSqueezeDate()!=null ? "'"+squeezeVO.getSqueezeDate()+"'," : "null,")
-					+ "'" + squeezeVO.getComments() + "',"
-					+ "'" + squeezeVO.getCity() + "')");
-			squeezeVO.setDealingId(Translator.parseInteger(dealingId));
-			return dealingId;
-		} else {
-			return null;
-		}
-	}
-
-	private void insertSqueeze(final SqueezeVO squeezeVO, final String dealingId, final String userName, final Statement stmt) throws SQLException {
-		stmt.executeUpdate("insert into squeeze(quantity,meters,price,dealingId,squeezeStatus,city) " +
+	private void insertSqueeze(final SqueezeVO squeezeVO, final String userName, final Statement stmt) throws SQLException {
+		stmt.executeUpdate("insert into squeeze(quantity,meters,price,squeezeStatus,city, amount, userId, comments, date, clientId) " +
 				"values("
 				+ squeezeVO.getQuantity() + ", "
 				+ squeezeVO.getMeters() + ", "
 				+ squeezeVO.getPrice() + ","
-				+ "" + dealingId + ","
 				+ "'" + squeezeVO.getStatus().getIdn() + "',"
-				+ "'" + squeezeVO.getCity() + "')");
+				+ "'" + squeezeVO.getCity() + "',"
+				+ squeezeVO.getAmount() + ","
+				+ "'" + userName + "',"
+				+ "'" + squeezeVO.getComments() + "',"
+				+ squeezeVO.getSqueezeDate() + ","
+				+ squeezeVO.getClientId()
+				+ ")");
 	}
 
 	private String prepareQuery(final SqueezeFilterVO squeezeFilterVO) {
@@ -203,16 +157,16 @@ public class SqueezeDAO extends BaseDao {
 			.append("(")
 			.append(" ct.cityDesc like '%" + squeezeFilterVO.getPhrase() + "%'")
 			.append(" OR ")
-			.append(" d.amount like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" s.amount like '%" + squeezeFilterVO.getPhrase() + "%'")
 			.append(" OR ")
-			.append(" d.comments1 like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" s.comments like '%" + squeezeFilterVO.getPhrase() + "%'")
 			.append(" OR ")
 			.append(" c.clientDesc like '%" + squeezeFilterVO.getPhrase() + "%'")
 			.append(" OR ")
-			.append(" d.date like '%" + squeezeFilterVO.getPhrase() + "%'")
+			.append(" s.date like '%" + squeezeFilterVO.getPhrase() + "%'")
 			.append(")");
 		} else {
-			query.append(squeezeFilterVO.getCity() != null   ?  " and  d.city='" + squeezeFilterVO.getCity() + "'" : "");
+			query.append(squeezeFilterVO.getCity() != null   ?  " and  s.city='" + squeezeFilterVO.getCity() + "'" : "");
 		}
 
 		query.append(" ORDER BY s.squeezeId DESC ");
@@ -233,21 +187,18 @@ public class SqueezeDAO extends BaseDao {
 		Statement stmt = null;
 		try {
 			stmt = getConnection().createStatement();
-			//			handleDealingOnSqueezeStatus(squeezeVO, userName, stmt);
-			final String query = "UPDATE `squeeze` s JOIN dealing d " +
-					"ON s.dealingId = d.dealingID " +
+			final String query = "UPDATE `squeeze` s " +
 					"SET " +
 					"s.quantity = " + squeezeVO.getQuantity() + ", " +
 					"s.meters = " + squeezeVO.getMeters() + ", " +
 					"s.price = " + squeezeVO.getPrice() + ", " +
-					"d.city = '" + squeezeVO.getCity() + "', " +
-					"d.income = '" + squeezeVO.getClientId() + "', " +
-					"d.amount = " + squeezeVO.getAmount() + ", " +
-					"d.date = " + (squeezeVO.getSqueezeDate() != null ? "'"+squeezeVO.getSqueezeDate()+"'," : "null,") +
-					"d.comments1 = '" + squeezeVO.getComments() + "', " +
-					"d.userId = '" + userName + "', " +
 					"s.squeezeStatus = '" + squeezeVO.getStatus().getIdn() + "', " +
-					"s.dealingId = " + squeezeVO.getDealingId() + " " +
+					"s.city = '" + squeezeVO.getCity() + "', " +
+					"s.amount = " + squeezeVO.getAmount() + ", " +
+					"s.userId = '" + userName + "', " +
+					"s.comments = '" + squeezeVO.getComments() + "', " +
+					"s.date = " + (squeezeVO.getSqueezeDate()!=null ? "'" + squeezeVO.getSqueezeDate() + "'" : "null") + ", " +
+					"s.clientId = " + squeezeVO.getClientId() + " " +
 					"WHERE s.squeezeId = " + squeezeVO.getSqueezeId();
 			System.out.println(query);
 			stmt.executeUpdate(query);

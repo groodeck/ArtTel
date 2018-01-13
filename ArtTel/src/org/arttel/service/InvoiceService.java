@@ -8,6 +8,7 @@ import org.arttel.controller.vo.filter.InvoiceFilterVO;
 import org.arttel.converter.InvoiceConverter;
 import org.arttel.dao.CorrectionDAO;
 import org.arttel.dao.InvoiceDAO;
+import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.entity.Invoice;
 import org.arttel.exception.DaoException;
 import org.arttel.ui.PageInfo;
@@ -30,6 +31,12 @@ public class InvoiceService {
 
 	@Autowired
 	private CorrectionDAO correctionDao;
+
+	@Autowired
+	private DealingService dealingService;
+
+	@Autowired
+	private SellerService sellerService;
 
 	public void deleteInvoice(final List<Integer> invoiceIds) {
 		for(final Integer invoiceId : invoiceIds){
@@ -58,5 +65,19 @@ public class InvoiceService {
 	public void save(final InvoiceVO invoiceVO, final String userName) {
 		final Invoice entity = invoiceConverter.convert(invoiceVO, userName);
 		invoiceDao.save(entity);
+	}
+
+	public void setInvoicePending(final String invoiceId) {
+		final Invoice invoice = invoiceDao.getInvoiceById(invoiceId);
+		invoice.setDocumentStatus(InvoiceStatus.PENDING.getIdn());
+	}
+
+	public void settleInvoice(final String invoiceId, final String userName) {
+		final Invoice invoice = invoiceDao.getInvoiceById(invoiceId);
+		if(sellerService.checkGenerateDealingOnInvoiceSettle(invoice.getSellerId())){
+			dealingService.generateDealing(invoice);
+		}
+		invoice.setDocumentStatus(InvoiceStatus.SETTLED.getIdn());
+
 	}
 }

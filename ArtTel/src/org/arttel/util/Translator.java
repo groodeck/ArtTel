@@ -252,6 +252,14 @@ public class Translator {
 		}
 	}
 
+	public static String toString(final java.util.Date date) {
+		if(date == null){
+			return null;
+		} else {
+			return new SimpleDateFormat(DEFAULT_DATE_FORMAT).format(date);
+		}
+	}
+
 	private static final Logger log = Logger.getLogger(Translator.class);
 
 	private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";

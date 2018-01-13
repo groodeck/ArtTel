@@ -5,17 +5,18 @@ import org.arttel.view.ComboElement;
 import com.google.common.base.Joiner;
 
 public class SellerVO implements ComboElement, InvoiceParticipant {
-	
+
 	private String sellerId;
 	private String sellerDesc;
 
 	private String nip;
-	
+
 	private String city;
 	private String street;
 	private String house;
 	private String appartment;
 	private String zip;
+	private boolean generateDealingOnInvoiceSettle;
 
 	@Override
 	public String getAddressCity() {
@@ -74,11 +75,18 @@ public class SellerVO implements ComboElement, InvoiceParticipant {
 		return zip;
 	}
 
+	public boolean isGenerateDealingOnInvoiceSettle() {
+		return generateDealingOnInvoiceSettle;
+	}
 	public void setAppartment(final String appartment) {
 		this.appartment = appartment;
 	}
 	public void setCity(final String city) {
 		this.city = city;
+	}
+	public void setGenerateDealingOnInvoiceSettle(
+			final boolean generateDealingOnInvoiceSettle) {
+		this.generateDealingOnInvoiceSettle = generateDealingOnInvoiceSettle;
 	}
 	public void setHouse(final String house) {
 		this.house = house;

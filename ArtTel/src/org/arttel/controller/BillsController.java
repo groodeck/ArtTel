@@ -68,11 +68,6 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 		billService.deleteBill(billIds);
 	}
 
-	@Override
-	protected Optional<String> printDocument(final List<BillVO> bills, final String sessionId) throws Exception {
-		return billGenerator.printDocuments(bills, sessionId);
-	}
-
 	private CorrectionVO getCorrection(final BillVO invoice) {
 		//		try {
 		//			final CorrectionVO correction = correctionDao.getCorrectionForInvoice(invoice.getInvoiceId());
@@ -111,11 +106,6 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	}
 
 	@Override
-	protected String getResultRecordsListAttrName() {
-		return BILL_LIST;
-	}
-
-	@Override
 	protected BillVO getFinancialDocument(final String billId) {
 		return billService.getBill(billId);
 	}
@@ -137,6 +127,11 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	}
 
 	@Override
+	protected String getResultRecordsListAttrName() {
+		return BILL_LIST;
+	}
+
+	@Override
 	protected String getSelectedDocumentAttrName() {
 		return SELECTED_BILL;
 	}
@@ -149,6 +144,11 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	@Override
 	protected String getTargetPage() {
 		return "bills";
+	}
+
+	@Override
+	protected Optional<String> printDocument(final List<BillVO> bills, final String sessionId) throws Exception {
+		return billGenerator.printDocuments(bills, sessionId);
 	}
 
 	@Override
@@ -184,7 +184,7 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 	}
 
 	@Override
-	protected void settleFinancialDocument(final String billId) {
+	protected void settleFinancialDocument(final String billId, final UserContext userContext) {
 		billService.setBillStatus(billId, InvoiceStatus.SETTLED);
 	}
 }

@@ -105,6 +105,7 @@
 				<td>Rodzaj obrotu</td>
 				<td>Data</td>	
 				<td>Obrót</td>
+				<td>Nr faktury</td>
 				<td>Kwota</td>
 				<td>Uwagi 1</td>		
 				<td>Uwagi 2</td>
@@ -119,6 +120,7 @@
 					<td  onclick="submitFormWithParam('edit',${dealing.dealingId})" style="background-color: ${dealing.dealingType.color}" >
 						<c:out value="${dealing.dealingTitle}"/>
 					</td>
+					<td  onclick="submitFormWithParam('edit',${dealing.dealingId})" ><c:out value="${dealing.documentNumber}"/></td>
 					<td  onclick="submitFormWithParam('edit',${dealing.dealingId})" ><c:out value="${dealing.amount}"/></td>
 					<td  onclick="submitFormWithParam('edit',${dealing.dealingId})" ><c:out value="${dealing.comments1}"/></td>
 					<td  onclick="submitFormWithParam('edit',${dealing.dealingId})" ><c:out value="${dealing.comments2}"/></td>

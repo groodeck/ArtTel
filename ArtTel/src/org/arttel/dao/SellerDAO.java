@@ -23,13 +23,13 @@ public class SellerDAO extends BaseDao {
 
 	@PersistenceContext
 	private EntityManager em;
-	
-	private static final String SELLER_QUERY = 
-			"SELECT sellerId, sellerDesc, nip, city, street, house, appartment, zip "
-			+ "FROM Seller "
-			+ "WHERE true ";
 
-	private SellerVO extractSeller(ResultSet rs) throws SQLException {
+	private static final String SELLER_QUERY =
+			"SELECT sellerId, sellerDesc, nip, city, street, house, appartment, zip, GenerateDealingOnInvoiceSettle "
+					+ "FROM Seller "
+					+ "WHERE true ";
+
+	private SellerVO extractSeller(final ResultSet rs) throws SQLException {
 		final SellerVO seller = new SellerVO();
 		seller.setSellerId(rs.getString(1));
 		seller.setSellerDesc(rs.getString(2));
@@ -39,38 +39,25 @@ public class SellerDAO extends BaseDao {
 		seller.setHouse(rs.getString(6));
 		seller.setAppartment(rs.getString(7));
 		seller.setZip(rs.getString(8));
+		seller.setGenerateDealingOnInvoiceSettle(Boolean.TRUE.equals(rs.getBoolean(9)));
 		return seller;
 	}
 
-	public List<SellerVO> getSellerList(final String user) {
-		List<SellerVO> sellerList = new ArrayList<SellerVO>();
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			final String query = SELLER_QUERY.concat(
-					String.format(" AND user = '%s'", user));
-			stmt = getConnection().createStatement();
-			rs = stmt.executeQuery(query);
-			while(rs.next()){
-				sellerList.add(extractSeller(rs));
-			}
-		} catch (SQLException e) {
-			log.error("SellerDAO SQLException", e);
-		} finally {
-			disconnect(stmt, rs);
+	public List<? extends ComboElement> getSellerBankAccounts(final String userName) {
+
+		final List<SellerBankAccount> bankAccounts = em.createQuery(
+				"select s.bankAccounts from Seller s where s.user = :user")
+				.setParameter("user", userName)
+				.getResultList();
+
+		final List<ComboElement> resultList = new ArrayList<ComboElement>();
+		for(final SellerBankAccount bankAccount : bankAccounts){
+			resultList.add(new SimpleComboElement(bankAccount.getSellerBankAccountId().toString(),
+					String.format("%s (%s)", bankAccount.getAccountNumber(), bankAccount.getBankName())));
 		}
-		return sellerList;
+		return resultList;
 	}
 
-	public List<ComboElement> getSellerDictionary(final boolean withEmptyOption, final String user) {
-		final List<ComboElement> sellerList = new ArrayList<ComboElement>();
-		if(withEmptyOption){
-			sellerList.add(0, new EmptyComboElement());
-		}
-		sellerList.addAll(getSellerList(user));
-		return sellerList;
-	}
-	
 	public SellerVO getSellerById(final String sellerId) {
 		SellerVO result = null;
 		if (StringUtils.isNotEmpty(sellerId)) {
@@ -84,7 +71,7 @@ public class SellerDAO extends BaseDao {
 				if (rs.next()) {
 					result = extractSeller(rs);
 				}
-			} catch (SQLException e) {
+			} catch (final SQLException e) {
 				log.error("SellerDAO SQLException", e);
 			} finally {
 				disconnect(stmt, rs);
@@ -93,18 +80,32 @@ public class SellerDAO extends BaseDao {
 		return result;
 	}
 
-	public List<? extends ComboElement> getSellerBankAccounts(String userName) {
-		
-		List<SellerBankAccount> bankAccounts = em.createQuery(
-				"select s.bankAccounts from Seller s where s.user = :user")
-			.setParameter("user", userName)
-			.getResultList();
-		
-		final List<ComboElement> resultList = new ArrayList<ComboElement>();
-		for(SellerBankAccount bankAccount : bankAccounts){
-			resultList.add(new SimpleComboElement(bankAccount.getSellerBankAccountId().toString(), 
-					String.format("%s (%s)", bankAccount.getAccountNumber(), bankAccount.getBankName())));
+	public List<ComboElement> getSellerDictionary(final boolean withEmptyOption, final String user) {
+		final List<ComboElement> sellerList = new ArrayList<ComboElement>();
+		if(withEmptyOption){
+			sellerList.add(0, new EmptyComboElement());
 		}
-		return resultList;
+		sellerList.addAll(getSellerList(user));
+		return sellerList;
+	}
+
+	public List<SellerVO> getSellerList(final String user) {
+		final List<SellerVO> sellerList = new ArrayList<SellerVO>();
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			final String query = SELLER_QUERY.concat(
+					String.format(" AND user = '%s'", user));
+			stmt = getConnection().createStatement();
+			rs = stmt.executeQuery(query);
+			while(rs.next()){
+				sellerList.add(extractSeller(rs));
+			}
+		} catch (final SQLException e) {
+			log.error("SellerDAO SQLException", e);
+		} finally {
+			disconnect(stmt, rs);
+		}
+		return sellerList;
 	}
 }

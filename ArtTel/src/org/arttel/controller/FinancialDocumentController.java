@@ -304,7 +304,7 @@ extends BaseController<VO>  {
 
 	private void performActionSettleDocument(final UserContext userContext, final VO documentVO, final HttpServletRequest request) {
 		final String documentId = request.getParameter(EVENT_PARAM);
-		settleFinancialDocument(documentId);
+		settleFinancialDocument(documentId, userContext);
 		searchDocumentsByFilter(userContext, request);
 	}
 
@@ -439,6 +439,6 @@ extends BaseController<VO>  {
 		}
 	}
 
-	protected abstract void settleFinancialDocument(final String documentId);
+	protected abstract void settleFinancialDocument(final String documentId, final UserContext userContext);
 
 }

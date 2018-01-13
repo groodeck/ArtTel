@@ -55,6 +55,7 @@ public class InvoiceModelToEntity implements Function<InvoiceVO, Invoice> {
 		entity.setAdditionalComments(model.getAdditionalComments());
 		entity.setSellerBankAccountId(model.getSellerBankAccountId());
 		entity.setDocumentProducts(convertProductsToEntity(model.getDocumentProducts(), invoiceId));
+		entity.setCity(model.getCity());
 		return entity;
 	}
 

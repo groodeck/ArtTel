@@ -16,10 +16,8 @@ import org.arttel.controller.vo.InvoiceVO;
 import org.arttel.controller.vo.InvoiceValuesVO;
 import org.arttel.controller.vo.SellerVO;
 import org.arttel.dao.ClientDAO;
-import org.arttel.dao.InvoiceDAO;
 import org.arttel.dao.SellerBankAccountDao;
 import org.arttel.dao.SellerDAO;
-import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.dictionary.PaymentType;
 import org.arttel.entity.SellerBankAccount;
 import org.arttel.exception.DaoException;
@@ -29,6 +27,7 @@ import org.arttel.generator.DataSheet;
 import org.arttel.generator.FileGenerator;
 import org.arttel.generator.FinancialDocumentGenerator;
 import org.arttel.print.FilePrinter;
+import org.arttel.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +51,7 @@ public class InvoiceGeneratorOld extends FinancialDocumentGenerator {
 	private SellerBankAccountDao bankAccountDao;
 
 	@Autowired
-	private InvoiceDAO invoiceDao;
+	private InvoiceService invoiceService;
 
 	@Autowired
 	private FilePrinter printer;
@@ -188,6 +187,6 @@ public class InvoiceGeneratorOld extends FinancialDocumentGenerator {
 
 	@Override
 	protected void setPendingStatus(final String documentId) {
-		invoiceDao.setInvoiceStatus(documentId, InvoiceStatus.PENDING);
+		invoiceService.setInvoicePending(documentId);
 	}
 }

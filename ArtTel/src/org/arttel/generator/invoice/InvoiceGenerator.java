@@ -1,9 +1,8 @@
 package org.arttel.generator.invoice;
 
 import org.arttel.controller.vo.InvoiceVO;
-import org.arttel.dao.InvoiceDAO;
-import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.generator.FinancialDocumentGenerator;
+import org.arttel.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,7 @@ public class InvoiceGenerator extends FinancialDocumentGenerator<InvoiceVO> {
 	private InvoiceFileGenerator invoiceFileGenerator;
 
 	@Autowired
-	private InvoiceDAO invoiceDao;
+	private InvoiceService invoiceService;
 
 	@Override
 	protected Optional<String> getenratePdf(final String sessionId, final InvoiceVO invoice) {
@@ -25,7 +24,7 @@ public class InvoiceGenerator extends FinancialDocumentGenerator<InvoiceVO> {
 
 	@Override
 	protected void setPendingStatus(final String documentId) {
-		invoiceDao.setInvoiceStatus(documentId, InvoiceStatus.PENDING);
+		invoiceService.setInvoicePending(documentId);
 	}
 
 }

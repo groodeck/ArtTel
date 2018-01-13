@@ -68,6 +68,7 @@ public final class InvoiceEntityToModel implements Function<Invoice, InvoiceVO> 
 		model.setSeller(getSeller(entity.getSellerId()));
 		model.setClient(clientConverter.convert(entity.getClient()));
 		model.setInvoiceProducts(convertProductsToModel(entity.getDocumentProducts()));
+		model.setCity(entity.getCity());
 		return model;
 	}
 

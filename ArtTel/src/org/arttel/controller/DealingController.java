@@ -111,11 +111,6 @@ public class DealingController extends BaseController<DealingVO> {
 		return resultList;
 	}
 
-	@Override
-	protected String getResultRecordsListAttrName() {
-		return DEALING_LIST;
-	}
-
 	protected Event getEvent( final HttpServletRequest request, final Event defaultValue) {
 
 		Event event = defaultValue;
@@ -130,6 +125,11 @@ public class DealingController extends BaseController<DealingVO> {
 	protected TableHeader getModelDefaultHeader() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	protected String getResultRecordsListAttrName() {
+		return DEALING_LIST;
 	}
 
 	@Override
@@ -179,6 +179,8 @@ public class DealingController extends BaseController<DealingVO> {
 				final DealingVO dealingDetails = dealingDao.getDealingById(dealingId);
 				dealingDetails.setDealingId(null);
 				dealingDetails.setUserName(null);
+				dealingDetails.setDocumentId(null);
+				dealingDetails.setDocumentNumber(null);
 				dealingDetails.applyPermissions(userContext.getUserName());
 				request.setAttribute(SELECTED_DEALING, dealingDetails);
 			}

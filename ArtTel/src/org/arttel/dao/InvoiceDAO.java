@@ -9,7 +9,6 @@ import javax.persistence.Query;
 
 import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.filter.InvoiceFilterVO;
-import org.arttel.dictionary.InvoiceStatus;
 import org.arttel.entity.Invoice;
 import org.arttel.ui.PageInfo;
 import org.arttel.ui.ResultPage;
@@ -95,10 +94,5 @@ public class InvoiceDAO extends SortableDataPageFetch {
 			em.persist(invoice);
 		}
 		return invoice.getDocumentId().toString();
-	}
-
-	public void setInvoiceStatus(final String invoiceId, final InvoiceStatus newStatus){
-		final Invoice invoice = getInvoiceById(invoiceId);
-		invoice.setDocumentStatus(newStatus.getIdn());
 	}
 }

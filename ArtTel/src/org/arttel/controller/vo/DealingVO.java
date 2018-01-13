@@ -30,6 +30,8 @@ public class DealingVO extends BasePageVO {
 	private String comments3;
 	private String userName;
 	private boolean editable;
+	private Integer documentId;
+	private String documentNumber;
 
 	public String getAmount() {
 		return amount;
@@ -99,6 +101,14 @@ public class DealingVO extends BasePageVO {
 
 	public DealingType getDealingType() {
 		return dealingType;
+	}
+
+	public Integer getDocumentId() {
+		return documentId;
+	}
+
+	public String getDocumentNumber() {
+		return documentNumber;
 	}
 
 	public String getFuel() {
@@ -212,6 +222,14 @@ public class DealingVO extends BasePageVO {
 
 	public void setDealingType(final DealingType dealingType) {
 		this.dealingType = dealingType;
+	}
+
+	public void setDocumentId(final Integer documentId) {
+		this.documentId = documentId;
+	}
+
+	public void setDocumentNumber(final String documentNumber) {
+		this.documentNumber = documentNumber;
 	}
 
 	@Override
