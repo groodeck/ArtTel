@@ -33,6 +33,7 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 	private String bankAccountNumber;
 	private SellerVO seller;
 	private ClientVO client;
+	private String city;
 
 	public abstract void addNewProduct();
 
@@ -48,6 +49,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 
 	public String getBankAccountNumber() {
 		return bankAccountNumber;
+	}
+
+	public String getCity() {
+		return city;
 	}
 
 	public ClientVO getClient() {
@@ -140,6 +145,7 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 			paymentType = PaymentType.getValueByIdn(paymentTypeIdn);
 		}
 		sellerBankAccountId = request.getParameter("sellerBankAccountId");
+		city = request.getParameter("city");
 	}
 
 	public void setAdditionalComments(final String additionalComments) {
@@ -152,6 +158,10 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 
 	public void setBankAccountNumber(final String bankAccountNumber) {
 		this.bankAccountNumber = bankAccountNumber;
+	}
+
+	public void setCity(final String city) {
+		this.city = city;
 	}
 
 	public void setClient(final ClientVO client) {
@@ -218,5 +228,4 @@ public abstract class FinancialDocumentVO<Product extends FinancialDocumentProdu
 	public void setUser(final String user) {
 		this.user = user;
 	}
-
 }

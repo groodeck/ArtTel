@@ -60,6 +60,7 @@ public final class BillModelToEntity implements Function<BillVO, Bill>{
 		entity.setSellerBankAccountId(model.getSellerBankAccountId());
 		entity.setDocumentProducts(convertProductsToEntity(model.getDocumentProducts(), invoiceId));
 		entity.setRealizationDate(model.getRealizationDate());
+		entity.setCity(model.getCity());
 		return entity;
 	}
 

@@ -36,6 +36,14 @@ public class InvoiceDAO extends SortableDataPageFetch {
 	}
 
 	@SuppressWarnings("unchecked")
+	public List<Invoice> findByDocumentNumber(final String documentNumber, final String userName) {
+		return em.createQuery("from Invoice i where i.documentNumber = :documentNumber and i.user = :userName")
+				.setParameter("documentNumber", documentNumber)
+				.setParameter("userName", userName)
+				.getResultList();
+	}
+
+	@SuppressWarnings("unchecked")
 	public List<String> getDocumentNumbers(final java.util.Date date, final String userName) {
 
 		return em.createQuery(LAST_INVOICE_NUMBER_QUERY)

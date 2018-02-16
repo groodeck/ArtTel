@@ -105,7 +105,7 @@
 				<td>Rodzaj obrotu</td>
 				<td>Data</td>	
 				<td>Obrót</td>
-				<td>Nr faktury</td>
+				<td>Nr dokumentu</td>
 				<td>Kwota</td>
 				<td>Uwagi 1</td>		
 				<td>Uwagi 2</td>
@@ -174,6 +174,12 @@
 				<td class="field">
 					<custom:select name="income" values="${selectsMap.clients}" selectedValue="${selectedDealing.incomeClientId}" />
 				</td>
+			</tr><tr id="invoiceRow">
+				<td class="label">Nr dokumentu</td>
+				<td class="field">
+					<input name="documentNumber" value="${selectedDealing.documentNumber}" />
+					Typ:<custom:select name="documentType" values="${selectsMap.documentType}" selectedValue="${selectedDealing.documentType}" />
+				</td>
 			</tr><tr id="fuelRow">
 				<td class="label">Paliwo</td>
 				<td class="field">
@@ -229,6 +235,7 @@
 	 
 	 function setCostControlsVisible(){
 		 document.getElementById('incomeRow').style.display='none';
+		 document.getElementById('invoiceRow').style.display='none';
 		 document.getElementById('companyCostRow').style.display='block';
 		 document.getElementById('privateCostRow').style.display='block';
 		 document.getElementById('fuelRow').style.display='block';
@@ -236,6 +243,7 @@
 	 
 	 function setIncomeControlsVisible(){
 		 document.getElementById('incomeRow').style.display='block';
+		 document.getElementById('invoiceRow').style.display='block';
 		 document.getElementById('companyCostRow').style.display='none';
 		 document.getElementById('privateCostRow').style.display='none';
 		 document.getElementById('fuelRow').style.display='none';

@@ -66,6 +66,7 @@ public final class BillEntityToModel implements Function<Bill, BillVO> {
 		model.setSeller(seller);
 		model.setClient(clientConverter.convert(entity.getClient()));
 		model.setRealizationDate(entity.getRealizationDate());
+		model.setCity(entity.getCity());
 		return model;
 	}
 

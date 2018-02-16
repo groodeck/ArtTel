@@ -12,6 +12,7 @@ import org.arttel.controller.vo.DealingVO;
 import org.arttel.controller.vo.SqueezeVO;
 import org.arttel.controller.vo.filter.DealingFilterVO;
 import org.arttel.dictionary.DealingType;
+import org.arttel.dictionary.DocumentType;
 import org.arttel.exception.DaoException;
 import org.arttel.generator.CellType;
 import org.arttel.generator.DataCell;
@@ -24,12 +25,32 @@ import org.springframework.stereotype.Component;
 public class DealingDAO extends BaseDao {
 
 	private static final String DEALING_QUERY = " " +
-			" select d.dealingId, d.dealingType, d.date, d.corporateCosts, d.privateCosts, d.fuel, d.fuelLiters, d.income, d.amount," +
-			" 	d.comments1, d.comments2, d.comments3, d.machine, d.city, d.userId, c.clientDesc, d.documentId, i.documentNumber " +
-			" from `Dealing` d " +
-			" left join Client c on d.income = c.clientId " +
-			" left join Invoice i on i.documentId=d.documentId " +
-			" where true ";
+			" select "
+			+ "d.dealingId, "
+			+ "d.dealingType, "
+			+ "d.date, "
+			+ "d.corporateCosts, "
+			+ "d.privateCosts, "
+			+ "d.fuel, "
+			+ "d.fuelLiters, "
+			+ "d.income, "
+			+ "d.amount, "
+			+ "d.comments1, "
+			+ "d.comments2, "
+			+ "d.comments3, "
+			+ "d.machine, "
+			+ "d.city, "
+			+ "d.userId, "
+			+ "c.clientDesc, "
+			+ "d.documentId, "
+			+ "d.documentType, "
+			+ "i.documentNumber, "
+			+ "b.documentNumber "
+			+ " from `Dealing` d "
+			+ " left join Client c on d.income = c.clientId "
+			+ " left join Invoice i on i.documentId = d.documentId "
+			+ " left join Bill b on b.documentId = d.documentId "
+			+ " where true ";
 
 	public String create( final DealingVO dealingVO, final String userName ) throws DaoException {
 
@@ -38,7 +59,7 @@ public class DealingDAO extends BaseDao {
 			stmt = getConnection().createStatement();
 			final int rowsInserted = stmt
 					.executeUpdate("insert into dealing(dealingType,date,corporateCosts,privateCosts,income,fuel," +
-							"fuelLiters,amount,comments1,comments2,comments3,machine,city,userId,documentId) " +
+							"fuelLiters,amount,comments1,comments2,comments3,machine,city,userId, documentId, documentType) " +
 							"values("
 							+ "'" + dealingVO.getDealingType().getIdn() + "', "
 							+ (dealingVO.getDate()!=null ? "'"+Translator.toString(dealingVO.getDate())+"'" : "null") + ", "
@@ -54,7 +75,10 @@ public class DealingDAO extends BaseDao {
 							+ "'" + dealingVO.getMachine() + "', "
 							+ "'" + dealingVO.getCity() + "', "
 							+ "'" + userName + "', "
-							+ dealingVO.getDocumentId() + ")");
+							+ dealingVO.getDocumentId() + ", "
+							+ (dealingVO.getDocumentType() != null ?
+									"'" + dealingVO.getDocumentType().getIdn() + "'" : "null")
+									+ ")");
 
 		} catch (final SQLException e) {
 			throw new DaoException("DealingDAO SQLException", e);
@@ -123,7 +147,15 @@ public class DealingDAO extends BaseDao {
 		singleDealing.setUserName(rs.getString(15));
 		singleDealing.setIncomeClientName(rs.getString(16));
 		singleDealing.setDocumentId(rs.getInt(17));
-		singleDealing.setDocumentNumber(rs.getString(18));
+		final String documentTypeStr = rs.getString(18);
+		if(StringUtils.isNotEmpty(documentTypeStr)){
+			singleDealing.setDocumentType(DocumentType.valueOf(documentTypeStr));
+			if(singleDealing.getDocumentType() == DocumentType.INVOICE){
+				singleDealing.setDocumentNumber(rs.getString(19));
+			} else {
+				singleDealing.setDocumentNumber(rs.getString(20));
+			}
+		}
 
 		return singleDealing;
 	}
@@ -344,7 +376,9 @@ public class DealingDAO extends BaseDao {
 							"comments3 = '" + dealingVO.getComments3() + "', " +
 							"machine = '" + dealingVO.getMachine() + "', " +
 							"city = '" + dealingVO.getCity() + "', " +
-							"userId = '" + userName + "' " +
+							"userId = '" + userName + "', " +
+							"documentId = " + dealingVO.getDocumentId() + ", " +
+							"documentType = " + (dealingVO.getDocumentType() != null ? "'" + dealingVO.getDocumentType().getIdn() + "'" : "null") + " " +
 							"WHERE dealingId = " + dealingVO.getDealingId() );
 
 		} catch (final SQLException e) {

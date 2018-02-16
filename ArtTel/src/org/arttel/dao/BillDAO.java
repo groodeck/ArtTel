@@ -36,6 +36,14 @@ public class BillDAO extends SortableDataPageFetch {
 		em.remove(entity);
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<Bill> findByDocumentNumber(final String documentNumber, final String userName) {
+		return em.createQuery("from Bill b where b.documentNumber = :documentNumber and b.user = :userName")
+				.setParameter("documentNumber", documentNumber)
+				.setParameter("userName", userName)
+				.getResultList();
+	}
+
 	public Bill getBillById(final String billId) {
 		final Bill result;
 		if (StringUtils.isBlank(billId)) {

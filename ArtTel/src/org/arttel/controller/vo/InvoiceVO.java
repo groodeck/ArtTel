@@ -42,7 +42,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	private String paid;
 	private String paidWords;
 	private CorrectionVO correction;
-	private String city;
 
 	@Override
 	public void addNewProduct() {
@@ -52,10 +51,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 	@Override
 	public void clearProductList() {
 		invoiceProducts.clear();
-	}
-
-	public String getCity() {
-		return city;
 	}
 
 	public CorrectionVO getCorrection() {
@@ -175,7 +170,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 		signDate = Translator.parseDate(request.getParameter("signDate"), null);
 		paid = Translator.parseDecimalStr(request.getParameter("paid"));
 		paidWords = request.getParameter("paidWords");
-		city = request.getParameter("city");
 		populateProducts(request);
 	}
 
@@ -194,10 +188,6 @@ public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements P
 					correctionFactory.correctInvoiceProduct(invoiceProduct);
 			invoiceProduct.setCorrection(productCorrection);
 		}
-	}
-
-	public void setCity(final String city) {
-		this.city = city;
 	}
 
 	public void setCorrection(final CorrectionVO correction) {

@@ -178,6 +178,12 @@
 				</td>
 			</tr>
 			<tr>
+			<td class="label">Miasto</td>
+			<td class="field">
+				<custom:select name="city" values="${selectsMap.cityDictionary}" selectedValue="${selectedBill.city}"/>
+			</td>
+			</tr>
+			<tr>
 				<td class="label">Klient</td>
 				<td class="field">
 					<custom:select name="clientId" values="${selectsMap.clientDictionary}" selectedValue="${selectedBill.clientId}" />

@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
+
 @Component
 @Transactional
 public class BillService {
@@ -32,10 +35,26 @@ public class BillService {
 	@Autowired
 	private CorrectionDAO correctionDao;
 
+	@Autowired
+	private DealingService dealingService;
+
+	@Autowired
+	private SellerService sellerService;
+
 	public void deleteBill(final List<Integer> billIds) {
 		for(final Integer billId : billIds){
 			//			correctionDao.removeCorrectionForInvoice(billId);
 			billDao.deleteBill(billId);
+		}
+	}
+
+	public Optional<BillVO> findByDocumentNumber(final String documentNumber, final String userName) {
+		final List<Bill> billList = billDao.findByDocumentNumber(documentNumber, userName);
+		if(billList.isEmpty()){
+			return Optional.absent();
+		} else {
+			final Bill singleBill = Iterables.getOnlyElement(billList);
+			return Optional.of(billConverter.convert(singleBill));
 		}
 	}
 
@@ -61,6 +80,10 @@ public class BillService {
 	}
 
 	public void setBillStatus(final String billId, final InvoiceStatus status) {
+		final Bill bill = billDao.getBillById(billId);
+		if(sellerService.checkGenerateDealingOnInvoiceSettle(bill.getSellerId())){
+			dealingService.generateDealing(bill);
+		}
 		billDao.setBillStatus(billId, status);
 	}
 }

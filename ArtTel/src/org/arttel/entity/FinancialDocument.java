@@ -58,8 +58,15 @@ public abstract class FinancialDocument<ProductType> implements UserSet {
 	@JoinColumn(name="documentId")
 	private List<ProductType> documentProducts;
 
+	@Column(name = "City")
+	private String city;
+
 	public String getAdditionalComments() {
 		return additionalComments;
+	}
+
+	public String getCity() {
+		return city;
 	}
 
 	public Client getClient() {
@@ -114,6 +121,10 @@ public abstract class FinancialDocument<ProductType> implements UserSet {
 		this.additionalComments = additionalComments;
 	}
 
+	public void setCity(final String city) {
+		this.city = city;
+	}
+
 	public void setClient(final Client client) {
 		this.client = client;
 	}
@@ -162,4 +173,5 @@ public abstract class FinancialDocument<ProductType> implements UserSet {
 	public void setUser(final String user) {
 		this.user = user;
 	}
+
 }

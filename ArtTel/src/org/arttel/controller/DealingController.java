@@ -22,14 +22,16 @@ import org.arttel.controller.vo.filter.DealingFilterVO;
 import org.arttel.dao.CityDAO;
 import org.arttel.dao.ClientDAO;
 import org.arttel.dao.CompanyCostDAO;
-import org.arttel.dao.DealingDAO;
 import org.arttel.dao.DictionaryDAO;
 import org.arttel.dao.MachineDAO;
 import org.arttel.dictionary.DealingType;
 import org.arttel.dictionary.DictionaryType;
+import org.arttel.dictionary.DocumentType;
 import org.arttel.dictionary.context.DictionaryPurpose;
 import org.arttel.exception.DaoException;
+import org.arttel.service.DealingService;
 import org.arttel.ui.TableHeader;
+import org.arttel.util.WebUtils;
 import org.arttel.view.ComboElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -43,7 +45,7 @@ public class DealingController extends BaseController<DealingVO> {
 	}
 
 	@Autowired
-	private DealingDAO dealingDao;
+	private DealingService dealingService;
 
 	@Autowired
 	private CityDAO cityDao;
@@ -158,15 +160,19 @@ public class DealingController extends BaseController<DealingVO> {
 		return userBalanceList;
 	}
 
+	private String getUserOrNullIfAdmin(final String loggedUser) {
+		if (WebUtils.isAdmin(loggedUser)) {
+			return null;
+		} else {
+			return loggedUser;
+		}
+	}
+
 	private void performActionBackToSearchresults( final UserContext userContext, final HttpServletRequest request) {
 		final DealingFilterVO dealingFilterVO = (DealingFilterVO) request.getSession().getAttribute(DEALING_FILTER);
-		try{
-			final List<DealingVO> dealingList = dealingDao.getDealingList(dealingFilterVO);
-			applyPermissions(dealingList, userContext.getUserName());
-			request.setAttribute(getResultRecordsListAttrName(), dealingList);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
-		}
+		final List<DealingVO> dealingList = dealingService.getDealingList(dealingFilterVO);
+		applyPermissions(dealingList, userContext.getUserName());
+		request.setAttribute(getResultRecordsListAttrName(), dealingList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
@@ -174,51 +180,34 @@ public class DealingController extends BaseController<DealingVO> {
 			final HttpServletRequest request) {
 
 		final String dealingId = request.getParameter(EVENT_PARAM);
-		try{
-			if(dealingId != null){
-				final DealingVO dealingDetails = dealingDao.getDealingById(dealingId);
-				dealingDetails.setDealingId(null);
-				dealingDetails.setUserName(null);
-				dealingDetails.setDocumentId(null);
-				dealingDetails.setDocumentNumber(null);
-				dealingDetails.applyPermissions(userContext.getUserName());
-				request.setAttribute(SELECTED_DEALING, dealingDetails);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException",e);
+		if(dealingId != null){
+			final DealingVO dealingDetails = dealingService.getDealingById(dealingId);
+			dealingDetails.setDealingId(null);
+			dealingDetails.setUserName(null);
+			dealingDetails.setDocumentId(null);
+			dealingDetails.setDocumentNumber(null);
+			dealingDetails.applyPermissions(userContext.getUserName());
+			request.setAttribute(SELECTED_DEALING, dealingDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
-
 	}
-
 
 	private void performActionDelete( final UserContext userContext,
 			final HttpServletRequest request ) {
 
 		final String dealingId = request.getParameter(EVENT_PARAM);
-		try{
-			if(dealingId != null){
-				dealingDao.deleteDealingById(dealingId);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException",e);
+		if(dealingId != null){
+			dealingService.deleteDealingById(dealingId);
 		}
 		performActionBackToSearchresults(userContext, request);
 	}
 
-	private void performActionEdit( final UserContext userContext,
-			final HttpServletRequest request ) {
-
+	private void performActionEdit( final UserContext userContext, final HttpServletRequest request ) {
 		final String dealingId = request.getParameter(EVENT_PARAM);
-
-		try {
-			if(dealingId != null){
-				final DealingVO dealingDetails = dealingDao.getDealingById(dealingId);
-				dealingDetails.applyPermissions(userContext.getUserName());
-				request.setAttribute(SELECTED_DEALING, dealingDetails);
-			}
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
+		if(dealingId != null){
+			final DealingVO dealingDetails = dealingService.getDealingById(dealingId);
+			dealingDetails.applyPermissions(userContext.getUserName());
+			request.setAttribute(SELECTED_DEALING, dealingDetails);
 		}
 		request.setAttribute(EVENT, Event.EDIT);
 	}
@@ -227,44 +216,35 @@ public class DealingController extends BaseController<DealingVO> {
 		request.setAttribute(EVENT, Event.MAIN);
 	}
 
-	private void performActionNew( final UserContext userContext,
-			final HttpServletRequest request ) {
-
+	private void performActionNew( final UserContext userContext, final HttpServletRequest request ) {
 		final DealingVO dealingDetails = new DealingVO();
 		dealingDetails.applyPermissions(userContext.getUserName());
 		request.setAttribute(SELECTED_DEALING, dealingDetails);
 		request.setAttribute(EVENT, Event.EDIT);
 	}
 
-	private void performActionSave( final UserContext userContext,
-			final DealingVO dealingVO, final HttpServletRequest request ) {
-		try {
-			dealingDao.save(dealingVO, userContext.getUserName());
-			performActionBackToSearchresults(userContext, request);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
-		}
+	private void performActionSave( final UserContext userContext, final DealingVO dealingVO, final HttpServletRequest request ) {
+		dealingService.save(dealingVO, userContext.getUserName());
+		performActionBackToSearchresults(userContext, request);
 	}
 
-	private void performActionSearch( final UserContext userContext, final DealingFilterVO dealingFilterVO, final HttpServletRequest request) {
+	private void performActionSearch( final UserContext userContext, final DealingFilterVO dealingFilterVO,
+			final HttpServletRequest request) {
 		dealingFilterVO.populate(request);
 		request.getSession().setAttribute(DEALING_FILTER, dealingFilterVO);
-		try{
-			final List<DealingVO> dealingList = dealingDao.getDealingList(dealingFilterVO);
-			applyPermissions(dealingList, userContext.getUserName());
-			request.setAttribute(getResultRecordsListAttrName(), dealingList);
-		} catch (final DaoException e) {
-			log.error("DaoException", e);
-		}
+		final List<DealingVO> dealingList = dealingService.getDealingList(dealingFilterVO);
+		applyPermissions(dealingList, userContext.getUserName());
+		request.setAttribute(getResultRecordsListAttrName(), dealingList);
 		request.setAttribute(EVENT, Event.SEARCH);
 	}
 
 	private Map<String,List<? extends ComboElement>> prepareSelectsMap(final String user) {
 		final Map<String,List<? extends ComboElement>> selectsMap = new HashMap<String,List<? extends ComboElement>>();
 		selectsMap.put( "dealingType", DealingType.getComboElementList(false));
+		selectsMap.put("documentType", DocumentType.getComboElementList(false));
 		try {
 			selectsMap.put( "companyCosts", companyCostDao.getCompanyCostDictionary(true, DictionaryPurpose.forDealing));
-			final ClientFilterVO clientFilter = new ClientFilterVO(user, DictionaryPurpose.forDealing);
+			final ClientFilterVO clientFilter = new ClientFilterVO(getUserOrNullIfAdmin(user), DictionaryPurpose.forDealing);
 			selectsMap.put( "clients", clientDao.getClientDictionary(true, clientFilter));
 			selectsMap.put( "fuel", dictionaryDao.getDictionaryValues(DictionaryType.FUEL, true));
 			selectsMap.put( "machines", machineDao.getMachinesComboList(true));

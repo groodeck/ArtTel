@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
+
 @Component
 @Transactional
 public class InvoiceService {
@@ -42,6 +45,16 @@ public class InvoiceService {
 		for(final Integer invoiceId : invoiceIds){
 			correctionDao.removeCorrectionForInvoice(invoiceId.toString());
 			invoiceDao.deleteInvoice(invoiceId.toString());
+		}
+	}
+
+	public Optional<InvoiceVO> findByDocumentNumber(final String documentNumber, final String userName) {
+		final List<Invoice> invoiceList = invoiceDao.findByDocumentNumber(documentNumber, userName);
+		if(invoiceList.isEmpty()){
+			return Optional.absent();
+		} else {
+			final Invoice singleInvoice = Iterables.getOnlyElement(invoiceList);
+			return Optional.of(invoiceConverter.convert(singleInvoice));
 		}
 	}
 

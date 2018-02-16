@@ -180,7 +180,10 @@ public class ClientDAO extends BaseDao {
 			if(usedFor != null){
 				query.append(clauseFactory.getWhereClauseFor(usedFor));
 			}
-			query.append(" AND user = '" + clientFilterVO.getUser() + "' ");
+			final String user = clientFilterVO.getUser();
+			if(user != null){
+				query.append(" AND user = '" + user + "' ");
+			}
 		}
 		query.append(" ORDER BY clientId DESC ");
 

@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.arttel.controller.vo.filter.DealingFilterVO;
 import org.arttel.dictionary.DealingType;
+import org.arttel.dictionary.DocumentType;
 import org.arttel.util.Translator;
 
 public class DealingVO extends BasePageVO {
@@ -32,6 +33,7 @@ public class DealingVO extends BasePageVO {
 	private boolean editable;
 	private Integer documentId;
 	private String documentNumber;
+	private DocumentType documentType;
 
 	public String getAmount() {
 		return amount;
@@ -111,6 +113,10 @@ public class DealingVO extends BasePageVO {
 		return documentNumber;
 	}
 
+	public DocumentType getDocumentType() {
+		return documentType;
+	}
+
 	public String getFuel() {
 		return fuel;
 	}
@@ -181,7 +187,11 @@ public class DealingVO extends BasePageVO {
 		comments2 = request.getParameter("comments2");
 		comments3 = request.getParameter("comments3");
 		userName = request.getParameter("userName");
-
+		documentNumber = request.getParameter("documentNumber");
+		final String documentTypeStr = request.getParameter("documentType");
+		if(documentTypeStr != null) {
+			documentType = DocumentType.getValueByIdn(documentTypeStr);
+		}
 	}
 
 	public void setAmount(final String amount) {
@@ -230,6 +240,10 @@ public class DealingVO extends BasePageVO {
 
 	public void setDocumentNumber(final String documentNumber) {
 		this.documentNumber = documentNumber;
+	}
+
+	public void setDocumentType(final DocumentType documentType) {
+		this.documentType = documentType;
 	}
 
 	@Override

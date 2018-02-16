@@ -26,13 +26,6 @@ public class Invoice extends FinancialDocument<InvoiceProducts> {
 	@Column(name = "PaidWords")
 	private String paidWords;
 
-	@Column(name = "City")
-	private String city;
-
-	public String getCity() {
-		return city;
-	}
-
 	public BigDecimal getNetAmount() {
 		return netAmount;
 	}
@@ -51,10 +44,6 @@ public class Invoice extends FinancialDocument<InvoiceProducts> {
 
 	public BigDecimal getVatAmount() {
 		return vatAmount;
-	}
-
-	public void setCity(final String city) {
-		this.city = city;
 	}
 
 	public void setNetAmount(final BigDecimal netAmount) {
