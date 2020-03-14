@@ -102,7 +102,7 @@ public class InstallationsController extends BaseController<InstallationVO> {
 
 	@Override
 	protected TableHeader getModelDefaultHeader() {
-		return InstallationVO.resultTableHeader;
+		return InstallationVO.getResultTableHeader();
 	}
 
 	@Override

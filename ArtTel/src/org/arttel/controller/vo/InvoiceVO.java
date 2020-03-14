@@ -20,20 +20,22 @@ import com.google.common.collect.Lists;
 
 public class InvoiceVO extends FinancialDocumentVO<InvoceProductVO> implements PrintableContent{
 
-	public static final TableHeader resultTableHeader = new TableHeader(
-			new SortableColumn("documentNumber", "concat("
-					+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 10, 4), "
-					+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 7, 2), "
-					+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 1, 5))", "Numer"),
-					new SortableColumn("clientName", "i.client.clientDesc", "Klient", SortOrder.ASC),
-					new SortableColumn("grossAmount", "i.netAmount+i.vatAmount", "Kwota brutto"),
-					new SortableColumn("netAmount", "i.netAmount", "Kwota netto"),
-					new SortableColumn("createDate", "i.createDate", "Data wystawienia"),
-					new SortableColumn("paymentDate", "i.paymentDate", "Data p³atnoœci"),
-					new SortableColumn("comments", "i.comments", "Uwagi"),
-					new SortableColumn("documentStatus", "i.documentStatus", "Status"),
-					new SortableColumn("user", "u.userName", "Wystawi³")
-			);
+	public static final TableHeader getResultTableHeader(){
+		return new TableHeader(
+				new SortableColumn("documentNumber", "concat("
+						+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 10, 4), "
+						+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 7, 2), "
+						+ "substring(substring(concat('00000', i.documentNumber),length(concat('00000', i.documentNumber))-12, 13), 1, 5))", "Numer"),
+						new SortableColumn("clientName", "i.client.clientDesc", "Klient", SortOrder.ASC),
+						new SortableColumn("grossAmount", "i.netAmount+i.vatAmount", "Kwota brutto"),
+						new SortableColumn("netAmount", "i.netAmount", "Kwota netto"),
+						new SortableColumn("createDate", "i.createDate", "Data wystawienia"),
+						new SortableColumn("paymentDate", "i.paymentDate", "Data p³atnoœci"),
+						new SortableColumn("comments", "i.comments", "Uwagi"),
+						new SortableColumn("documentStatus", "i.documentStatus", "Status"),
+						new SortableColumn("user", "u.userName", "Wystawi³")
+				);
+	}
 
 	private List<InvoceProductVO> invoiceProducts = new ArrayList<InvoceProductVO>();
 	private Date signDate;

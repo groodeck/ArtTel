@@ -14,7 +14,8 @@ import org.arttel.util.Translator;
 
 public class BillVO extends FinancialDocumentVO<BillProductVO> implements PrintableContent{
 
-	public static final TableHeader resultTableHeader = new TableHeader(
+	public static final TableHeader getResultTableHeader(){
+		return new TableHeader(
 			new SortableColumn("documentNumber", "concat("
 					+ "substring(substring(concat('00000', b.documentNumber),length(concat('00000', b.documentNumber))-12, 13), 10, 4), "
 					+ "substring(substring(concat('00000', b.documentNumber),length(concat('00000', b.documentNumber))-12, 13), 7, 2), "
@@ -27,6 +28,7 @@ public class BillVO extends FinancialDocumentVO<BillProductVO> implements Printa
 					new SortableColumn("documentStatus", "b.documentStatus", "Status"),
 					new SortableColumn("user", "u.userName", "Wystawi³")
 			);
+	}
 
 	private List<BillProductVO> billProducts = new ArrayList<BillProductVO>();
 	private String amount;

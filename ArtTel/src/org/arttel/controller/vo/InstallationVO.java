@@ -16,21 +16,23 @@ import org.joda.time.LocalDate;
 
 public class InstallationVO extends BasePageVO {
 
-	public static final TableHeader resultTableHeader = new TableHeader(
-			new SortableColumn("installationId", "i.instalationId", "L.p.", SortOrder.DESC),
-			new SortableColumn("status", "i.status", "Status"),
-			new SortableColumn("installationDate", "i.installationDate", "Data instalacji"),
-			new SortableColumn("installationType", "i.installationType", "Rodzaj instalacji"),
-			new SortableColumn("address", "i.address", "Adres"),
-			new SortableColumn("twoWay1_downstream", "", "2way #1 Downstr"),
-			new SortableColumn("twoWay1_upstream", "", "2way #1 Upstr"),
-			new SortableColumn("twoWay2_downstream", "", "2way #2 Downstr"),
-			new SortableColumn("twoWay2_upstream", "", "2way #2 Upstr"),
-			new SortableColumn("modem_downstream", "", "Modem Downstr"),
-			new SortableColumn("modem_upstream", "", "Modem Upstr"),
-			new SortableColumn("comments", "i.comments", "Uwagi"),
-			new SortableColumn("user", "i.user", "Monter")
-			);
+	public static final TableHeader getResultTableHeader(){
+		return new TableHeader(
+				new SortableColumn("installationId", "i.instalationId", "L.p.", SortOrder.DESC),
+				new SortableColumn("status", "i.status", "Status"),
+				new SortableColumn("installationDate", "i.installationDate", "Data instalacji"),
+				new SortableColumn("installationType", "i.installationType", "Rodzaj instalacji"),
+				new SortableColumn("address", "i.address", "Adres"),
+				new SortableColumn("twoWay1_downstream", "", "2way #1 Downstr"),
+				new SortableColumn("twoWay1_upstream", "", "2way #1 Upstr"),
+				new SortableColumn("twoWay2_downstream", "", "2way #2 Downstr"),
+				new SortableColumn("twoWay2_upstream", "", "2way #2 Upstr"),
+				new SortableColumn("modem_downstream", "", "Modem Downstr"),
+				new SortableColumn("modem_upstream", "", "Modem Upstr"),
+				new SortableColumn("comments", "i.comments", "Uwagi"),
+				new SortableColumn("user", "i.user", "Monter")
+				);
+	}
 
 
 	private InstallationFilterVO installationFilter = new InstallationFilterVO();

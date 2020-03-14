@@ -54,7 +54,7 @@ public class DealingService {
 
 	private String determineDealingUser(final DealingVO dealingVO) throws DaoException {
 		final String dealingId = dealingVO.getDealingId();
-		if (dealingId == null){
+		if (StringUtils.isEmpty(dealingId)){
 			return null;
 		} else {
 			final DealingVO dealing = dealingDao.getDealingById(dealingId);

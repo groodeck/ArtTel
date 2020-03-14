@@ -65,10 +65,11 @@ public class HomePageController {
 	}
 
 	private void performActionLogout(final UserContext userContext,
-			final HomePageVO homePageVO) {
+			final HomePageVO homePageVO, final HttpServletRequest request) {
 
 		userContext.setUserLogged(false);
 		userContext.setUserName(null);
+		request.getSession().invalidate();
 	}
 
 	@RequestMapping("/home.app")
@@ -89,7 +90,7 @@ public class HomePageController {
 			performActionLogin(userContext, homePageVO);
 			break;
 		case LOGOUT:
-			performActionLogout(userContext, homePageVO);
+			performActionLogout(userContext, homePageVO, request);
 			break;
 		default:
 		}

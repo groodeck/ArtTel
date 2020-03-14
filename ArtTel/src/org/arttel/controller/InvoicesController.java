@@ -127,7 +127,7 @@ public class InvoicesController extends FinancialDocumentController<InvoiceVO, I
 
 	@Override
 	protected TableHeader getModelDefaultHeader() {
-		return InvoiceVO.resultTableHeader;
+		return InvoiceVO.getResultTableHeader();
 	}
 
 	@Override

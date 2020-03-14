@@ -60,7 +60,7 @@ public class InstalationDAO extends SortableDataPageFetch {
 	@SuppressWarnings("unchecked")
 	public ResultPage<Installation> getInstalationList(final InstallationFilterVO instalationFilterVO) {
 
-		final SortableColumn sortByAddress = InstallationVO.resultTableHeader.getColumns().get("address");
+		final SortableColumn sortByAddress = InstallationVO.getResultTableHeader().getColumns().get("address");
 		sortByAddress.setSortOrder(SortOrder.ASC);
 		final String query = prepareQuery(instalationFilterVO, new PageInfo(sortByAddress));
 		final List<Installation> resultList = em.createQuery(query).getResultList();

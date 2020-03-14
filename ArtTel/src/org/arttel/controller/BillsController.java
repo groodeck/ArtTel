@@ -118,7 +118,7 @@ public class BillsController extends FinancialDocumentController<BillVO, BillPro
 
 	@Override
 	protected TableHeader getModelDefaultHeader() {
-		return BillVO.resultTableHeader;
+		return BillVO.getResultTableHeader();
 	}
 
 	@Override
