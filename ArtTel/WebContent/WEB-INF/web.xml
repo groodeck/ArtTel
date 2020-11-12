@@ -8,7 +8,7 @@
 
 	<context-param>
 		<param-name>BASE_DIR</param-name>
-		<param-value>D:/arttel/apache-tomcat-7.0.11/webapps/ArtTel</param-value>
+		<param-value>C:/arttel/apache-tomcat-7.0.50/webapps/ArtTel</param-value>
 	</context-param>
 
 	<context-param>

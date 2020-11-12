@@ -10,10 +10,19 @@ public final class InvoiceFilterVO {
 
 	private String number;
 	private Date createDate;
+	private String nip;
 	private String user;
 
 	public Date getCreateDate() {
 		return createDate;
+	}
+
+	public String getNip() {
+		return nip;
+	}
+
+	public void setNip(String nip) {
+		this.nip = nip;
 	}
 
 	public String getNumber() {
@@ -27,6 +36,7 @@ public final class InvoiceFilterVO {
 	public void populate( final String filterComponentName, final HttpServletRequest request) {
 		number = Translator.emptyAsNull(request.getParameter(filterComponentName + ".number" ));
 		createDate = Translator.parseDate(request.getParameter(filterComponentName + ".createDate" ));
+		nip = Translator.emptyAsNull(request.getParameter(filterComponentName + ".nip" ));
 	}
 
 	public void setCreateDate(final Date createDate) {

@@ -25,7 +25,7 @@ public class Invoice extends FinancialDocument<InvoiceProducts> {
 
 	@Column(name = "PaidWords")
 	private String paidWords;
-
+	
 	public BigDecimal getNetAmount() {
 		return netAmount;
 	}

@@ -87,6 +87,10 @@ public class InvoiceDAO extends SortableDataPageFetch {
 			if(createDate != null){
 				query.append(" and  i.createDate = '"+ createDate +"'" );
 			}
+			final String nip = invoiceFilterVO.getNip();
+			if(nip != null) {
+				query.append(" and REPLACE(i.client.nip,'-','') = '" + nip.replace("-", "") + "'");
+			}
 			query.append(" and  i.user = '"+ invoiceFilterVO.getUser() +"'" );
 		}
 

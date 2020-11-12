@@ -87,6 +87,10 @@ public class BillDAO extends SortableDataPageFetch {
 			if(createDate != null){
 				query.append(" and  b.createDate = '"+ createDate +"'" );
 			}
+			final String nip = documentFilterVO.getNip();
+			if(nip != null) {
+				query.append(" and .client.nip = '" + nip + "'");
+			}
 			query.append(" and  b.user = '"+ documentFilterVO.getUser() +"'" );
 		}
 

@@ -46,6 +46,10 @@
 				<td class="field">
 					<custom:date name="invoiceFilter.createDate" identifier="filterCreateDate" value="${invoiceFilter.createDate}" />
 				</td>
+				<td class="label">NIP</td>
+				<td class="field">
+					<input type="text" name="invoiceFilter.nip" value="${invoiceFilter.nip}" />
+				</td>
 				<td width="10px"/>
 				<td align="right" ><input type="button" value="Szukaj" onclick="submitForm('search')"/></td>
 			</tr>
